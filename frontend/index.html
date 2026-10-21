@@ -11,12 +11,12 @@
         <span class="brand-mark" aria-hidden="true">S</span>
         <div>
           <h1>SADP<span>Tools</span></h1>
-          <p>NETWORK DEVICE DISCOVERY</p>
+          <p>NETWORK DEVICE MANAGEMENT</p>
         </div>
       </div>
       <div class="header-actions">
         <span class="badge rounded-pill text-bg-secondary"
-          >Read-only discovery</span
+          >Device management</span
         ><button id="settings-open" class="btn btn-sm btn-outline-secondary">
           Settings
         </button>
@@ -152,14 +152,26 @@
           </div>
           <div class="configuration">
             <h3>Device configuration</h3>
-            <p>Planned for a future release</p>
+            <p id="configuration-note">Select a device to manage it.</p>
             <div class="d-grid gap-2">
-              <button disabled class="btn btn-outline-secondary">
+              <button
+                id="activate-device"
+                disabled
+                class="btn btn-outline-secondary"
+              >
                 Activate device</button
-              ><button disabled class="btn btn-outline-secondary">
+              ><button
+                id="network-device"
+                disabled
+                class="btn btn-outline-secondary"
+              >
                 Configure IP / DHCP</button
-              ><button disabled class="btn btn-outline-secondary">
-                Change password
+              ><button
+                id="recover-device"
+                disabled
+                class="btn btn-outline-secondary"
+              >
+                Password recovery
               </button>
             </div>
           </div>
@@ -179,8 +191,7 @@
           ><span>Latest 500 entries · This session only</span>
         </div>
         <pre id="logs" tabindex="0" aria-label="Discovery log">
-No discovery activity yet.</pre
-        >
+No discovery activity yet.</pre>
       </details>
     </main>
     <footer class="app-footer">
@@ -228,6 +239,191 @@ No discovery activity yet.</pre
         <p id="settings-error" class="text-danger small" role="alert"></p>
         <button class="btn btn-primary w-100" type="submit">
           Save settings
+        </button>
+      </form>
+    </dialog>
+    <dialog id="operation-dialog" aria-labelledby="operation-title">
+      <form id="operation-form" autocomplete="off">
+        <div class="dialog-heading">
+          <h2 id="operation-title"></h2>
+          <button
+            type="button"
+            id="operation-close"
+            class="btn-close"
+            aria-label="Close device operation"
+          ></button>
+        </div>
+        <p id="operation-identity" class="small"></p>
+        <p id="operation-description" class="small text-body-secondary"></p>
+        <label for="operation-interface" class="form-label"
+          >Send through adapter</label
+        >
+        <select
+          id="operation-interface"
+          class="form-select mb-3"
+          required
+        ></select>
+        <fieldset id="network-fields" hidden>
+          <div class="row g-2">
+            <div class="col-6">
+              <label for="network-ip" class="form-label">IPv4 address</label
+              ><input
+                id="network-ip"
+                class="form-control"
+                placeholder="Device address"
+              />
+            </div>
+            <div class="col-6">
+              <label for="network-mask" class="form-label">Subnet mask</label
+              ><input id="network-mask" class="form-control" />
+            </div>
+            <div class="col-6">
+              <label for="network-gateway" class="form-label">Gateway</label
+              ><input
+                id="network-gateway"
+                class="form-control"
+                placeholder="0.0.0.0 for none"
+              />
+            </div>
+            <div class="col-6">
+              <label for="network-port" class="form-label"
+                >SDK command port</label
+              ><input
+                id="network-port"
+                type="number"
+                min="1"
+                max="65535"
+                class="form-control"
+              />
+            </div>
+          </div>
+          <label for="network-dhcp" class="form-label mt-3"
+            >Address assignment</label
+          ><select id="network-dhcp" class="form-select">
+            <option value="">Choose DHCP or static (not advertised)</option>
+            <option value="false">Static IPv4</option>
+            <option value="true">DHCP enabled</option>
+          </select>
+          <p class="small text-body-secondary mt-2">
+            All fields are sent. With DHCP enabled, these are the stored static
+            settings. The SDK port is separate from the web interface port. An
+            address change can disconnect existing clients.
+          </p>
+        </fieldset>
+        <fieldset id="recovery-fields" hidden>
+          <p class="small">
+            Obtain a valid reset code through your authorised support provider.
+            Support varies by firmware. Vendor XML imports, GUID files, security
+            questions and email recovery are not supported here.
+          </p>
+          <label for="challenge-method" class="form-label"
+            >Request recovery data</label
+          >
+          <div class="input-group mb-2">
+            <select id="challenge-method" class="form-select">
+              <option value="exchangecode">Exchange code</option>
+              <option value="getencryptstring">Encryption string</option>
+              <option value="getencryptstring_v31">
+                Encryption string (v3.1)
+              </option></select
+            ><button
+              id="request-challenge"
+              type="button"
+              class="btn btn-outline-primary"
+            >
+              Request data
+            </button>
+          </div>
+          <div id="challenge-result" hidden>
+            <label for="challenge-data" class="form-label"
+              >Device recovery data</label
+            ><textarea
+              id="challenge-data"
+              class="form-control"
+              rows="3"
+              readonly
+            ></textarea
+            ><button
+              id="save-challenge"
+              type="button"
+              class="btn btn-sm btn-outline-secondary mt-2 mb-3"
+            >
+              Save recovery data…
+            </button>
+          </div>
+          <label for="reset-method" class="form-label"
+            >Code submission method</label
+          ><select id="reset-method" class="form-select mb-2">
+            <option value="resetPassword">Reset password (Code)</option>
+            <option value="securityCode">Security code</option>
+          </select>
+          <label for="recovery-code" class="form-label"
+            >Authorised recovery code</label
+          ><input
+            id="recovery-code"
+            type="password"
+            autocomplete="off"
+            maxlength="4096"
+            class="form-control mb-3"
+          />
+        </fieldset>
+        <label
+          id="operation-password-label"
+          for="operation-password"
+          class="form-label"
+          >New admin password</label
+        ><input
+          id="operation-password"
+          type="password"
+          autocomplete="new-password"
+          maxlength="128"
+          class="form-control mb-2"
+          required
+        />
+        <div id="password-confirm-field">
+          <label for="operation-password-confirm" class="form-label"
+            >Confirm new password</label
+          ><input
+            id="operation-password-confirm"
+            type="password"
+            autocomplete="new-password"
+            maxlength="64"
+            class="form-control mb-2"
+          />
+        </div>
+        <p class="small text-body-secondary mt-3">
+          Passwords and codes are not saved in preferences or logs. This SADP
+          command format sends them over the local network without encryption;
+          use a trusted management network.
+        </p>
+        <p
+          id="operation-result"
+          class="small"
+          role="status"
+          aria-live="polite"
+        ></p>
+        <div class="d-flex gap-2">
+          <button
+            id="operation-submit"
+            class="btn btn-primary flex-grow-1"
+            type="submit"
+          ></button
+          ><button
+            id="operation-cancel"
+            class="btn btn-outline-secondary"
+            type="button"
+            hidden
+          >
+            Stop waiting
+          </button>
+        </div>
+        <button
+          id="operation-rediscover"
+          class="btn btn-outline-primary w-100 mt-2"
+          type="button"
+          hidden
+        >
+          Close and rediscover
         </button>
       </form>
     </dialog>

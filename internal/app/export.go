@@ -33,7 +33,7 @@ func (c *Controller) Export(ids []string, format string) ([]byte, error) {
 	case "csv":
 		var b bytes.Buffer
 		w := csv.NewWriter(&b)
-		if err := w.Write([]string{"IP address", "Model", "Device type", "MAC", "Serial number", "Firmware", "Activated", "DHCP", "HTTP port", "Subnet mask", "Gateway", "Device name", "Interfaces", "First seen", "Last seen"}); err != nil {
+		if err := w.Write([]string{"IP address", "Model", "Device type", "MAC", "Serial number", "Firmware", "Activated", "DHCP", "HTTP port", "Subnet mask", "Gateway", "Device name", "Interfaces", "First seen", "Last seen", "SDK command port", "Password reset ability", "Password reset mode"}); err != nil {
 			return nil, err
 		}
 		boolean := func(v *bool) string {
@@ -51,7 +51,11 @@ func (c *Controller) Export(ids []string, format string) ([]byte, error) {
 			if d.HTTPPort != nil {
 				port = strconv.Itoa(*d.HTTPPort)
 			}
-			record := []string{d.IPv4, d.Model, d.DeviceType, d.MAC, d.Serial, d.Firmware, boolean(d.Activated), boolean(d.DHCP), port, d.SubnetMask, d.Gateway, d.Name, strings.Join(interfaces, "; "), d.FirstSeen.Format(time.RFC3339), d.LastSeen.Format(time.RFC3339)}
+			commandPort := ""
+			if d.CommandPort != nil {
+				commandPort = strconv.Itoa(*d.CommandPort)
+			}
+			record := []string{d.IPv4, d.Model, d.DeviceType, d.MAC, d.Serial, d.Firmware, boolean(d.Activated), boolean(d.DHCP), port, d.SubnetMask, d.Gateway, d.Name, strings.Join(interfaces, "; "), d.FirstSeen.Format(time.RFC3339), d.LastSeen.Format(time.RFC3339), commandPort, d.PasswordResetAbility, d.PasswordResetMode}
 			for i, v := range record {
 				record[i] = csvCell(v)
 			}

@@ -507,3 +507,18 @@ dialog .form-label {
     gap: 10px;
   }
 }
+
+#operation-dialog {
+  width: min(620px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+#operation-identity {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  font-family: var(--bs-font-monospace);
+}
+#operation-result,
+#challenge-data {
+  overflow-wrap: anywhere;
+}

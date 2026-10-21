@@ -24,7 +24,7 @@ Source-level limitations observed in that revision:
 
 SADPTools joins multicast on each selected interface, binds UDP/37020 once per scan, rejects overlapping scans and reports partial failures. It retries inquiries once per second. It reads the actual receiving interface using Unix control messages or Windows `IP_PKTINFO` with `UDPConn.ReadMsgUDP`; it does not guess the interface from the device's source subnet. Broadcast fallback is not implemented in milestone one.
 
-[`commands.go`](https://github.com/cameronnewman/hikvision-tooling/blob/afa00e3db11bb47914e1f0d724c6975e0a41e218/internal/sadp/commands.go) has a separate multicast/broadcast command path and MAC/IP target matching; direct unicast is optional. It includes activation, configuration and password-related templates. None of those write/reset operations was integrated. Discovery accepts echoed UUIDs from the current scan; missing UUIDs require a recognized receiving adapter. Firmware returning unrelated UUIDs requires further investigation, not silent attribution.
+[`commands.go`](https://github.com/cameronnewman/hikvision-tooling/blob/afa00e3db11bb47914e1f0d724c6975e0a41e218/internal/sadp/commands.go) has a separate multicast/broadcast command path and MAC/IP target matching; direct unicast is optional. It includes activation, configuration and password-related templates. Those write/reset operations were not integrated in milestone one; the supported subset is now implemented in milestone two as described below. Discovery accepts echoed UUIDs from the current scan; missing UUIDs require a recognized receiving adapter. Firmware returning unrelated UUIDs requires further investigation, not silent attribution.
 
 ## ARP and device identification
 
@@ -48,3 +48,9 @@ The reference includes XML/parser, generated-command, redaction, MAC matching, m
 - [Wails v3 cross-platform builds](https://v3.wails.io/guides/build/cross-platform/): native Go Windows cross-compilation with CGO disabled.
 - [Wails v3 services](https://v3.wails.io/features/bindings/services/) and [method bindings](https://v3.wails.io/features/bindings/methods/): `application.NewService`, generated ES modules and lifecycle hooks. APIs were checked against pinned beta.34 source.
 - [Microsoft IP_PKTINFO](https://learn.microsoft.com/en-us/windows/win32/winsock/ip-pktinfo) and [IN_PKTINFO](https://learn.microsoft.com/en-us/windows/win32/api/ws2ipdef/ns-ws2ipdef-in_pktinfo): receive adapter metadata through `WSARecvMsg`. `x/net/ipv4` beta.34's selected dependency still does not implement Windows receive control options, so a small platform-specific implementation is necessary.
+
+## Milestone-two command research
+
+The same pinned upstream `commands.go` was inspected for activation, full network updates and code-based recovery. Its XML templates are adapted with the existing MIT notice, but requests now use `encoding/xml` escaping and validate complete settings. The reference defaults missing masks/ports, sends over multiple adapters/broadcast destinations and matches replies by substring; its send tests use discovery-shaped synthetic replies. SADPTools instead requires a single adapter, sends once and demands matching MAC/UUID/type plus a recognised result before acknowledging success. Upstream command existence does not establish firmware support.
+
+The reference's `reset` generator is for legacy firmware; it is not a general modern recovery workflow. This milestone requests recovery data and accepts authorised codes, without guessing vendor XML formats or adding automatic reset-code generation. Hikvision's documented export/support/import workflows vary by device. See [device-management research, source links and limitations](device-management.md).

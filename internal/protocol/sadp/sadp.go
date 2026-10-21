@@ -1,4 +1,4 @@
-// Package sadp implements read-only Hikvision inquiry messages.
+// Package sadp implements Hikvision discovery and device-management messages.
 // Wire templates and XML field mappings adapted from hikvision-tooling.
 // Copyright (c) 2025 Cameron Newman. MIT: see LICENSES/hikvision-tooling-MIT.txt.
 package sadp
@@ -53,21 +53,24 @@ func Probes(id string) ([][]byte, error) {
 }
 
 type response struct {
-	XMLName     xml.Name `xml:"ProbeMatch"`
-	UUID        string   `xml:"Uuid"`
-	Types       string   `xml:"Types"`
-	DeviceType  string   `xml:"DeviceType"`
-	Description string   `xml:"DeviceDescription"`
-	Serial      string   `xml:"DeviceSN"`
-	MAC         string   `xml:"MAC"`
-	IPv4        string   `xml:"IPv4Address"`
-	Mask        string   `xml:"IPv4SubnetMask"`
-	Gateway     string   `xml:"IPv4Gateway"`
-	Firmware    string   `xml:"SoftwareVersion"`
-	Activated   string   `xml:"Activated"`
-	DHCP        string   `xml:"DHCP"`
-	HTTPPort    string   `xml:"HttpPort"`
-	Name        string   `xml:"DeviceName"`
+	XMLName      xml.Name `xml:"ProbeMatch"`
+	UUID         string   `xml:"Uuid"`
+	Types        string   `xml:"Types"`
+	DeviceType   string   `xml:"DeviceType"`
+	Description  string   `xml:"DeviceDescription"`
+	Serial       string   `xml:"DeviceSN"`
+	MAC          string   `xml:"MAC"`
+	IPv4         string   `xml:"IPv4Address"`
+	Mask         string   `xml:"IPv4SubnetMask"`
+	Gateway      string   `xml:"IPv4Gateway"`
+	Firmware     string   `xml:"SoftwareVersion"`
+	Activated    string   `xml:"Activated"`
+	DHCP         string   `xml:"DHCP"`
+	HTTPPort     string   `xml:"HttpPort"`
+	Name         string   `xml:"DeviceName"`
+	CommandPort  string   `xml:"CommandPort"`
+	ResetAbility string   `xml:"PasswordResetAbility"`
+	ResetMode    string   `xml:"PasswordResetModeSecond"`
 }
 
 type Reply struct {
@@ -114,10 +117,14 @@ func Parse(data []byte) (Reply, error) {
 		MAC: devices.NormalizeMAC(r.MAC), Serial: strings.TrimSpace(r.Serial),
 		IPv4: ipv4(r.IPv4), SubnetMask: ipv4(r.Mask), Gateway: ipv4(r.Gateway),
 		Firmware: strings.TrimSpace(r.Firmware), Name: strings.TrimSpace(r.Name),
+		PasswordResetAbility: strings.TrimSpace(r.ResetAbility), PasswordResetMode: strings.TrimSpace(r.ResetMode),
 		Activated: optionalBool(r.Activated), DHCP: optionalBool(r.DHCP),
 	}
 	if p, err := strconv.Atoi(strings.TrimSpace(r.HTTPPort)); err == nil && p > 0 && p <= 65535 {
 		d.HTTPPort = &p
+	}
+	if p, err := strconv.Atoi(strings.TrimSpace(r.CommandPort)); err == nil && p > 0 && p <= 65535 {
+		d.CommandPort = &p
 	}
 	if d.Key() == "" {
 		return Reply{}, errors.New("reply has neither a valid MAC nor serial number")

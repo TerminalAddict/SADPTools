@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/TerminalAddict/SADPTools/internal/configuration"
 	"github.com/TerminalAddict/SADPTools/internal/devices"
 	"github.com/TerminalAddict/SADPTools/internal/discovery"
 	"github.com/TerminalAddict/SADPTools/internal/platform"
@@ -24,34 +25,38 @@ type LogEntry struct {
 	Details string `json:"details"`
 }
 type Snapshot struct {
-	Devices   []devices.Device `json:"devices"`
-	Scanning  bool             `json:"scanning"`
-	LastScan  string           `json:"lastScan"`
-	LastError string           `json:"lastError"`
-	Warnings  []string         `json:"warnings"`
-	Logs      []LogEntry       `json:"logs"`
+	Devices     []devices.Device `json:"devices"`
+	Configuring bool             `json:"configuring"`
+	Scanning    bool             `json:"scanning"`
+	LastScan    string           `json:"lastScan"`
+	LastError   string           `json:"lastError"`
+	Warnings    []string         `json:"warnings"`
+	Logs        []LogEntry       `json:"logs"`
 }
 
 type Controller struct {
-	mu         sync.Mutex
-	logMu      sync.Mutex
-	inventory  *devices.Inventory
-	scanner    Scanner
-	log        *slog.Logger
-	logs       []LogEntry
-	settings   Settings
-	path       string
-	ctx        context.Context
-	cancel     context.CancelFunc
-	scanCancel context.CancelFunc
-	wg         sync.WaitGroup
-	closed     bool
-	scanning   bool
-	lastScan   string
-	lastError  string
-	warnings   []string
-	nextScan   time.Time
-	notify     func()
+	mu              sync.Mutex
+	logMu           sync.Mutex
+	inventory       *devices.Inventory
+	scanner         Scanner
+	writer          configuration.Engine
+	configuring     bool
+	operationCancel context.CancelFunc
+	log             *slog.Logger
+	logs            []LogEntry
+	settings        Settings
+	path            string
+	ctx             context.Context
+	cancel          context.CancelFunc
+	scanCancel      context.CancelFunc
+	wg              sync.WaitGroup
+	closed          bool
+	scanning        bool
+	lastScan        string
+	lastError       string
+	warnings        []string
+	nextScan        time.Time
+	notify          func()
 }
 
 func New(path string, notify func()) *Controller {
@@ -59,6 +64,7 @@ func New(path string, notify func()) *Controller {
 	c := &Controller{inventory: devices.NewInventory(), path: path, ctx: ctx, cancel: cancel, notify: notify, logs: []LogEntry{}, warnings: []string{}}
 	c.log = slog.New(slog.NewJSONHandler(c, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	c.scanner = discovery.New(c.log)
+	c.writer = configuration.New(c.log)
 	s, err := loadSettings(path)
 	c.settings = s
 	if err != nil {
@@ -125,7 +131,7 @@ func (c *Controller) Interfaces() ([]platform.Adapter, error) {
 }
 func (c *Controller) Snapshot() Snapshot {
 	c.mu.Lock()
-	s := Snapshot{Scanning: c.scanning, LastScan: c.lastScan, LastError: c.lastError, Warnings: append([]string{}, c.warnings...)}
+	s := Snapshot{Configuring: c.configuring, Scanning: c.scanning, LastScan: c.lastScan, LastError: c.lastError, Warnings: append([]string{}, c.warnings...)}
 	c.mu.Unlock()
 	s.Devices = c.inventory.Snapshot()
 	c.logMu.Lock()
@@ -138,6 +144,10 @@ func (c *Controller) StartScan() error {
 	if c.closed {
 		c.mu.Unlock()
 		return errors.New("application is closing")
+	}
+	if c.configuring {
+		c.mu.Unlock()
+		return configuration.ErrBusy
 	}
 	if c.scanning {
 		c.mu.Unlock()
@@ -194,7 +204,7 @@ func (c *Controller) automaticLoop() {
 			return
 		case now := <-ticker.C:
 			c.mu.Lock()
-			ready := c.settings.Automatic && !c.scanning && !now.Before(c.nextScan)
+			ready := c.settings.Automatic && !c.scanning && !c.configuring && !now.Before(c.nextScan)
 			c.mu.Unlock()
 			if ready {
 				_ = c.StartScan()

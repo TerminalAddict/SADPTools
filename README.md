@@ -2,7 +2,7 @@
 
 A native Go desktop utility and CLI for discovering Hikvision devices. Built with **Wails v3**, Bootstrap 5 and vanilla JavaScript. Windows 10/11 AMD64 is the primary desktop target; Linux is also supported.
 
-Milestone one implements read-only SADP discovery. Activation, address/DHCP changes, password changes and other configuration are intentionally unavailable. SADPTools adds no account, cloud service or telemetry. The Windows display runtime is supplied by Microsoft and has its own update and privacy terms, included with setup.
+Milestone two adds single-device activation, IPv4/DHCP/SDK-port configuration and code-based password recovery to the CLI and desktop. These write operations have synthetic test coverage but still require physical-device/firmware validation. SADPTools adds no account, cloud service or telemetry. The Windows display runtime is supplied by Microsoft and has its own update and privacy terms, included with setup.
 
 ## Install on Windows
 
@@ -17,7 +17,8 @@ Setup automatically prepares the display component if needed. It installs SADPTo
 - Device model/type, network settings, MAC, serial, firmware, activation, DHCP, HTTP port and device name when advertised. Unknown values remain empty/null.
 - CLI table/JSON output and useful diagnostics/exit codes.
 - Desktop inventory with sorting, searching, selection, retained results, device details, native CSV/JSON export, web-interface action, diagnostic log, light/dark themes and saved discovery preferences.
-- One active scan at a time. Automatic scanning starts its interval after the previous scan finishes. Last-seen timestamps identify old observations; missing one scan does not mark a device offline.
+- Device action dialogs, explicit adapter selection, password input without persistent storage, recovery-data requests/export and support-code submission. See [device management](docs/device-management.md) for workflows and compatibility limits.
+- One active scan or device operation at a time. Automatic scanning starts its interval after the previous scan finishes. Last-seen timestamps identify old observations; missing one scan does not mark a device offline.
 
 A one-second scan on Sparx received **17 real devices** during initial validation. This verifies basic Linux discovery on that network, not every firmware, VLAN, firewall or Windows adapter combination. See [validation results](docs/validation.md).
 
@@ -45,7 +46,11 @@ Replace `ADAPTER NAME` with an exact name from `interfaces`; spaces are supporte
 | 1 | Network, socket, I/O or other failure |
 | 2 | Invalid command/arguments |
 | 3 | Partial scan; one or more adapter operations failed |
+| 4 | Device rejected a configuration command |
+| 5 | Command outcome unconfirmed; verify before retrying |
 | 130 | Cancelled with Ctrl+C; any partial results are still printed |
+
+For activation, network changes and recovery commands, see [the device-management guide](docs/device-management.md). The CLI supports the reference-style `sadptools send <IP> activate --mac ...` syntax, with a required `--interface` and stdin/environment password options.
 
 ## Build and run the desktop
 
@@ -112,7 +117,7 @@ This implementation uses UDP SADP, not the legacy raw-Ethernet protocol or an AR
 | `internal/platform/` | Adapter selection, multicast sockets, Windows packet metadata |
 | `internal/discovery/` | Scan lifecycle, retries, cancellation and correlation |
 | `internal/devices/` | Normalized device model and synchronized inventory |
-| `internal/configuration/` | Future configuration contracts; no write implementation |
+| `internal/configuration/` | Single-device validation, SADP transactions and confirmed/rejected/uncertain outcomes |
 | `internal/app/` | GUI-independent controller, preferences, diagnostics and export |
 | `main.go`, `desktop.go` | Wails v3 entry point and desktop service |
 | `frontend/` | Bootstrap UI, vanilla JS/CSS and generated bindings |

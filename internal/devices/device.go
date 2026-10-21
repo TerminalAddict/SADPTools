@@ -16,22 +16,25 @@ type Interface struct {
 
 // Nil booleans and ports mean the device did not report a recognized value.
 type Device struct {
-	ID         string      `json:"id"`
-	Model      string      `json:"model"`
-	DeviceType string      `json:"deviceType"`
-	IPv4       string      `json:"ipv4"`
-	SubnetMask string      `json:"subnetMask"`
-	Gateway    string      `json:"gateway"`
-	MAC        string      `json:"mac"`
-	Serial     string      `json:"serial"`
-	Firmware   string      `json:"firmware"`
-	Activated  *bool       `json:"activated"`
-	DHCP       *bool       `json:"dhcp"`
-	HTTPPort   *int        `json:"httpPort"`
-	Name       string      `json:"name"`
-	Interfaces []Interface `json:"interfaces"`
-	FirstSeen  time.Time   `json:"firstSeen"`
-	LastSeen   time.Time   `json:"lastSeen"`
+	ID                   string      `json:"id"`
+	Model                string      `json:"model"`
+	DeviceType           string      `json:"deviceType"`
+	IPv4                 string      `json:"ipv4"`
+	SubnetMask           string      `json:"subnetMask"`
+	Gateway              string      `json:"gateway"`
+	MAC                  string      `json:"mac"`
+	Serial               string      `json:"serial"`
+	Firmware             string      `json:"firmware"`
+	Activated            *bool       `json:"activated"`
+	DHCP                 *bool       `json:"dhcp"`
+	HTTPPort             *int        `json:"httpPort"`
+	CommandPort          *int        `json:"commandPort"`
+	PasswordResetAbility string      `json:"passwordResetAbility"`
+	PasswordResetMode    string      `json:"passwordResetMode"`
+	Name                 string      `json:"name"`
+	Interfaces           []Interface `json:"interfaces"`
+	FirstSeen            time.Time   `json:"firstSeen"`
+	LastSeen             time.Time   `json:"lastSeen"`
 }
 
 func NormalizeMAC(s string) string {

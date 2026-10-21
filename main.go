@@ -19,7 +19,7 @@ func main() {
 		log.Fatal(err)
 	}
 	desktop := application.New(application.Options{
-		Name: "SADPTools", Description: "Hikvision network discovery utility",
+		Name: "SADPTools", Description: "Hikvision discovery and device management",
 		Assets: application.AssetOptions{Handler: application.AssetFileServerFS(assets)},
 		Mac:    application.MacOptions{ApplicationShouldTerminateAfterLastWindowClosed: true},
 	})

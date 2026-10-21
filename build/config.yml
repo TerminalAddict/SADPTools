@@ -3,9 +3,9 @@ info:
   companyName: TerminalAddict
   productName: SADPTools
   productIdentifier: io.github.terminaladdict.sadptools
-  description: Hikvision network discovery utility
+  description: Hikvision discovery and device management
   copyright: Copyright (c) 2026 SADPTools contributors
-  version: 0.1.0
+  version: 0.2.0
 dev_mode:
   root_path: .
   log_level: warn

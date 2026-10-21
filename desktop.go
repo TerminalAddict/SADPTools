@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/TerminalAddict/SADPTools/internal/app"
+	"github.com/TerminalAddict/SADPTools/internal/configuration"
 	"github.com/TerminalAddict/SADPTools/internal/platform"
 	"github.com/TerminalAddict/SADPTools/internal/version"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -46,6 +47,26 @@ func (s *DesktopService) ExportDevices(ids []string, format string) (string, err
 	}
 	if err = os.WriteFile(path, content, 0600); err != nil {
 		return "", fmt.Errorf("export inventory: %w", err)
+	}
+	return path, nil
+}
+
+func (s *DesktopService) ConfigureDevice(id string, request configuration.Request) (configuration.Result, error) {
+	return s.controller.Configure(id, request)
+}
+func (s *DesktopService) CancelOperation() { s.controller.CancelOperation() }
+
+func (s *DesktopService) SaveRecoveryData(id string, result configuration.Result) (string, error) {
+	data, err := s.controller.RecoveryExport(id, result)
+	if err != nil {
+		return "", err
+	}
+	path, err := s.app.Dialog.SaveFile().SetFilename("sadptools-recovery.json").AddFilter("Private recovery data", "*.json").PromptForSingleSelection()
+	if err != nil || path == "" {
+		return "", err
+	}
+	if err = os.WriteFile(path, data, 0600); err != nil {
+		return "", fmt.Errorf("save recovery data: %w", err)
 	}
 	return path, nil
 }

@@ -2,6 +2,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./style.css";
 import { Events } from "@wailsio/runtime";
 import * as Backend from "../bindings/github.com/TerminalAddict/SADPTools/desktopservice.js";
+import { initConfiguration } from "./configuration.js";
 import { activation, model, visibleDevices } from "./view.js";
 
 const $ = (id) => document.getElementById(id);
@@ -103,23 +104,26 @@ function render() {
     : snapshot.lastScan
       ? "Check the selected adapter, local network and firewall, then try again."
       : "Choose a network adapter, then select Discover devices. Devices appear as they respond.";
-  $("discover").disabled = snapshot.scanning;
+  $("discover").disabled = snapshot.scanning || snapshot.configuring;
   $("cancel").hidden = !snapshot.scanning;
-  $("adapter").disabled = snapshot.scanning;
-  $("scan-status").textContent = snapshot.scanning
-    ? "Discovering…"
-    : snapshot.lastError
-      ? "Scan failed"
-      : snapshot.warnings.length
-        ? "Completed with warnings"
-        : snapshot.lastScan
-          ? "Scan complete"
-          : "Ready to discover";
+  $("adapter").disabled = snapshot.scanning || snapshot.configuring;
+  $("scan-status").textContent = snapshot.configuring
+    ? "Device operation…"
+    : snapshot.scanning
+      ? "Discovering…"
+      : snapshot.lastError
+        ? "Scan failed"
+        : snapshot.warnings.length
+          ? "Completed with warnings"
+          : snapshot.lastScan
+            ? "Scan complete"
+            : "Ready to discover";
   $("scan-dot").classList.toggle("scanning", snapshot.scanning);
   $("export").disabled = list.length === 0;
   $("last-scan").textContent = snapshot.lastScan
     ? `Last scan ${date(snapshot.lastScan)}`
     : "No scan completed";
+  updateConfiguration();
   renderDetails();
   renderLogs();
 }
@@ -143,6 +147,9 @@ function renderDetails() {
     ["Device type", d.deviceType],
     ["DHCP", d.dhcp === null ? "Unknown" : d.dhcp ? "Enabled" : "Disabled"],
     ["HTTP port", d.httpPort],
+    ["SDK command port", d.commandPort],
+    ["Recovery ability (advertised)", d.passwordResetAbility],
+    ["Recovery mode (advertised)", d.passwordResetMode],
     [
       "Discovered on",
       d.interfaces.map((a) => `${a.name} · ${a.address}`).join("\n"),
@@ -333,4 +340,11 @@ async function init() {
     $("automatic").disabled = true;
   }
 }
+const updateConfiguration = initConfiguration({
+  getDevice: () => snapshot.devices.find((d) => d.id === selected),
+  getSnapshot: () => snapshot,
+  getSettings: () => settings,
+  refresh,
+  notice,
+});
 void init();

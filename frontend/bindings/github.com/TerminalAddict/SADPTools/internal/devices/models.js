@@ -99,6 +99,27 @@ export class Device {
              */
             this["httpPort"] = null;
         }
+        if (!("commandPort" in $$source)) {
+            /**
+             * @member
+             * @type {number | null}
+             */
+            this["commandPort"] = null;
+        }
+        if (!("passwordResetAbility" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["passwordResetAbility"] = "";
+        }
+        if (!("passwordResetMode" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["passwordResetMode"] = "";
+        }
         if (!("name" in $$source)) {
             /**
              * @member
@@ -137,10 +158,10 @@ export class Device {
      * @returns {Device}
      */
     static createFrom($$source = {}) {
-        const $$createField13_0 = $$createType1;
+        const $$createField16_0 = $$createType1;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("interfaces" in $$parsedSource) {
-            $$parsedSource["interfaces"] = $$createField13_0($$parsedSource["interfaces"]);
+            $$parsedSource["interfaces"] = $$createField16_0($$parsedSource["interfaces"]);
         }
         return new Device(/** @type {Partial<Device>} */($$parsedSource));
     }

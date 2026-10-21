@@ -128,6 +128,13 @@ export class Snapshot {
              */
             this["devices"] = [];
         }
+        if (!("configuring" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["configuring"] = false;
+        }
         if (!("scanning" in $$source)) {
             /**
              * @member
@@ -174,17 +181,17 @@ export class Snapshot {
      */
     static createFrom($$source = {}) {
         const $$createField0_0 = $$createType1;
-        const $$createField4_0 = $$createType2;
-        const $$createField5_0 = $$createType4;
+        const $$createField5_0 = $$createType2;
+        const $$createField6_0 = $$createType4;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("devices" in $$parsedSource) {
             $$parsedSource["devices"] = $$createField0_0($$parsedSource["devices"]);
         }
         if ("warnings" in $$parsedSource) {
-            $$parsedSource["warnings"] = $$createField4_0($$parsedSource["warnings"]);
+            $$parsedSource["warnings"] = $$createField5_0($$parsedSource["warnings"]);
         }
         if ("logs" in $$parsedSource) {
-            $$parsedSource["logs"] = $$createField5_0($$parsedSource["logs"]);
+            $$parsedSource["logs"] = $$createField6_0($$parsedSource["logs"]);
         }
         return new Snapshot(/** @type {Partial<Snapshot>} */($$parsedSource));
     }

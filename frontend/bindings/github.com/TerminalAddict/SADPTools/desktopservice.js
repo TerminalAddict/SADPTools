@@ -16,13 +16,34 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 import * as app$0 from "./internal/app/models.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
+import * as configuration$0 from "./internal/configuration/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
 import * as platform$0 from "./internal/platform/models.js";
+
+/**
+ * @returns {$CancellablePromise<void>}
+ */
+export function CancelOperation() {
+    return $Call.ByID(3746680168);
+}
 
 /**
  * @returns {$CancellablePromise<void>}
  */
 export function CancelScan() {
     return $Call.ByID(2221911850);
+}
+
+/**
+ * @param {string} id
+ * @param {configuration$0.Request} request
+ * @returns {$CancellablePromise<configuration$0.Result>}
+ */
+export function ConfigureDevice(id, request) {
+    return $Call.ByID(1765866625, id, request).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
 }
 
 /**
@@ -39,7 +60,7 @@ export function ExportDevices(ids, format) {
  */
 export function GetSettings() {
     return $Call.ByID(682518218).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType0($result);
+        return $$createType1($result);
     }));
 }
 
@@ -48,7 +69,7 @@ export function GetSettings() {
  */
 export function Interfaces() {
     return $Call.ByID(456230649).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType2($result);
+        return $$createType3($result);
     }));
 }
 
@@ -58,6 +79,15 @@ export function Interfaces() {
  */
 export function OpenDevice(id) {
     return $Call.ByID(3129080327, id);
+}
+
+/**
+ * @param {string} id
+ * @param {configuration$0.Result} result
+ * @returns {$CancellablePromise<string>}
+ */
+export function SaveRecoveryData(id, result) {
+    return $Call.ByID(127789527, id, result);
 }
 
 /**
@@ -73,7 +103,7 @@ export function SaveSettings(settings) {
  */
 export function Snapshot() {
     return $Call.ByID(431882765).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType3($result);
+        return $$createType4($result);
     }));
 }
 
@@ -92,7 +122,8 @@ export function Version() {
 }
 
 // Private type creation functions
-const $$createType0 = app$0.Settings.createFrom;
-const $$createType1 = platform$0.Adapter.createFrom;
-const $$createType2 = $Create.Array($$createType1);
-const $$createType3 = app$0.Snapshot.createFrom;
+const $$createType0 = configuration$0.Result.createFrom;
+const $$createType1 = app$0.Settings.createFrom;
+const $$createType2 = platform$0.Adapter.createFrom;
+const $$createType3 = $Create.Array($$createType2);
+const $$createType4 = app$0.Snapshot.createFrom;

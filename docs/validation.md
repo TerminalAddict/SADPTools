@@ -80,4 +80,20 @@ These are build/archive checks on Linux, not proof that Windows setup has run su
 5. Test multicast restrictions, IGMP snooping, Wi-Fi isolation and absent replies; compare with the official SADP Tool on the same interface. Legacy raw-Ethernet discovery and broadcast-only firmware are outside this UDP milestone.
 6. Exercise long-running periodic discovery and GUI usability on a normal desktop at different DPI/scale settings. Unit tests verify repeated socket cleanup and non-overlap, but no multi-hour hardware soak was performed.
 
-Device activation, IP/DHCP writes, password recovery, firmware management, ISAPI, ONVIF and other manufacturers remain future work. Their UI controls are disabled and no write path is registered.
+At the end of milestone one, device writes and recovery remained future work. Milestone two adds the subset described below; firmware management, ISAPI, ONVIF and other manufacturers remain future work.
+
+
+## Milestone two: single-device management (0.2.0-dev)
+
+Implemented and validated on Sparx on 21 October 2026:
+
+- Native SADP activation; full IPv4/subnet/gateway/SDK-port/DHCP updates; exchange/encryption-string recovery data requests; support-code password reset using `resetPassword` or `securityCode`.
+- Desktop forms, explicit target/adapter selection, operation cancellation, scan/write exclusion, private recovery-data export and CLI `send` commands with stdin/environment credential sources and redacted dry runs.
+- Additional discovery fields: advertised SDK command port, password-reset ability and reset mode, retained as supplied without inventing capability meanings.
+- `go test ./...`, `go vet ./...`, `go test -race ./...`, `go test -tags desktop ./...`, `go vet -tags desktop ./...` and Windows AMD64 desktop vet passed.
+- Five frontend tests and five packaging tests passed. The frontend, Linux CLI, Linux GTK4 desktop and Windows AMD64 offline installer built successfully. NSIS archive integrity and the SHA-256 sidecar passed verification.
+- New synthetic tests cover all command XML formats, credential escaping, duplicate/nested/malformed XML rejection, target/UUID/type/receive-interface correlation, explicit success/rejection/unknown statuses, recovery payloads, password/network validation, cancellation/timeouts, repeated socket cleanup, concurrency, shutdown, credential isolation, recovery-export identity checks, CLI dry runs, input sources and exit codes. Configuration package statement coverage was 87.8% in the initial milestone-two run.
+- A CLI dry run with a synthetic MAC/password and nonexistent adapter produced a redacted plan and did not open a socket.
+- The production Linux GUI ran under Xvfb with temporary settings. Read-only discovery again found 17 devices. Selecting an active device disabled activation and enabled network/recovery controls. The network form showed observed address/mask/gateway/SDK port/DHCP and the discovered adapter; the password recovery form opened and closed correctly. No action-submit or recovery-data request was used. Screenshots remain outside Git because they include real inventory data.
+
+**No physical-device activation, network modification, recovery challenge or password-reset request was sent.** The new commands are implemented, not hardware-certified. Windows startup/installation and live write compatibility are still untested. Firmware requiring encrypted commands, broadcast fallback, different reply correlation or vendor XML/GUID/email recovery is outside the implemented subset. A timeout can follow a successful device change and must not trigger an automatic retry. See [device-management acceptance checks](device-management.md).

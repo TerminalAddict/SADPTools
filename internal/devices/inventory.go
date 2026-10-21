@@ -27,6 +27,10 @@ func clone(d Device) Device {
 		v := *d.HTTPPort
 		d.HTTPPort = &v
 	}
+	if d.CommandPort != nil {
+		v := *d.CommandPort
+		d.CommandPort = &v
+	}
 	return d
 }
 
@@ -114,6 +118,8 @@ func mergeFields(old, d Device) Device {
 	merge(&old.Serial, d.Serial)
 	merge(&old.Firmware, d.Firmware)
 	merge(&old.Name, d.Name)
+	merge(&old.PasswordResetAbility, d.PasswordResetAbility)
+	merge(&old.PasswordResetMode, d.PasswordResetMode)
 	if d.Activated != nil {
 		old.Activated = d.Activated
 	}
@@ -122,6 +128,9 @@ func mergeFields(old, d Device) Device {
 	}
 	if d.HTTPPort != nil {
 		old.HTTPPort = d.HTTPPort
+	}
+	if d.CommandPort != nil {
+		old.CommandPort = d.CommandPort
 	}
 	for _, found := range d.Interfaces {
 		seen := false
