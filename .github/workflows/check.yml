@@ -39,12 +39,15 @@ jobs:
           node-version: "24"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - run: make tools windows
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python3 -m unittest discover -s build/windows -p 'test_*.py'
+      - run: make tools windows-installer
+      - run: 7z t bin/SADPTools-Setup-windows-amd64.exe
       - uses: actions/upload-artifact@v4
         with:
-          name: SADPTools-windows-amd64
+          name: SADPTools-Windows-installer
           path: |
-            bin/SADPTools-windows-amd64.exe
-            bin/LICENSE
-            bin/THIRD_PARTY_NOTICES.md
-            bin/LICENSES/
+            bin/SADPTools-Setup-windows-amd64.exe
+            bin/SADPTools-Setup-windows-amd64.exe.sha256

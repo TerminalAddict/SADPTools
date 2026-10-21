@@ -2,7 +2,7 @@ WAILS_VERSION := v3.0.0-beta.34
 WAILS := $(shell go env GOPATH)/bin/wails3
 export PATH := $(dir $(WAILS)):$(PATH)
 
-.PHONY: tools cli frontend bindings windows linux-gui check dev
+.PHONY: tools cli frontend bindings windows windows-installer installer linux-gui check dev
 
 tools:
 	go install github.com/wailsapp/wails/v3/cmd/wails3@$(WAILS_VERSION)
@@ -26,11 +26,17 @@ windows:
 linux-gui:
 	$(WAILS) build GOOS=linux GOARCH=amd64
 
+installer: windows-installer
+
+windows-installer:
+	$(WAILS) package GOOS=windows GOARCH=amd64
+
 check:
 	go test ./...
 	go vet ./...
 	go test -race ./...
 	npm --prefix frontend test
+	python3 -m unittest discover -s build/windows -p 'test_*.py'
 
 dev:
 	$(WAILS) dev -config build/config.yml

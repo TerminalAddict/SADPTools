@@ -2,7 +2,13 @@
 
 A native Go desktop utility and CLI for discovering Hikvision devices. Built with **Wails v3**, Bootstrap 5 and vanilla JavaScript. Windows 10/11 AMD64 is the primary desktop target; Linux is also supported.
 
-Milestone one implements read-only SADP discovery. Activation, address/DHCP changes, password changes and other configuration are intentionally unavailable. No account, cloud service or telemetry is used.
+Milestone one implements read-only SADP discovery. Activation, address/DHCP changes, password changes and other configuration are intentionally unavailable. SADPTools adds no account, cloud service or telemetry. The Windows display runtime is supplied by Microsoft and has its own update and privacy terms, included with setup.
+
+## Install on Windows
+
+Run **`SADPTools-Setup-windows-amd64.exe`**, follow setup, then open **SADPTools** from the Start menu. Setup includes everything needed to run the application on Windows 10/11 AMD64 and works without an internet connection. There are no separate prerequisites to download or configure.
+
+Setup automatically prepares the display component if needed. It installs SADPTools for the current user and provides an entry in Windows' installed-apps list for removal. Builds are currently unsigned, so Windows may show a publisher/SmartScreen warning. Installation and startup still need validation on Windows; see [validation results](docs/validation.md).
 
 ## What works
 
@@ -47,12 +53,16 @@ Toolchain used: Go 1.26.8, Node 24.21.0, npm 11.16.0, Wails **v3.0.0-beta.34**. 
 
 ```sh
 make tools
-make windows
+make windows-installer
 ```
 
-The Windows artifact is **`bin/SADPTools-windows-amd64.exe`**. Copy it with `bin/LICENSE`, `bin/THIRD_PARTY_NOTICES.md` and `bin/LICENSES/` to a Windows 10/11 AMD64 machine, then launch the EXE. Microsoft WebView2 Runtime must be installed. This is an unsigned portable development build, not an installer.
+The user-facing artifact is **`bin/SADPTools-Setup-windows-amd64.exe`** (about 208 MiB), with a `.sha256` checksum alongside it. This one file contains the app, licence notices and Microsoft's complete offline WebView2 installer. Users do not need Go, Node, Wails, or a separate runtime download.
 
-The Windows cross-build runs entirely on Linux, with `CGO_ENABLED=0`; no Docker, MinGW, administrator rights or display is required. The underlying command is `wails3 build GOOS=windows GOARCH=amd64`. Add `$(go env GOPATH)/bin` to PATH when calling `wails3` directly. See [Wails cross-platform builds](https://v3.wails.io/guides/build/cross-platform/).
+Packaging requires Python 3.11+ and NSIS 3.10. On Ubuntu 24.04+ AMD64, missing NSIS tools are downloaded, checksum-verified and extracted into the ignored `.cache/windows-installer/` directory automatically; no administrator rights or system package installation are used. Initial builds need internet access to download dependencies. Subsequent packaging can use the verified cache. See [Windows packaging](docs/windows-packaging.md) for build inputs, maintenance and target-platform checks.
+
+`make windows` still produces `bin/SADPTools-windows-amd64.exe` for development; that raw EXE uses an already installed WebView2 runtime. Distribute the **Setup** EXE to end users.
+
+The Windows cross-build runs entirely on Linux, with `CGO_ENABLED=0`; no Docker, MinGW, administrator rights or display is required. The installer command is `wails3 package GOOS=windows GOARCH=amd64`; the binary-only command is `wails3 build GOOS=windows GOARCH=amd64`. Add `$(go env GOPATH)/bin` to PATH when calling `wails3` directly. See [Wails cross-platform builds](https://v3.wails.io/guides/build/cross-platform/).
 
 For Linux:
 
@@ -73,7 +83,7 @@ No privileged packages were installed during development. Sparx already had thes
 ## Development and checks
 
 ```sh
-make check          # Go tests, vet, race detector; frontend logic tests
+make check          # Go tests, vet, race detector; frontend and packaging tests
 make frontend       # Generate JS bindings, npm ci, Vite production build
 make bindings       # Regenerate committed Go-to-JavaScript bindings
 make dev            # Wails desktop development, on a graphical Linux host

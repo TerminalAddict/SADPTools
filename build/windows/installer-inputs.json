@@ -1,0 +1,24 @@
+{
+  "webview2": {
+    "version": "155.0.4283.62",
+    "filename": "MicrosoftEdgeWebView2RuntimeInstallerX64.exe",
+    "url": "https://msedge.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/35871e19-d11b-432d-9d1e-7be0ff286540/MicrosoftEdgeWebView2RuntimeInstallerX64.exe",
+    "sha256": "0625fb5c1e75be58a164e14f95aa58a3e5badb859b3d17c952385f3e4a9ff3e8",
+    "size": 214156024
+  },
+  "nsis_version": "3.10",
+  "nsis_linux_amd64": [
+    {
+      "filename": "nsis_3.10-2ubuntu2_amd64.deb",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/universe/n/nsis/nsis_3.10-2ubuntu2_amd64.deb",
+      "sha256": "a467b73f6498fa77eb7f5e69dbb3a740bff67fb5a136b74e2d85d5f077478538",
+      "size": 327900
+    },
+    {
+      "filename": "nsis-common_3.10-2ubuntu2_all.deb",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/universe/n/nsis/nsis-common_3.10-2ubuntu2_all.deb",
+      "sha256": "85235ccadf16de6ea9d9893f06e37e4767fba23c18030a0b6f29e484adb57bf8",
+      "size": 994812
+    }
+  ]
+}

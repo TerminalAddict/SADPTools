@@ -15,6 +15,14 @@ tasks:
   run:
     cmds:
       - 'bin/SADPTools-{{.GOOS}}-{{.TARGET_ARCH}}{{if eq .GOOS "windows"}}.exe{{end}}'
+  package:
+    desc: Build the Windows AMD64 offline installer
+    preconditions:
+      - sh: '[ "{{.GOOS}}" = "windows" ] && [ "{{.TARGET_ARCH}}" = "amd64" ]'
+        msg: Installer packaging currently supports GOOS=windows GOARCH=amd64.
+    cmds:
+      - task: build
+      - task: windows:package
   dev:
     cmds:
       - wails3 dev -config build/config.yml

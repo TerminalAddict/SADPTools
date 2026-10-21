@@ -48,17 +48,32 @@ Real device addresses, serial numbers, raw captures and GUI screenshots were not
 ## Build artifacts
 
 - `bin/sadptools` — Linux CLI.
-- `bin/SADPTools-windows-amd64.exe` — Windows portable desktop, unsigned.
+- `bin/SADPTools-Setup-windows-amd64.exe` — Windows offline installer, unsigned, includes the display runtime and licence notices.
+- `bin/SADPTools-windows-amd64.exe` — Windows desktop development binary, unsigned; requires an installed display runtime.
 - `bin/SADPTools-linux-amd64` — Linux GTK4 desktop.
 - `bin/LICENSE`, `bin/THIRD_PARTY_NOTICES.md`, `bin/LICENSES/` — distribute with binaries.
 
-All three artifacts were also built successfully from a clean export of the staged files, without existing frontend output or node_modules. The final binaries in `bin/` came from that clean build.
+All three original application binaries were also built successfully from a clean export of the staged files, without existing frontend output or node_modules. The installer was added subsequently; see its checks below.
 
 Build outputs are ignored by Git and can be reproduced with `make cli`, `make windows` and `make linux-gui`. Wails emits upstream GTK4 deprecation warnings during Linux compilation; the build succeeds. The virtual display logged unavailable GPU/render-device and desktop-portal service warnings but rendered the application using software graphics.
 
+## Offline Windows packaging checks
+
+Added on 21 October 2026, after the initial discovery milestone:
+
+- `make windows-installer` successfully rebuilt frontend/Windows app and compiled the NSIS installer on Sparx. The installer is approximately 208 MiB; most of that is the bundled Microsoft runtime.
+- NSIS 3.10 was downloaded and extracted under the ignored build cache, without installing any system packages. NSIS compilation treats warnings as errors.
+- The x64 Evergreen Standalone Installer 155.0.4283.62 was acquired directly from Microsoft over HTTPS. Its SHA-256 and size are pinned and checked before every build; the signed payload is bundled unmodified.
+- Five automated packaging tests pass: verified offline cache reuse, corrupt-cache rejection, verified atomic downloads, rejection/cleanup of incomplete/corrupt/oversized downloads, and rejection of insecure redirects. These tests use synthetic bytes and no network.
+- `make check` passes after the packaging changes: Go tests/vet/race detector, three frontend tests and five packaging tests.
+- `7z t` passes on the resulting installer. Extracted app, runtime and licence files are compared against their build inputs. The generated SHA-256 sidecar verifies successfully.
+- Documentation and CI now use the installer as the user-facing Windows artifact. No push or remote Actions run was performed.
+
+These are build/archive checks on Linux, not proof that Windows setup has run successfully. Clean offline Windows 10/11 installation, existing per-user/per-machine runtime detection, runtime failure handling, standard-user permissions, upgrade/uninstall, silent setup, SmartScreen and Authenticode verification remain target-machine checks. See [packaging details](windows-packaging.md).
+
 ## Still requires physical/target-platform testing
 
-1. Run the EXE on Windows 10 and 11 with WebView2; verify startup, native save dialogs, browser opening, shutdown and firewall prompts/profiles.
+1. Run the Setup EXE offline on Windows 10 and 11, including a machine without WebView2, and verify application startup, native save dialogs, browser opening, shutdown and firewall prompts/profiles. Users should not need to install the runtime separately.
 2. Verify Windows receive-interface attribution with multiple physical adapters, including two adapters on the same LAN, VPNs and adapter removal during a scan. Compilation and synthetic ancillary tests cannot establish Winsock runtime behaviour.
 3. Place a real device outside the host IPv4 subnet but on the same Layer 2 network. Confirm discovery without changing host/device IP settings. Synthetic tests establish absence of a subnet filter, not device/network behaviour.
 4. Check inactive devices, DHCP changes, repeat scans after IP/firmware changes and older/newer firmware families. The devices observed during initial discovery reported active status.
