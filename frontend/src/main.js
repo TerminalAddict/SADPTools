@@ -1,0 +1,336 @@
+import "bootstrap/dist/css/bootstrap.min.css";
+import "./style.css";
+import { Events } from "@wailsio/runtime";
+import * as Backend from "../bindings/github.com/TerminalAddict/SADPTools/desktopservice.js";
+import { activation, model, visibleDevices } from "./view.js";
+
+const $ = (id) => document.getElementById(id);
+let settings,
+  snapshot = { devices: [], logs: [], warnings: [], scanning: false },
+  selected = "",
+  sortKey = "ipv4",
+  sortDirection = 1,
+  refreshTimer,
+  refreshing = false,
+  refreshAgain = false;
+const dash = (value) =>
+  value === null || value === undefined || value === "" ? "—" : String(value);
+const date = (value) => (value ? new Date(value).toLocaleString() : "—");
+const errorText = (error) => error?.message || String(error);
+function notice(text, success = false) {
+  $("notice").textContent = text;
+  $("notice").hidden = !text;
+  $("notice").className = `alert alert-${success ? "success" : "danger"}`;
+}
+async function action(fn) {
+  try {
+    notice("");
+    await fn();
+  } catch (error) {
+    notice(errorText(error));
+  }
+}
+function visible() {
+  return visibleDevices(
+    snapshot.devices,
+    $("search").value,
+    sortKey,
+    sortDirection,
+  );
+}
+function badge(value) {
+  const span = document.createElement("span");
+  span.className = `badge-state badge-${activation(value).toLowerCase()}`;
+  span.textContent = activation(value);
+  return span;
+}
+function render() {
+  const list = visible(),
+    body = $("devices"),
+    fragment = document.createDocumentFragment();
+  // Restore keyboard focus when a live inventory update replaces table rows.
+  const focused = document.activeElement?.closest("tr")?.dataset.id;
+  for (const d of list) {
+    const row = document.createElement("tr");
+    row.dataset.id = d.id;
+    row.tabIndex = 0;
+    row.classList.toggle("selected", d.id === selected);
+    row.setAttribute("aria-selected", String(d.id === selected));
+    for (const val of [d.ipv4, model(d), d.mac, d.firmware, d.serial]) {
+      const cell = document.createElement("td");
+      cell.textContent = dash(val);
+      cell.title = dash(val);
+      row.append(cell);
+    }
+    const cell = document.createElement("td");
+    cell.append(badge(d.activated));
+    row.append(cell);
+    const select = () => {
+      selected = d.id;
+      render();
+    };
+    row.addEventListener("click", select);
+    row.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        select();
+      }
+    });
+    fragment.append(row);
+  }
+  body.replaceChildren(fragment);
+  if (focused) {
+    [...body.rows]
+      .find((r) => r.dataset.id === focused)
+      ?.focus({ preventScroll: true });
+  }
+  $("count").textContent = snapshot.devices.length;
+  $("visible-count").textContent =
+    `${list.length} of ${snapshot.devices.length} devices`;
+  $("inventory-caption").textContent = snapshot.devices.length
+    ? "Live inventory · Existing devices stay visible during discovery."
+    : "Discover devices on your local network to get started.";
+  $("empty").hidden = list.length > 0;
+  $("empty").querySelector("h3").textContent = snapshot.devices.length
+    ? "No matching devices"
+    : snapshot.scanning
+      ? "Listening for device replies…"
+      : snapshot.lastScan
+        ? "No devices found"
+        : "No devices discovered yet";
+  $("empty").querySelector("p").textContent = snapshot.devices.length
+    ? "Try a different IP address, model, MAC address or serial number."
+    : snapshot.lastScan
+      ? "Check the selected adapter, local network and firewall, then try again."
+      : "Choose a network adapter, then select Discover devices. Devices appear as they respond.";
+  $("discover").disabled = snapshot.scanning;
+  $("cancel").hidden = !snapshot.scanning;
+  $("adapter").disabled = snapshot.scanning;
+  $("scan-status").textContent = snapshot.scanning
+    ? "Discovering…"
+    : snapshot.lastError
+      ? "Scan failed"
+      : snapshot.warnings.length
+        ? "Completed with warnings"
+        : snapshot.lastScan
+          ? "Scan complete"
+          : "Ready to discover";
+  $("scan-dot").classList.toggle("scanning", snapshot.scanning);
+  $("export").disabled = list.length === 0;
+  $("last-scan").textContent = snapshot.lastScan
+    ? `Last scan ${date(snapshot.lastScan)}`
+    : "No scan completed";
+  renderDetails();
+  renderLogs();
+}
+function renderDetails() {
+  const d = snapshot.devices.find((d) => d.id === selected);
+  $("detail-empty").hidden = !!d;
+  $("detail-content").hidden = !d;
+  $("detail-status").textContent = d ? activation(d.activated) : "No selection";
+  if (!d) return;
+  $("detail-status").className =
+    `badge-state badge-${activation(d.activated).toLowerCase()}`;
+  $("detail-model").textContent = model(d) || "Unknown model";
+  $("detail-name").textContent = d.name || "";
+  const fields = [
+    ["IPv4 address", d.ipv4],
+    ["Subnet mask", d.subnetMask],
+    ["Gateway", d.gateway],
+    ["MAC address", d.mac],
+    ["Serial number", d.serial],
+    ["Firmware", d.firmware],
+    ["Device type", d.deviceType],
+    ["DHCP", d.dhcp === null ? "Unknown" : d.dhcp ? "Enabled" : "Disabled"],
+    ["HTTP port", d.httpPort],
+    [
+      "Discovered on",
+      d.interfaces.map((a) => `${a.name} · ${a.address}`).join("\n"),
+    ],
+    ["First seen", date(d.firstSeen)],
+    ["Last seen", date(d.lastSeen)],
+  ];
+  const fragment = document.createDocumentFragment();
+  for (const [label, value] of fields) {
+    const dt = document.createElement("dt"),
+      dd = document.createElement("dd");
+    dt.textContent = label;
+    dd.textContent = dash(value);
+    fragment.append(dt, dd);
+  }
+  $("detail-fields").replaceChildren(fragment);
+  const available = !!d.ipv4 && !!d.httpPort && d.ipv4 !== "0.0.0.0";
+  $("open-web").disabled = !available;
+  $("web-note").textContent = available
+    ? "Opens the advertised HTTP port in your browser. Device reachability depends on your IP configuration."
+    : "No usable HTTP address and port were advertised.";
+}
+function renderLogs() {
+  const logs = snapshot.logs.filter(
+    (l) => $("debug-logs").checked || l.level !== "DEBUG",
+  );
+  $("log-count").textContent = `${snapshot.logs.length} entries`;
+  $("logs").textContent =
+    logs
+      .map(
+        (l) =>
+          `${new Date(l.time).toLocaleTimeString()}  ${l.level.padEnd(5)}  ${l.message}${l.details ? "  " + l.details : ""}`,
+      )
+      .join("\n") || "No discovery activity yet.";
+}
+async function refresh() {
+  if (refreshing) {
+    refreshAgain = true;
+    return;
+  }
+  refreshing = true;
+  try {
+    snapshot = await Backend.Snapshot();
+    render();
+    if (snapshot.lastError) notice(snapshot.lastError);
+    else if (snapshot.warnings.length) notice(snapshot.warnings.join("\n"));
+  } catch (error) {
+    notice(`Desktop connection: ${errorText(error)}`);
+  } finally {
+    refreshing = false;
+    if (refreshAgain) {
+      refreshAgain = false;
+      queueRefresh();
+    }
+  }
+}
+function queueRefresh() {
+  if (!refreshTimer)
+    refreshTimer = setTimeout(() => {
+      refreshTimer = null;
+      void refresh();
+    }, 100);
+}
+async function adapters() {
+  const items = await Backend.Interfaces();
+  $("adapter").replaceChildren(new Option("All suitable interfaces", ""));
+  for (const a of items) {
+    const option = new Option(
+      `${a.name} · ${a.addresses.join(", ") || a.reason}`,
+      a.name,
+    );
+    option.disabled = !a.suitable;
+    $("adapter").append(option);
+  }
+  if (settings.interface && !items.some((a) => a.name === settings.interface)) {
+    $("adapter").append(
+      new Option(`${settings.interface} · unavailable`, settings.interface),
+    );
+  }
+  $("adapter").value = settings.interface;
+}
+async function save(next) {
+  await Backend.SaveSettings(next);
+  settings = next;
+  document.documentElement.dataset.bsTheme = settings.theme;
+  $("automatic").checked = settings.automatic;
+}
+$("discover").onclick = () =>
+  action(async () => {
+    await Backend.StartScan();
+    await refresh();
+  });
+$("cancel").onclick = () =>
+  action(async () => {
+    await Backend.CancelScan();
+    await refresh();
+  });
+$("search").oninput = render;
+$("adapters-refresh").onclick = () => action(adapters);
+$("adapter").onchange = () =>
+  action(async () => {
+    try {
+      await save({ ...settings, interface: $("adapter").value });
+    } catch (e) {
+      $("adapter").value = settings.interface;
+      throw e;
+    }
+  });
+$("automatic").onchange = () =>
+  action(async () => {
+    try {
+      await save({ ...settings, automatic: $("automatic").checked });
+    } catch (e) {
+      $("automatic").checked = settings.automatic;
+      throw e;
+    }
+  });
+$("debug-logs").onchange = renderLogs;
+$("open-web").onclick = () => action(() => Backend.OpenDevice(selected));
+$("export").onclick = () =>
+  action(async () => {
+    const path = await Backend.ExportDevices(
+      visible().map((d) => d.id),
+      $("export-format").value,
+    );
+    if (path) notice(`Exported to ${path}`, true);
+  });
+for (const th of document.querySelectorAll("th[data-key]")) {
+  th.querySelector("button").onclick = () => {
+    sortDirection = sortKey === th.dataset.key ? -sortDirection : 1;
+    sortKey = th.dataset.key;
+    for (const item of document.querySelectorAll("th[data-key]")) {
+      item.setAttribute(
+        "aria-sort",
+        item === th
+          ? sortDirection === 1
+            ? "ascending"
+            : "descending"
+          : "none",
+      );
+      item.querySelector("span").textContent =
+        item === th ? (sortDirection === 1 ? "↑" : "↓") : "";
+    }
+    render();
+  };
+}
+$("settings-open").onclick = () => {
+  if (!settings) return;
+  $("theme").value = settings.theme;
+  $("timeout").value = settings.timeoutSeconds;
+  $("interval").value = settings.intervalSeconds;
+  $("settings-error").textContent = "";
+  $("settings-dialog").showModal();
+};
+$("settings-close").onclick = () => $("settings-dialog").close();
+$("settings-form").onsubmit = async (e) => {
+  e.preventDefault();
+  try {
+    await save({
+      ...settings,
+      theme: $("theme").value,
+      timeoutSeconds: Number($("timeout").value),
+      intervalSeconds: Number($("interval").value),
+    });
+    $("settings-dialog").close();
+  } catch (error) {
+    $("settings-error").textContent = errorText(error);
+  }
+};
+async function init() {
+  // No mock backend or fixture inventory is used when the Wails bridge is absent.
+  try {
+    settings = await Backend.GetSettings();
+    document.documentElement.dataset.bsTheme = settings.theme;
+    $("automatic").checked = settings.automatic;
+    $("version").textContent = await Backend.Version();
+    Events.On("inventory:changed", queueRefresh);
+    await adapters();
+    await refresh();
+    setInterval(() => {
+      if (snapshot.scanning) queueRefresh();
+    }, 1000);
+  } catch (error) {
+    notice(
+      `Could not connect to the desktop backend. Launch SADPTools as a desktop application. ${errorText(error)}`,
+    );
+    $("discover").disabled = true;
+    $("automatic").disabled = true;
+  }
+}
+void init();

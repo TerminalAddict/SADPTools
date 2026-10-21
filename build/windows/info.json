@@ -1,0 +1,15 @@
+{
+  "fixed": {
+    "file_version": "0.1.0"
+  },
+  "info": {
+    "0409": {
+      "ProductVersion": "0.1.0",
+      "CompanyName": "TerminalAddict",
+      "FileDescription": "Hikvision network discovery utility",
+      "LegalCopyright": "Copyright (c) 2026 SADPTools contributors",
+      "ProductName": "SADPTools",
+      "Comments": "Read-only network discovery"
+    }
+  }
+}

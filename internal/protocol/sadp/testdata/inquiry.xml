@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Synthetic test data. Locally administered MAC; documentation-only IPv4 range. -->
+<ProbeMatch>
+ <Uuid>11111111-2222-4333-8444-555555555555</Uuid><Types>inquiry</Types>
+ <DeviceType>synthetic-type</DeviceType><DeviceDescription>TEST-CAMERA</DeviceDescription>
+ <DeviceSN>SYNTHETIC-SERIAL-001</DeviceSN><MAC>02-aa-bb-cc-dd-01</MAC>
+ <IPv4Address>192.0.2.50</IPv4Address><IPv4SubnetMask>255.255.255.0</IPv4SubnetMask>
+ <IPv4Gateway>192.0.2.1</IPv4Gateway><SoftwareVersion>TEST-1.0</SoftwareVersion>
+ <Activated>false</Activated><DHCP>1</DHCP><HttpPort>8080</HttpPort><DeviceName>Test &amp; fixture</DeviceName>
+ <UnknownFutureTag>ignored</UnknownFutureTag>
+</ProbeMatch>

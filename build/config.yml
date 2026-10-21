@@ -1,0 +1,27 @@
+version: '3'
+info:
+  companyName: TerminalAddict
+  productName: SADPTools
+  productIdentifier: io.github.terminaladdict.sadptools
+  description: Hikvision network discovery utility
+  copyright: Copyright (c) 2026 SADPTools contributors
+  version: 0.1.0
+dev_mode:
+  root_path: .
+  log_level: warn
+  debounce: 1000
+  ignore:
+    dir: [.git, node_modules, frontend, bin]
+    file: ['*_test.go']
+    watched_extension: ['*.go']
+    git_ignore: true
+  executes:
+    - cmd: wails3 task common:frontend
+      type: blocking
+    - cmd: go build -tags desktop -o bin/SADPTools-dev .
+      type: blocking
+    - cmd: wails3 task common:dev:frontend
+      type: background
+    - cmd: ./bin/SADPTools-dev
+      type: primary
+      exit_policy: shutdown

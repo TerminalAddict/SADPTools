@@ -1,0 +1,20 @@
+version: '3'
+vars:
+  GOOS: '{{.GOOS | default OS}}'
+  TARGET_ARCH: '{{.GOARCH | default ARCH}}'
+includes:
+  common: ./build/Taskfile.yml
+  windows: ./build/windows/Taskfile.yml
+  linux: ./build/linux/Taskfile.yml
+tasks:
+  build:
+    desc: Build the desktop application (GOOS=windows or linux)
+    cmds:
+      - task: common:frontend
+      - task: '{{.GOOS}}:build'
+  run:
+    cmds:
+      - 'bin/SADPTools-{{.GOOS}}-{{.TARGET_ARCH}}{{if eq .GOOS "windows"}}.exe{{end}}'
+  dev:
+    cmds:
+      - wails3 dev -config build/config.yml

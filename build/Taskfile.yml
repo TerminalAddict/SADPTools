@@ -1,0 +1,19 @@
+version: '3'
+tasks:
+  bindings:
+    desc: Generate JavaScript bindings without host GUI dependencies
+    env:
+      GOOS: windows
+      GOARCH: amd64
+      CGO_ENABLED: '0'
+    cmds:
+      - wails3 generate bindings -f '-tags desktop' -clean=true
+  frontend:
+    cmds:
+      - task: bindings
+      - npm --prefix frontend ci
+      - npm --prefix frontend run build
+  dev:frontend:
+    dir: frontend
+    cmds:
+      - npm run dev

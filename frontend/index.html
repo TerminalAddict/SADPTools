@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>SADPTools</title>
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        <div>
+          <h1>SADP<span>Tools</span></h1>
+          <p>NETWORK DEVICE DISCOVERY</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <span class="badge rounded-pill text-bg-secondary"
+          >Read-only discovery</span
+        ><button id="settings-open" class="btn btn-sm btn-outline-secondary">
+          Settings
+        </button>
+      </div>
+    </header>
+    <main>
+      <section class="toolbar" aria-label="Discovery controls">
+        <button id="discover" class="btn btn-primary">Discover devices</button
+        ><button id="cancel" class="btn btn-outline-secondary" hidden>
+          Cancel scan
+        </button>
+        <div class="form-check form-switch auto-control">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            role="switch"
+            id="automatic"
+          /><label class="form-check-label" for="automatic">Automatic</label>
+        </div>
+        <div class="adapter-control">
+          <label class="visually-hidden" for="adapter">Network interface</label
+          ><select id="adapter" class="form-select">
+            <option value="">All suitable interfaces</option>
+          </select>
+        </div>
+        <button
+          id="adapters-refresh"
+          class="btn btn-outline-secondary"
+          title="Re-detect network adapters"
+          aria-label="Re-detect network adapters"
+        >
+          ↻
+        </button>
+        <input
+          id="search"
+          class="form-control search"
+          type="search"
+          placeholder="Search IP, model, MAC, serial…"
+          aria-label="Filter devices"
+        />
+        <div class="export-control">
+          <select
+            id="export-format"
+            class="form-select"
+            aria-label="Export format"
+          >
+            <option value="csv">CSV</option>
+            <option value="json">JSON</option></select
+          ><button id="export" class="btn btn-outline-secondary" disabled>
+            Export
+          </button>
+        </div>
+      </section>
+      <div id="notice" class="alert alert-danger" role="alert" hidden></div>
+      <section class="workspace" aria-label="Device inventory">
+        <div class="inventory">
+          <div class="inventory-heading">
+            <div>
+              <h2>
+                Discovered devices <span id="count" class="count">0</span>
+              </h2>
+              <p id="inventory-caption">
+                Discover devices on your local network to get started.
+              </p>
+            </div>
+            <div class="scan-indicator">
+              <span id="scan-dot" class="status-dot"></span
+              ><span id="scan-status" role="status">Ready to discover</span>
+            </div>
+          </div>
+          <div class="table-container">
+            <table class="table table-hover align-middle device-table">
+              <thead>
+                <tr>
+                  <th scope="col" data-key="ipv4" aria-sort="ascending">
+                    <button>IP address <span>↑</span></button>
+                  </th>
+                  <th scope="col" data-key="model">
+                    <button>Device model <span></span></button>
+                  </th>
+                  <th scope="col" data-key="mac">
+                    <button>MAC address <span></span></button>
+                  </th>
+                  <th scope="col" data-key="firmware">
+                    <button>Firmware <span></span></button>
+                  </th>
+                  <th scope="col" data-key="serial">
+                    <button>Serial number <span></span></button>
+                  </th>
+                  <th scope="col" data-key="activated">
+                    <button>Activation <span></span></button>
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="devices"></tbody>
+            </table>
+            <div id="empty" class="empty-state">
+              <div class="empty-symbol" aria-hidden="true">⌁</div>
+              <h3>No devices discovered yet</h3>
+              <p>
+                Choose a network adapter, then select
+                <strong>Discover devices</strong>.<br />Devices will appear here
+                as they respond.
+              </p>
+            </div>
+          </div>
+          <div class="inventory-footer">
+            <span id="visible-count">0 devices</span
+            ><span
+              >Inventory retained between scans · Select a row for details</span
+            >
+          </div>
+        </div>
+        <aside class="device-details" aria-label="Selected device details">
+          <div class="panel-heading">
+            <h2>Device details</h2>
+            <span id="detail-status" class="badge text-bg-secondary"
+              >No selection</span
+            >
+          </div>
+          <div id="detail-empty" class="detail-empty">
+            Select a discovered device to inspect its network and system
+            information.
+          </div>
+          <div id="detail-content" hidden>
+            <h3 id="detail-model"></h3>
+            <p id="detail-name" class="text-body-secondary"></p>
+            <dl id="detail-fields"></dl>
+            <button id="open-web" class="btn btn-outline-primary w-100">
+              Open web interface ↗
+            </button>
+            <p id="web-note" class="small text-body-secondary mt-2"></p>
+          </div>
+          <div class="configuration">
+            <h3>Device configuration</h3>
+            <p>Planned for a future release</p>
+            <div class="d-grid gap-2">
+              <button disabled class="btn btn-outline-secondary">
+                Activate device</button
+              ><button disabled class="btn btn-outline-secondary">
+                Configure IP / DHCP</button
+              ><button disabled class="btn btn-outline-secondary">
+                Change password
+              </button>
+            </div>
+          </div>
+        </aside>
+      </section>
+      <details id="diagnostics" class="diagnostics">
+        <summary>
+          Discovery diagnostics <span id="log-count">0 entries</span>
+        </summary>
+        <div class="diagnostic-toolbar">
+          <label class="form-check-label"
+            ><input
+              id="debug-logs"
+              class="form-check-input me-2"
+              type="checkbox"
+            />Include debug messages</label
+          ><span>Latest 500 entries · This session only</span>
+        </div>
+        <pre id="logs" tabindex="0" aria-label="Discovery log">
+No discovery activity yet.</pre
+        >
+      </details>
+    </main>
+    <footer class="app-footer">
+      <span>SADPTools <span id="version"></span></span
+      ><span id="last-scan">No scan completed</span
+      ><span>Local discovery · No account required</span>
+    </footer>
+    <dialog id="settings-dialog">
+      <form id="settings-form">
+        <div class="dialog-heading">
+          <h2>Discovery settings</h2>
+          <button
+            type="button"
+            id="settings-close"
+            class="btn-close"
+            aria-label="Close settings"
+          ></button>
+        </div>
+        <label for="theme" class="form-label">Appearance</label
+        ><select id="theme" class="form-select mb-3">
+          <option value="dark">Dark</option>
+          <option value="light">Light</option></select
+        ><label for="timeout" class="form-label">Scan timeout (seconds)</label
+        ><input
+          id="timeout"
+          type="number"
+          min="1"
+          max="300"
+          required
+          class="form-control mb-3"
+        /><label for="interval" class="form-label"
+          >Automatic discovery interval (seconds)</label
+        ><input
+          id="interval"
+          type="number"
+          min="5"
+          max="86400"
+          required
+          class="form-control"
+        />
+        <p class="small text-body-secondary mt-2">
+          The interval starts after each scan finishes. Changes apply to the
+          next scan.
+        </p>
+        <p id="settings-error" class="text-danger small" role="alert"></p>
+        <button class="btn btn-primary w-100" type="submit">
+          Save settings
+        </button>
+      </form>
+    </dialog>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

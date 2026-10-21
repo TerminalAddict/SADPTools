@@ -1,0 +1,11 @@
+/bin/
+/frontend/node_modules/
+/frontend/dist/*
+!/frontend/dist/.gitkeep
+/*.syso
+/.task/
+*.log
+*.test
+*.test.exe
+coverage.out
+.DS_Store

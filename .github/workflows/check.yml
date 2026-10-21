@@ -1,0 +1,50 @@
+name: Checks and Windows build
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: go test ./...
+      - run: go vet ./...
+      - run: go test -race ./...
+      - run: npm --prefix frontend ci
+      - run: npm --prefix frontend test
+      - run: npm --prefix frontend run build
+      - run: go build ./cmd/sadptools
+  windows-artifact:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: make tools windows
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SADPTools-windows-amd64
+          path: |
+            bin/SADPTools-windows-amd64.exe
+            bin/LICENSE
+            bin/THIRD_PARTY_NOTICES.md
+            bin/LICENSES/
