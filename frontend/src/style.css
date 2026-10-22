@@ -5,25 +5,25 @@
     "Segoe UI",
     sans-serif;
   font-synthesis: none;
-  --accent: #56b9dc;
-  --panel: #1a202b;
-  --surface: #141922;
-  --line: #303846;
+  --accent: #36d6c7;
+  --panel: #172331;
+  --surface: #111b28;
+  --line: #2d3b4b;
 }
 [data-bs-theme="dark"] {
   --bs-body-bg: var(--surface);
-  --bs-body-color: #e0e5ee;
-  --bs-secondary-color: #99a5b7;
+  --bs-body-color: #f1f6fa;
+  --bs-secondary-color: #a9bcc9;
   --bs-border-color: var(--line);
-  --bs-tertiary-bg: #202735;
-  --bs-primary: #56b9dc;
-  --bs-primary-rgb: 86, 185, 220;
+  --bs-tertiary-bg: #203140;
+  --bs-primary: #36d6c7;
+  --bs-primary-rgb: 54, 214, 199;
 }
 [data-bs-theme="light"] {
   --panel: #fff;
   --surface: #f3f5f8;
   --line: #dce2e9;
-  --accent: #087da5;
+  --accent: #08796f;
   --bs-body-bg: var(--surface);
   --bs-border-color: var(--line);
 }
@@ -48,11 +48,11 @@ select {
   --bs-btn-border-radius: 6px;
 }
 .btn-primary {
-  --bs-btn-bg: #1682a8;
-  --bs-btn-border-color: #1682a8;
-  --bs-btn-hover-bg: #0c7498;
-  --bs-btn-hover-border-color: #0c7498;
-  --bs-btn-active-bg: #096381;
+  --bs-btn-bg: #08796f;
+  --bs-btn-border-color: #08796f;
+  --bs-btn-hover-bg: #06685f;
+  --bs-btn-hover-border-color: #06685f;
+  --bs-btn-active-bg: #05574f;
 }
 .btn-outline-secondary {
   --bs-btn-color: var(--bs-body-color);
@@ -79,16 +79,10 @@ select {
   gap: 12px;
 }
 .brand-mark {
-  display: grid;
-  place-items: center;
-  border: 1px solid #369bc1;
-  background: #167ca02b;
-  color: var(--accent);
-  border-radius: 10px;
-  width: 43px;
-  height: 43px;
-  font-size: 25px;
-  font-weight: 700;
+  display: block;
+  flex: none;
+  width: 48px;
+  height: 48px;
 }
 .brand h1 {
   font-size: 22px;
@@ -138,8 +132,8 @@ main {
   white-space: nowrap;
 }
 .form-check-input:checked {
-  background-color: #1682a8;
-  border-color: #1682a8;
+  background-color: #08796f;
+  border-color: #08796f;
 }
 .adapter-control {
   min-width: 215px;
@@ -200,7 +194,7 @@ main {
   display: inline-block;
   font-size: 11px;
   color: var(--accent);
-  background: #1682a822;
+  background: #36d6c71a;
   margin-left: 7px;
   border-radius: 5px;
   padding: 3px 7px;
@@ -226,7 +220,7 @@ main {
 }
 .status-dot.scanning {
   background: var(--accent);
-  box-shadow: 0 0 0 4px #1682a820;
+  box-shadow: 0 0 0 4px #36d6c720;
   animation: pulse 1.4s infinite;
 }
 @keyframes pulse {
@@ -249,7 +243,7 @@ main {
   margin: 0;
   white-space: nowrap;
   --bs-table-bg: transparent;
-  --bs-table-hover-bg: #1682a80d;
+  --bs-table-hover-bg: #36d6c70d;
   font-size: 12px;
 }
 .device-table thead {
@@ -298,7 +292,7 @@ main {
   cursor: pointer;
 }
 .device-table tbody tr.selected {
-  background: #1682a81a;
+  background: #36d6c71a;
   box-shadow: inset 3px 0 var(--accent);
 }
 .device-table tbody tr:focus-visible {
@@ -316,7 +310,7 @@ main {
   background: #25826724;
 }
 .badge-inactive {
-  color: #e9b252;
+  color: #f5b84b;
   background: #bb842424;
 }
 .badge-unknown {
@@ -330,16 +324,10 @@ main {
   color: var(--bs-secondary-color);
 }
 .empty-symbol {
-  display: grid;
-  place-items: center;
+  display: block;
   margin: 0 auto 18px;
-  width: 58px;
-  height: 58px;
-  font-size: 38px;
-  color: var(--accent);
-  background: #1682a812;
-  border: 1px solid var(--line);
-  border-radius: 14px;
+  width: 64px;
+  height: 64px;
 }
 .empty-state h3 {
   font-size: 17px;
@@ -508,7 +496,8 @@ dialog .form-label {
   }
 }
 
-#operation-dialog {
+#operation-dialog,
+#about-dialog {
   width: min(620px, calc(100vw - 32px));
   max-height: calc(100vh - 48px);
   overflow-y: auto;
@@ -521,4 +510,50 @@ dialog .form-label {
 #operation-result,
 #challenge-data {
   overflow-wrap: anywhere;
+}
+
+.about-author {
+  display: flex;
+  gap: 20px;
+  padding: 20px 0;
+  margin: 20px 0;
+  border-block: 1px solid var(--line);
+  line-height: 1.7;
+}
+.about-trigger,
+.about-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.about-heading {
+  gap: 12px;
+}
+.about-portrait {
+  flex: none;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+}
+.about-eyebrow {
+  color: var(--bs-secondary-color);
+  font-size: 11px;
+  margin: 0 0 2px;
+}
+.about-author h3 {
+  font-size: 22px;
+  margin: 0 0 4px;
+}
+.about-quote {
+  color: var(--accent);
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+.about-links {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.about-credits {
+  margin-top: 20px;
+  color: var(--bs-secondary-color);
 }

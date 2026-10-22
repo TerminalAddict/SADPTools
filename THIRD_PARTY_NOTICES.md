@@ -4,7 +4,11 @@ SADP inquiry and device-management command wire formats and response field mappi
 
 The application uses Wails v3 (MIT), Bootstrap 5 (MIT), Go's x/net and x/sys packages (BSD-3-Clause), and their transitive dependencies. Frontend assets retain upstream licence comments; dependency versions are recorded in `go.sum` and `frontend/package-lock.json`. Bundled dependency licence texts are collected in `LICENSES/dependencies.txt` for distribution. Build tooling includes Vite (MIT); its licence is also included there.
 
-Wails generated the initial desktop scaffold and Windows manifest/resource configuration. The application icon and interface are SADPTools assets.
+Wails generated the initial desktop scaffold and Windows manifest/resource configuration. The original **Signal Lens** mark, wordmarks, installer artwork and interface are SADPTools assets, covered by the project's MIT licence. Their editable source and generation instructions are described in [the branding guide](docs/branding.md). Exported artwork uses system DejaVu Sans; no font files are redistributed with the application.
+
+## Author profile
+
+The About screen's biography is adapted from [Paul Willard's website](https://www.paulwillard.nz/), accessed 22 October 2026. The unmodified portrait in `frontend/src/assets/paul-willard.webp` comes from [the author profile image](https://www.paulwillard.nz/assets/images/optimized/paul-lw-220.webp) on that site and is bundled locally for offline display.
 
 ## Windows installer
 

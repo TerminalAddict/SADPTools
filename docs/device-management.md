@@ -4,7 +4,9 @@ Milestone two adds native single-device SADP operations to the desktop and CLI. 
 
 ## Desktop workflow
 
-Discover devices, select one, then use **Activate device**, **Configure IP / DHCP**, or **Password recovery** in the details panel. Stop discovery before starting an operation. Select an adapter on which the device was discovered, review its MAC/serial and the form, then press the named action button to send the request.
+Discover devices, select one, then use **Activate device**, **Configure IP / DHCP**, or **Password recovery** in the details panel. Stop discovery before starting an operation. Review its MAC/serial and the form, then press the named action button to send the request. SADPTools automatically uses an adapter that discovered the device; no adapter selection is needed.
+
+If multiple adapters discovered the device, **Connection options** offers an optional override. Automatic selection prefers the adapter selected for scanning if it saw this device, otherwise the first recorded discovery route. Each operation still sends once through exactly one adapter. If that adapter is no longer available, rediscover to check the connection; commands are never retried through other adapters automatically. The chosen adapter appears in the diagnostic log.
 
 - Activation sets the initial admin password. Already-active devices cannot be activated from the desktop. New passwords require at least eight bytes and two character classes; firmware can impose additional requirements or a shorter maximum.
 - Network configuration sends the complete IPv4 address, subnet mask, gateway, SDK command port and DHCP setting. The SDK port is not the HTTP port. Values come from discovery; missing fields remain empty and must be supplied. DHCP status that was not advertised must be selected explicitly. Gateway `0.0.0.0` means no gateway. When enabling DHCP, the form still sends the stored static values. Network changes may interrupt recorders or other clients.

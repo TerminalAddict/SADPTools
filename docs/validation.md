@@ -97,3 +97,26 @@ Implemented and validated on Sparx on 21 October 2026:
 - The production Linux GUI ran under Xvfb with temporary settings. Read-only discovery again found 17 devices. Selecting an active device disabled activation and enabled network/recovery controls. The network form showed observed address/mask/gateway/SDK port/DHCP and the discovered adapter; the password recovery form opened and closed correctly. No action-submit or recovery-data request was used. Screenshots remain outside Git because they include real inventory data.
 
 **No physical-device activation, network modification, recovery challenge or password-reset request was sent.** The new commands are implemented, not hardware-certified. Windows startup/installation and live write compatibility are still untested. Firmware requiring encrypted commands, broadcast fallback, different reply correlation or vendor XML/GUID/email recovery is outside the implemented subset. A timeout can follow a successful device change and must not trigger an automatic retry. See [device-management acceptance checks](device-management.md).
+
+## Automatic operation adapter selection — 22 October 2026
+
+- Desktop operations now resolve one adapter from the selected device's discovery sightings. A matching scan preference takes priority; otherwise the first recorded route is used. An optional override appears under **Connection options** only when multiple distinct adapters saw the device.
+- `make check` passed: Go tests, vet, race checks, six frontend tests and five packaging tests. Synthetic routing cases cover automatic selection, observed preferences, unrelated preferences, explicit overrides, missing routes, duplicate sightings and no retry after an unconfirmed result.
+- `make frontend`, `make windows` and `make linux-gui` passed. The Windows offline installer was rebuilt with `python3 build/windows/package.py`; its SHA-256 sidecar verified successfully. Windows execution remains untested.
+- The Linux GUI ran under Xvfb with a private D-Bus session and temporary settings. Read-only discovery found 18 devices, including an inactive camera. Its activation dialog opened directly to the password fields with no adapter prompt. No password was entered and no activation or other device operation was submitted. Screenshots remain outside Git.
+
+## About screen — 22 October 2026
+
+- Added an About button with Paul Willard's biography, locally bundled portrait, website link, project link, application version and credits. Biography and portrait sources are recorded in `THIRD_PARTY_NOTICES.md`; opening the dialog does not fetch remote content.
+- All six frontend tests passed. `make frontend`, `make windows` and `make linux-gui` passed; the offline Windows installer was rebuilt and its SHA-256 sidecar verified. No Go service API changed.
+- Inspected the production Linux GUI under Xvfb in dark and light themes. The portrait, version, expandable credits, close button and Escape dismissal worked. Website and project buttons handed the expected URLs to a temporary `xdg-open` recorder, verifying the Wails browser bridge without launching an external browser. No discovery or device operations were run for this check. Windows execution remains untested.
+
+## Signal Lens branding — 22 October 2026
+
+- Created the original SVG symbol, dark/light wordmarks, nine-size Windows ICO, embedded PNG, frontend icon, installer/uninstaller artwork and a matching Linux desktop-entry template. The app header, top-right About button, About heading, empty inventory and favicon share the same artwork. Updated both themes to the navy/turquoise/amber palette.
+- `python3 build/brand/generate.py --check` verified all 12 generated assets against the source. All nine ICO frames decoded successfully with transparent corners; both installer bitmaps decoded as opaque 24-bit RGB at their intended sizes.
+- Six frontend tests, five packaging tests, `go test -tags desktop ./...` and `go vet -tags desktop ./...` passed. `make frontend`, `make windows` and `make linux-gui` passed. NSIS compiled the updated offline installer; archive integrity and the SHA-256 sidecar passed.
+- Extracted PE resources from the application and Setup executables: all nine icon payloads in each matched the source ICO exactly. The app binary, sidebar bitmap, header bitmap and attribution file extracted from Setup matched the current build inputs byte for byte.
+- Inspected the production Linux app and About screen under Xvfb in both themes. No network discovery or device operation was run. The Linux launcher was supplied but not installed into the user's desktop. Windows installation, taskbar rendering and installer DPI behaviour still need testing on Windows.
+
+See [branding sources and regeneration](branding.md).

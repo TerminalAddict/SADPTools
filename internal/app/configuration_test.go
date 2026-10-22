@@ -99,6 +99,67 @@ func TestControllerChecksIdentityAdapterAndActivation(t *testing.T) {
 		})
 	}
 }
+
+func TestControllerRoutesOperationsThroughDiscoveredAdapters(t *testing.T) {
+	// All adapter names and identities below are synthetic; no sockets are opened.
+	for _, tc := range []struct {
+		name        string
+		adapters    []string
+		preferred   string
+		requested   string
+		want        string
+		unconfirmed bool
+	}{
+		{name: "single automatically", adapters: []string{"Ethernet Test"}, want: "Ethernet Test"},
+		{name: "unrelated scan preference ignored", adapters: []string{"Ethernet Test"}, preferred: "Other network", want: "Ethernet Test"},
+		{name: "multiple automatically", adapters: []string{"Ethernet Test", "Wi-Fi Test"}, want: "Ethernet Test"},
+		{name: "prefer observed scan adapter", adapters: []string{"Ethernet Test", "Wi-Fi Test"}, preferred: "Wi-Fi Test", want: "Wi-Fi Test"},
+		{name: "explicit override", adapters: []string{"Ethernet Test", "Wi-Fi Test"}, preferred: "Ethernet Test", requested: "Wi-Fi Test", want: "Wi-Fi Test"},
+		{name: "reject unrelated override", adapters: []string{"Ethernet Test"}, preferred: "Ethernet Test", requested: "Other network"},
+		{name: "missing route"},
+		{name: "unnamed route", adapters: []string{""}},
+		{name: "duplicate sightings", adapters: []string{"Ethernet Test", "Ethernet Test"}, want: "Ethernet Test"},
+		{name: "no retry on another route", adapters: []string{"Ethernet Test", "Wi-Fi Test"}, want: "Ethernet Test", unconfirmed: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			c := New(filepath.Join(t.TempDir(), "settings.json"), nil)
+			t.Cleanup(c.Close)
+			c.mu.Lock()
+			c.settings.Interface = tc.preferred
+			c.mu.Unlock()
+			d := devices.Device{MAC: "02:00:00:00:00:01"}
+			for n, name := range tc.adapters {
+				d.Interfaces = append(d.Interfaces, devices.Interface{Index: n + 1, Name: name})
+			}
+			d, _ = c.inventory.Upsert(d, time.Now())
+			calls := 0
+			c.writer = writerFunc(func(_ context.Context, r configuration.Request) (configuration.Result, error) {
+				calls++
+				if tc.want == "" || r.Interface != tc.want || r.MAC != d.MAC {
+					t.Fatalf("unexpected target: adapter %q, MAC %q", r.Interface, r.MAC)
+				}
+				if tc.unconfirmed {
+					return configuration.Result{Sent: true, Outcome: "unconfirmed"}, configuration.ErrUnconfirmed
+				}
+				return configuration.Result{Sent: true, Outcome: "acknowledged"}, nil
+			})
+			result, err := c.Configure(d.ID, configuration.Request{Action: sadp.Activate, Interface: tc.requested, TimeoutSeconds: 2, Password: "Synthetic-pass1"})
+			if tc.want == "" {
+				if err == nil || calls != 0 {
+					t.Fatalf("invalid route accepted: calls=%d, error=%v", calls, err)
+				}
+				return
+			}
+			if err != nil || calls != 1 {
+				t.Fatalf("expected one operation: calls=%d, error=%v", calls, err)
+			}
+			if tc.unconfirmed && result.Outcome != "unconfirmed" {
+				t.Fatal("unconfirmed outcome lost")
+			}
+		})
+	}
+}
+
 func TestConfigurationBlockedByScanAndShutdown(t *testing.T) {
 	c, id, r := configController(t)
 	scanner := &blockingScanner{started: make(chan struct{}, 1)}

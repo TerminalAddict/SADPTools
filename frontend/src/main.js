@@ -1,6 +1,6 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./style.css";
-import { Events } from "@wailsio/runtime";
+import { Browser, Events } from "@wailsio/runtime";
 import * as Backend from "../bindings/github.com/TerminalAddict/SADPTools/desktopservice.js";
 import { initConfiguration } from "./configuration.js";
 import { activation, model, visibleDevices } from "./view.js";
@@ -296,6 +296,24 @@ for (const th of document.querySelectorAll("th[data-key]")) {
     render();
   };
 }
+$("about-open").onclick = () => {
+  $("about-error").hidden = true;
+  $("about-credits").open = false;
+  $("about-dialog").showModal();
+};
+$("about-close").onclick = () => $("about-dialog").close();
+for (const link of document.querySelectorAll("#about-dialog a")) {
+  link.onclick = async (event) => {
+    event.preventDefault();
+    $("about-error").hidden = true;
+    try {
+      await Browser.OpenURL(link.href);
+    } catch (error) {
+      $("about-error").textContent = `Could not open your browser. ${errorText(error)}`;
+      $("about-error").hidden = false;
+    }
+  };
+}
 $("settings-open").onclick = () => {
   if (!settings) return;
   $("theme").value = settings.theme;
@@ -326,6 +344,7 @@ async function init() {
     document.documentElement.dataset.bsTheme = settings.theme;
     $("automatic").checked = settings.automatic;
     $("version").textContent = await Backend.Version();
+    $("about-version").textContent = $("version").textContent;
     Events.On("inventory:changed", queueRefresh);
     await adapters();
     await refresh();

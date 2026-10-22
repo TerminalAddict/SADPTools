@@ -1,5 +1,10 @@
 # SADPTools
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="build/brand/logo-dark.svg">
+  <img src="build/brand/logo-light.svg" alt="SADPTools — network device management" width="440">
+</picture>
+
 A native Go desktop utility and CLI for discovering Hikvision devices. Built with **Wails v3**, Bootstrap 5 and vanilla JavaScript. Windows 10/11 AMD64 is the primary desktop target; Linux is also supported.
 
 Milestone two adds single-device activation, IPv4/DHCP/SDK-port configuration and code-based password recovery to the CLI and desktop. These write operations have synthetic test coverage but still require physical-device/firmware validation. SADPTools adds no account, cloud service or telemetry. The Windows display runtime is supplied by Microsoft and has its own update and privacy terms, included with setup.
@@ -17,7 +22,8 @@ Setup automatically prepares the display component if needed. It installs SADPTo
 - Device model/type, network settings, MAC, serial, firmware, activation, DHCP, HTTP port and device name when advertised. Unknown values remain empty/null.
 - CLI table/JSON output and useful diagnostics/exit codes.
 - Desktop inventory with sorting, searching, selection, retained results, device details, native CSV/JSON export, web-interface action, diagnostic log, light/dark themes and saved discovery preferences.
-- Device action dialogs, explicit adapter selection, password input without persistent storage, recovery-data requests/export and support-code submission. See [device management](docs/device-management.md) for workflows and compatibility limits.
+- Device action dialogs, automatic selection of a discovered adapter with an optional override, password input without persistent storage, recovery-data requests/export and support-code submission. See [device management](docs/device-management.md) for workflows and compatibility limits.
+- An offline About screen introducing creator [Paul Willard](https://www.paulwillard.nz/), with the application version, project link and credits.
 - One active scan or device operation at a time. Automatic scanning starts its interval after the previous scan finishes. Last-seen timestamps identify old observations; missing one scan does not mark a device offline.
 
 A one-second scan on Sparx received **17 real devices** during initial validation. This verifies basic Linux discovery on that network, not every firmware, VLAN, firewall or Windows adapter combination. See [validation results](docs/validation.md).
@@ -91,6 +97,7 @@ No privileged packages were installed during development. Sparx already had thes
 make check          # Go tests, vet, race detector; frontend and packaging tests
 make frontend       # Generate JS bindings, npm ci, Vite production build
 make bindings       # Regenerate committed Go-to-JavaScript bindings
+make branding       # Regenerate artwork on a Linux authoring host
 make dev            # Wails desktop development, on a graphical Linux host
 ```
 

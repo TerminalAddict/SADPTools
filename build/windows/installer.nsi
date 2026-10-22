@@ -26,6 +26,12 @@ VIAddVersionKey "FileVersion" "${PRODUCT_VERSION}"
 VIAddVersionKey "LegalCopyright" "Copyright (c) 2026 SADPTools contributors"
 !define MUI_ICON "${PROJECT_ROOT}/build/windows/icon.ico"
 !define MUI_UNICON "${PROJECT_ROOT}/build/windows/icon.ico"
+!define MUI_HEADERIMAGE
+!define MUI_HEADERIMAGE_RIGHT
+!define MUI_HEADERIMAGE_BITMAP "${PROJECT_ROOT}/build/windows/installer-header.bmp"
+!define MUI_HEADERIMAGE_UNBITMAP "${PROJECT_ROOT}/build/windows/installer-header.bmp"
+!define MUI_WELCOMEFINISHPAGE_BITMAP "${PROJECT_ROOT}/build/windows/installer-sidebar.bmp"
+!define MUI_UNWELCOMEFINISHPAGE_BITMAP "${PROJECT_ROOT}/build/windows/installer-sidebar.bmp"
 !define MUI_WELCOMEPAGE_TEXT "Setup will install SADPTools and any required display components.$\r$\n$\r$\nEverything is included. No separate downloads or internet connection are needed.$\r$\n$\r$\nClose SADPTools before continuing."
 !insertmacro MUI_PAGE_WELCOME
 !define MUI_LICENSEPAGE_CHECKBOX

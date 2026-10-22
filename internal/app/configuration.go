@@ -39,16 +39,12 @@ func (c *Controller) Configure(id string, r configuration.Request) (configuratio
 		c.mu.Unlock()
 		return configuration.Result{}, errors.New("selected device identity changed; reopen the operation")
 	}
-	found := false
-	for _, a := range device.Interfaces {
-		if a.Name == r.Interface {
-			found = true
-		}
-	}
-	if !found {
+	adapter, err := operationInterface(*device, r.Interface, c.settings.Interface)
+	if err != nil {
 		c.mu.Unlock()
-		return configuration.Result{}, errors.New("select an adapter on which this device was discovered")
+		return configuration.Result{}, err
 	}
+	r.Interface = adapter
 	if r.Action == sadp.Activate && device.Activated != nil && *device.Activated {
 		c.mu.Unlock()
 		return configuration.Result{}, errors.New("device already reports active status")
@@ -91,6 +87,38 @@ func (c *Controller) Configure(id string, r configuration.Request) (configuratio
 	}
 	return result, nil
 }
+
+// An empty selection uses a route observed during discovery. Prefer the scan
+// adapter when it saw this device; otherwise use the first recorded route.
+// Resolve exactly one adapter before sending, without retries on other routes.
+func operationInterface(device devices.Device, requested, preferred string) (string, error) {
+	first, match := "", ""
+	for _, a := range device.Interfaces {
+		if a.Name == "" {
+			continue
+		}
+		if requested != "" && a.Name == requested {
+			return requested, nil
+		}
+		if first == "" {
+			first = a.Name
+		}
+		if a.Name == preferred {
+			match = a.Name
+		}
+	}
+	if requested != "" {
+		return "", errors.New("select an adapter on which this device was discovered")
+	}
+	if match != "" {
+		return match, nil
+	}
+	if first != "" {
+		return first, nil
+	}
+	return "", errors.New("no discovered connection is available for this device; rediscover before trying again")
+}
+
 func (c *Controller) CancelOperation() {
 	c.mu.Lock()
 	defer c.mu.Unlock()

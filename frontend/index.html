@@ -4,11 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>SADPTools</title>
+    <link rel="icon" type="image/svg+xml" href="/src/assets/brand-icon.svg" />
   </head>
   <body>
     <header class="app-header">
       <div class="brand">
-        <span class="brand-mark" aria-hidden="true">S</span>
+        <img class="brand-mark" src="/src/assets/brand-icon.svg" width="48" height="48" alt="" />
         <div>
           <h1>SADP<span>Tools</span></h1>
           <p>NETWORK DEVICE MANAGEMENT</p>
@@ -17,7 +18,11 @@
       <div class="header-actions">
         <span class="badge rounded-pill text-bg-secondary"
           >Device management</span
-        ><button id="settings-open" class="btn btn-sm btn-outline-secondary">
+        ><button id="about-open" class="btn btn-sm btn-outline-secondary about-trigger">
+          <img src="/src/assets/brand-icon.svg" width="20" height="20" alt="" />
+          About
+        </button>
+        <button id="settings-open" class="btn btn-sm btn-outline-secondary">
           Settings
         </button>
       </div>
@@ -114,7 +119,7 @@
               <tbody id="devices"></tbody>
             </table>
             <div id="empty" class="empty-state">
-              <div class="empty-symbol" aria-hidden="true">⌁</div>
+              <img class="empty-symbol" src="/src/assets/brand-icon.svg" width="64" height="64" alt="" />
               <h3>No devices discovered yet</h3>
               <p>
                 Choose a network adapter, then select
@@ -199,6 +204,81 @@ No discovery activity yet.</pre>
       ><span id="last-scan">No scan completed</span
       ><span>Local discovery · No account required</span>
     </footer>
+    <dialog id="about-dialog" aria-labelledby="about-title">
+      <div class="dialog-heading">
+        <div class="about-heading">
+          <img src="/src/assets/brand-icon.svg" width="40" height="40" alt="" />
+          <h2 id="about-title">About SADPTools</h2>
+        </div>
+        <button
+          type="button"
+          id="about-close"
+          class="btn-close"
+          aria-label="Close About"
+          autofocus
+        ></button>
+      </div>
+      <p class="small text-body-secondary">
+        Version <span id="about-version">unavailable</span> · Open source · MIT licence
+      </p>
+      <p>
+        A desktop utility for discovering and managing Hikvision devices on your
+        local network.
+      </p>
+      <section class="about-author" aria-labelledby="about-author-name">
+        <img
+          src="/src/assets/paul-willard.webp"
+          alt="Paul Willard"
+          width="96"
+          height="96"
+          class="about-portrait"
+        />
+        <div>
+          <p class="about-eyebrow">Created by</p>
+          <h3 id="about-author-name">Paul Willard</h3>
+          <p class="small text-body-secondary">TerminalAddict · Waikato, New Zealand</p>
+          <p class="about-quote">“At heart, I’m a geek.”</p>
+          <p class="mb-0">
+            Paul is a systems engineer, network manager and longtime Linux
+            enthusiast. He owns Central Communications and has led infrastructure,
+            customer support and development teams. His experience spans ISP
+            networks, wireless systems, firewalls and Linux servers, with a
+            passion for telecommunications and business strategy.
+          </p>
+        </div>
+      </section>
+      <div class="about-links">
+        <a
+          href="https://www.paulwillard.nz/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-primary"
+          title="Open Paul’s website in your browser"
+        >Paul’s website ↗</a>
+        <a
+          href="https://github.com/TerminalAddict/SADPTools"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-outline-secondary"
+          title="Open the SADPTools repository in your browser"
+        >SADPTools on GitHub ↗</a>
+      </div>
+      <p id="about-error" class="small text-danger mt-2" role="alert" hidden></p>
+      <details id="about-credits" class="about-credits small">
+        <summary>Credits &amp; licences</summary>
+        <p class="mt-2 mb-2">
+          SADP protocol work builds on Cameron Newman’s
+          <a
+            href="https://github.com/cameronnewman/hikvision-tooling"
+            target="_blank"
+            rel="noopener noreferrer"
+          >hikvision-tooling</a>
+          (MIT). Built with Go, Wails v3 and Bootstrap 5. Full third-party licence
+          notices are included with the application.
+        </p>
+        <p class="mb-0">© 2026 SADPTools contributors.</p>
+      </details>
+    </dialog>
     <dialog id="settings-dialog">
       <form id="settings-form">
         <div class="dialog-heading">
@@ -255,14 +335,15 @@ No discovery activity yet.</pre>
         </div>
         <p id="operation-identity" class="small"></p>
         <p id="operation-description" class="small text-body-secondary"></p>
-        <label for="operation-interface" class="form-label"
-          >Send through adapter</label
-        >
-        <select
-          id="operation-interface"
-          class="form-select mb-3"
-          required
-        ></select>
+        <details id="operation-connection" class="small mb-3" hidden>
+          <summary>Connection options</summary>
+          <p class="text-body-secondary mt-2">
+            This device was discovered through multiple adapters. SADPTools
+            chooses one automatically; you can override it here if needed.
+          </p>
+          <label for="operation-interface" class="form-label">Network adapter</label>
+          <select id="operation-interface" class="form-select"></select>
+        </details>
         <fieldset id="network-fields" hidden>
           <div class="row g-2">
             <div class="col-6">

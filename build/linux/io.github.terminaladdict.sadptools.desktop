@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=SADPTools
+Comment=Discover and manage local network cameras
+Exec=SADPTools
+Icon=io.github.terminaladdict.sadptools
+Terminal=false
+Categories=Network;Utility;
+StartupNotify=true

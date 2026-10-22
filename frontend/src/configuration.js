@@ -1,6 +1,7 @@
 import * as Backend from "../bindings/github.com/TerminalAddict/SADPTools/desktopservice.js";
 import {
   operationAvailability,
+  operationInterfaces,
   networkFromDevice,
 } from "./configuration-view.js";
 
@@ -62,14 +63,14 @@ export function initConfiguration({
         : mode === "update"
           ? "Review the complete network configuration below, then enter the current admin password to apply it."
           : "Request recovery data or submit a support-provided code with a new admin password.";
+    const adapters = operationInterfaces(d);
+    $("operation-connection").hidden = adapters.length <= 1;
+    $("operation-connection").open = false;
     $("operation-interface").replaceChildren(
-      ...[...new Set(d.interfaces.map((a) => a.name))].map(
-        (name) => new Option(name, name),
-      ),
+      new Option("Automatic (from discovery)", ""),
+      ...adapters.map((name) => new Option(name, name)),
     );
-    const preferred = getSettings()?.interface;
-    if (d.interfaces.some((a) => a.name === preferred))
-      $("operation-interface").value = preferred;
+    $("operation-interface").value = "";
     $("network-fields").hidden = mode !== "update";
     $("recovery-fields").hidden = mode !== "recovery";
     $("password-confirm-field").hidden = mode === "update";

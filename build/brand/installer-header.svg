@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="114" viewBox="0 0 300 114"><title>SADPTools</title><rect width="300" height="114" fill="#FFFFFF"/><g transform="translate(9 13) scale(0.34)"><rect x="4" y="4" width="248" height="248" rx="54" fill="#101E2B" stroke="#2D4656" stroke-width="2"/><g fill="none"><path xmlns="http://www.w3.org/2000/svg" d="M158 50H96L50 96V160L96 206H160L206 160V114" stroke="#36D6C7" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" />
+  <path xmlns="http://www.w3.org/2000/svg" d="M156 100L194 62" stroke="#F5B84B" stroke-width="16" stroke-linecap="round" />
+  <path xmlns="http://www.w3.org/2000/svg" d="M128 86L170 128L128 170L86 128Z" stroke="#F1F6FA" stroke-width="16" stroke-linejoin="round" />
+  <circle xmlns="http://www.w3.org/2000/svg" cx="128" cy="128" r="12" fill="#36D6C7" />
+  <circle xmlns="http://www.w3.org/2000/svg" cx="200" cy="56" r="16" fill="#F5B84B" />
+</g></g><text x="111" y="56" font-family="DejaVu Sans, sans-serif" font-size="28" font-weight="700" letter-spacing="-1" fill="#101E2B">SADP<tspan fill="#08796F" font-weight="400">Tools</tspan></text><text x="113" y="79" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" letter-spacing="0" fill="#526673">by Paul Willard</text></svg>

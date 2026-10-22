@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><title>SADPTools — Signal Lens</title><rect x="4" y="4" width="248" height="248" rx="54" fill="#101E2B" stroke="#2D4656" stroke-width="2"/><g fill="none"><path xmlns="http://www.w3.org/2000/svg" d="M158 50H96L50 96V160L96 206H160L206 160V114" stroke="#36D6C7" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" />
+  <path xmlns="http://www.w3.org/2000/svg" d="M156 100L194 62" stroke="#F5B84B" stroke-width="16" stroke-linecap="round" />
+  <path xmlns="http://www.w3.org/2000/svg" d="M128 86L170 128L128 170L86 128Z" stroke="#F1F6FA" stroke-width="16" stroke-linejoin="round" />
+  <circle xmlns="http://www.w3.org/2000/svg" cx="128" cy="128" r="12" fill="#36D6C7" />
+  <circle xmlns="http://www.w3.org/2000/svg" cx="200" cy="56" r="16" fill="#F5B84B" />
+</g></svg>

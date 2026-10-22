@@ -1,5 +1,9 @@
+export function operationInterfaces(device) {
+  return [...new Set((device?.interfaces || []).map((a) => a.name).filter(Boolean))];
+}
+
 export function operationAvailability(device, busy) {
-  const ready = !!device?.mac && !!device?.interfaces?.length && !busy;
+  const ready = !!device?.mac && operationInterfaces(device).length > 0 && !busy;
   return {
     activate: ready && device.activated !== true,
     network: ready && device.activated !== false,
