@@ -29,6 +29,16 @@ kills processes, retries camera writes or silently accepts setup terms.
 containing the updater.** Do not replace beta.1's published assets with a changed
 build; publish a new version through the [release process](releases.md).
 
+### Updating from a standalone EXE
+
+A versioned standalone `SADPTools-windows-amd64.exe` uses the same installer-based
+update flow. Setup installs into `%LOCALAPPDATA%\Programs\SADPTools` by default,
+or uses an existing installation registered for the current user. It does not
+replace the original standalone file in Downloads or another arbitrary folder.
+After setup, launch from its Finish page or the **SADPTools** Start menu shortcut
+and confirm the new version in About. Reopening the original standalone EXE
+still runs the old version. Preferences are shared for the same Windows user.
+
 ## Channels and platforms
 
 Stable builds default to stable releases. Beta/RC builds default to stable and

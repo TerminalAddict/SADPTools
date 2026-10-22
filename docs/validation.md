@@ -147,3 +147,10 @@ See [branding sources and regeneration](branding.md).
 - Selected SignPath Foundation's free open-source application route. Added the code signing policy and documented the GitHub-hosted build requirement, signing order, third-party runtime disclosure and Windows verification needed before claiming a signed release.
 - Submitted the application once through the official web form. Although the form remained at “Form is submitting”, a subsequent SignPath acknowledgement email shared by Paul on 23 October confirms receipt. Review is pending; SignPath expects to respond within the next few business days. Application details and receipt status are retained privately under ignored `.cache/signpath/`; no approval or certificate is claimed.
 - Only documentation changed. `git diff --check` and local documentation-link checks passed; application tests/builds were not repeated. Existing public release files remain unchanged and unsigned.
+
+## Beta.3 update-test release preparation — 23 October 2026
+
+- Prepared `0.2.0-beta.3` to exercise updates from beta.2. Application code and dependency pins are unchanged. The release build stamps the new version into the app, CLIs, Windows resources and installer.
+- Documented the standalone-to-installed transition: setup uses the registered installation or the default per-user location; it does not overwrite an arbitrary standalone EXE. The user should launch the updated app from setup or the Start menu and confirm its About version.
+- Microsoft's current x64 runtime link now resolves to a different payload. This version-only update test retains beta.2's pinned runtime, whose cached bytes are verified again during packaging. Current Evergreen licence text matches the retained notice after whitespace normalization. A runtime refresh is separate from this release.
+- The release builder must pass the full automated checks and verify all downloaded release assets before publication. Windows process handoff, installation and relaunch remain runtime acceptance checks; no camera writes are authorised or performed for this release.
