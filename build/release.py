@@ -148,7 +148,10 @@ def build(version, folder):
     run("make", "cli", f"VERSION={version}", env=dict(env, GOOS="linux", GOARCH="amd64"))
     if run(ROOT / "bin/sadptools", "--version", capture=True) != f"sadptools {version}":
         raise ValueError("Linux CLI does not report the release version")
-    windows_cli = ROOT / "bin/sadptools-windows-amd64.exe"
+    # NSIS resolves File inputs case-insensitively even on Linux. Keep the CLI
+    # apart from SADPTools-windows-amd64.exe so repeated builds stay unambiguous.
+    windows_cli = ROOT / "bin/cli-windows-amd64/sadptools.exe"
+    windows_cli.parent.mkdir(parents=True, exist_ok=True)
     run("go", "build", "-trimpath", "-buildvcs=false", "-ldflags", f"-s -w -X {VERSION_SYMBOL}={version}",
         "-o", windows_cli, "./cmd/sadptools",
         env=dict(env, GOOS="windows", GOARCH="amd64", CGO_ENABLED="0"))
