@@ -19,10 +19,11 @@ InstallDir "$LOCALAPPDATA\Programs\SADPTools"
 SetCompressor lzma
 ShowInstDetails show
 ShowUninstDetails show
-VIProductVersion "${PRODUCT_VERSION}.0"
+VIProductVersion "${FILE_VERSION}"
 VIAddVersionKey "ProductName" "SADPTools Setup"
 VIAddVersionKey "FileDescription" "SADPTools offline installer"
-VIAddVersionKey "FileVersion" "${PRODUCT_VERSION}"
+VIAddVersionKey "FileVersion" "${FILE_VERSION}"
+VIAddVersionKey "ProductVersion" "${PRODUCT_VERSION}"
 VIAddVersionKey "LegalCopyright" "Copyright (c) 2026 SADPTools contributors"
 !define MUI_ICON "${PROJECT_ROOT}/build/windows/icon.ico"
 !define MUI_UNICON "${PROJECT_ROOT}/build/windows/icon.ico"

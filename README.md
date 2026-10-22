@@ -11,7 +11,7 @@ Milestone two adds single-device activation, IPv4/DHCP/SDK-port configuration an
 
 ## Install on Windows
 
-Run **`SADPTools-Setup-windows-amd64.exe`**, follow setup, then open **SADPTools** from the Start menu. Setup includes everything needed to run the application on Windows 10/11 AMD64 and works without an internet connection. There are no separate prerequisites to download or configure.
+Download the **Setup EXE** from [GitHub Releases](https://github.com/TerminalAddict/SADPTools/releases), run it, follow setup, then open **SADPTools** from the Start menu. Release downloads include the version in the filename (for example, `SADPTools-0.2.0-beta.1-Setup-windows-amd64.exe`). Setup includes everything needed to run the application on Windows 10/11 AMD64 and works without an internet connection. There are no separate prerequisites to download or configure.
 
 Setup automatically prepares the display component if needed. It installs SADPTools for the current user and provides an entry in Windows' installed-apps list for removal. Builds are currently unsigned, so Windows may show a publisher/SmartScreen warning. Installation and startup still need validation on Windows; see [validation results](docs/validation.md).
 
@@ -100,6 +100,11 @@ make bindings       # Regenerate committed Go-to-JavaScript bindings
 make branding       # Regenerate artwork on a Linux authoring host
 make dev            # Wails desktop development, on a graphical Linux host
 ```
+
+To prepare and publish a tagged beta using `gh`, see the [release process](docs/releases.md).
+`make release-build VERSION=0.2.0-beta.1` builds and verifies the downloads from a
+clean commit. `make release-publish VERSION=0.2.0-beta.1` pushes the commit/tag,
+verifies uploaded files and publishes the GitHub pre-release.
 
 For headless Go validation, use `go test ./...` and `go vet ./...`. The root desktop entry uses `//go:build desktop` to avoid requiring GUI development libraries for ordinary engine checks. With desktop dependencies installed, also run `go test -tags desktop ./...` and `go vet -tags desktop ./...`. Desktop builds include `desktop,production`.
 

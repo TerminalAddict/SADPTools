@@ -43,6 +43,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: python3 -m unittest discover -s build/windows -p 'test_*.py'
+      - run: python3 -m unittest discover -s build -p 'test_*.py'
       - run: make tools windows-installer
       - run: 7z t bin/SADPTools-Setup-windows-amd64.exe
       - uses: actions/upload-artifact@v4

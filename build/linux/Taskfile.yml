@@ -6,4 +6,4 @@ tasks:
       GOARCH: '{{.TARGET_ARCH}}'
       CGO_ENABLED: '1'
     cmds:
-      - go build -tags desktop,production -trimpath -buildvcs=false -ldflags="-s -w" -o bin/SADPTools-linux-{{.TARGET_ARCH}} .
+      - go build -tags desktop,production -trimpath -buildvcs=false -ldflags="-s -w -X github.com/TerminalAddict/SADPTools/internal/version.Value={{.APP_VERSION}}" -o bin/SADPTools-linux-{{.TARGET_ARCH}} .

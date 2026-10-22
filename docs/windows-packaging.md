@@ -27,6 +27,10 @@ python3 build/windows/package.py --prepare
 python3 build/windows/package.py
 ```
 
+For a versioned public build use the [release process](releases.md). Direct builds
+accept `make windows-installer VERSION=0.2.0-beta.1`; when packaging an existing
+binary, pass the same version to `package.py --version 0.2.0-beta.1`.
+
 Those commands can run without network access once inputs are cached. A full `make windows-installer` still runs `npm ci` and may need registry access. Version and payload pinning make the inputs repeatable; the PE/NSIS toolchain may embed timestamps, so byte-for-byte reproducibility is not claimed.
 
 ## Setup behaviour
@@ -54,4 +58,7 @@ The pinned payload is WebView2 **155.0.4283.62**, retrieved directly from Micros
 
 Do not edit a checksum merely to silence a download error. If Microsoft retires a pinned URL, refresh the payload deliberately or restore the verified cached file from an approved internal build archive. End-user internet access is unnecessary for initial installation; future Microsoft security updates require access to Microsoft's update mechanism.
 
-GitHub Actions now builds and uploads the single installer plus checksum. The workflow has not yet been run remotely.
+GitHub Actions builds the installer and checksum as CI artifacts. Public GitHub
+releases are separate and use the explicit [release commands](releases.md).
+The Wails CLI is installed with `CGO_ENABLED=0`, so the Windows cross-build job
+does not need Linux GUI development libraries.

@@ -12,11 +12,14 @@ from pathlib import Path
 import platform
 import shutil
 import subprocess
+import sys
 import tempfile
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[2]
 INPUTS = Path(__file__).with_name("installer-inputs.json")
+sys.path.insert(0, str(ROOT / "build"))
+from release_version import windows_version
 
 
 def sha256(path):
@@ -87,7 +90,9 @@ def compiler(inputs, cache):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--prepare", action="store_true", help="Cache and verify build inputs only")
+    parser.add_argument("--version", default=os.environ.get("SADPTOOLS_VERSION", "0.2.0-dev"))
     args = parser.parse_args()
+    numeric_version = windows_version(args.version)
     inputs = json.loads(INPUTS.read_text())
     cache = Path(os.environ.get("SADPTOOLS_BUILD_CACHE", ROOT / ".cache/windows-installer")).resolve()
     runtime = fetch(inputs["webview2"], cache)
@@ -98,8 +103,6 @@ def main():
     binary = ROOT / "bin/SADPTools-windows-amd64.exe"
     if not binary.is_file():
         raise RuntimeError("Windows application is missing; run make windows-installer.")
-    metadata = json.loads((ROOT / "build/windows/info.json").read_text())
-    version = metadata["info"]["0409"]["ProductVersion"]
     output = ROOT / "bin/SADPTools-Setup-windows-amd64.exe"
     # Compile to a temporary output; a failed build cannot replace a working installer.
     with tempfile.TemporaryDirectory(dir=output.parent, prefix="installer-") as stage:
@@ -118,7 +121,8 @@ def main():
         prefix = "/" if os.name == "nt" else "-"
         defines = {
             "PROJECT_ROOT": ROOT, "APP_BINARY": binary, "WEBVIEW2_INSTALLER": runtime,
-            "SETUP_TERMS": terms, "OUTPUT_FILE": pending, "PRODUCT_VERSION": version,
+            "SETUP_TERMS": terms, "OUTPUT_FILE": pending, "PRODUCT_VERSION": args.version,
+            "FILE_VERSION": numeric_version,
         }
         command = [makensis, prefix + "V3", prefix + "WX"]
         command += [f"{prefix}D{key}={value}" for key, value in defines.items()]

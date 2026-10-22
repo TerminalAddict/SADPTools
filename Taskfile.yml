@@ -2,6 +2,7 @@ version: '3'
 vars:
   GOOS: '{{.GOOS | default OS}}'
   TARGET_ARCH: '{{.GOARCH | default ARCH}}'
+  APP_VERSION: '{{.SADPTOOLS_VERSION | default "0.2.0-dev"}}'
 includes:
   common: ./build/Taskfile.yml
   windows: ./build/windows/Taskfile.yml
