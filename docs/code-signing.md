@@ -7,12 +7,11 @@ CLI and installer have no embedded Authenticode signature. A Windows report of
 **Unknown publisher** is therefore expected; the company name in executable
 metadata and the release's SHA-256 checksums do not establish a trusted publisher.
 
-An application for free signing through
-[SignPath Foundation](https://signpath.org/apply) was prepared and web submission
-attempted on 23 October 2026. The form stayed at “Form is submitting” without a
-success message, so receipt is **unconfirmed**. Check the contact inbox before
-submitting again. Acceptance, a signing account,
-certificate provisioning and a tested signing workflow are still required.
+[SignPath Foundation](https://signpath.org/apply) has **confirmed receipt** of
+the application for free signing, in an acknowledgement email shared by Paul on
+23 October 2026. Its team expects to respond within the next few business days.
+No resubmission is needed. Approval, a signing account, certificate provisioning
+and a tested signing workflow are still required.
 SignPath has not yet signed or endorsed this project. If accepted, Windows will
 show the certificate's publisher, **SignPath Foundation**.
 
