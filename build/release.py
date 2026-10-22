@@ -129,7 +129,9 @@ def build(version, folder):
         if not shutil.which(tool):
             raise ValueError(f"Missing build tool: {tool}; see docs/releases.md")
     wails = Path(run("go", "env", "GOPATH", capture=True)) / "bin/wails3"
-    if run(wails, "version", capture=True) != "v3.0.0-beta.34":
+    # This pinned CLI writes its version to stderr, not stdout.
+    wails_result = subprocess.run([str(wails), "version"], check=True, text=True, capture_output=True)
+    if (wails_result.stdout + wails_result.stderr).strip() != "v3.0.0-beta.34":
         raise ValueError("Run make tools to install the pinned Wails CLI")
     env = dict(os.environ, SADPTOOLS_VERSION=version, GOAMD64="v1")
     run("make", "check", env=env)
