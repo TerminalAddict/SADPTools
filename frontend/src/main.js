@@ -302,6 +302,7 @@ $("about-open").onclick = () => {
   $("about-error").hidden = true;
   $("about-credits").open = false;
   $("about-dialog").showModal();
+  void updates.refreshAbout();
 };
 $("about-close").onclick = () => $("about-dialog").close();
 for (const link of document.querySelectorAll("#about-dialog a")) {

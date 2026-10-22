@@ -219,9 +219,19 @@ No discovery activity yet.</pre>
           autofocus
         ></button>
       </div>
-      <p class="small text-body-secondary">
-        Version <span id="about-version">unavailable</span> · Open source · MIT licence
-      </p>
+      <section class="about-update" aria-label="Version and updates">
+        <div class="about-update-heading">
+          <p class="mb-0 fw-semibold">Version <span id="about-version">unavailable</span></p>
+          <button type="button" id="about-update-action" class="btn btn-sm btn-outline-secondary">
+            Check for updates
+          </button>
+        </div>
+        <p id="about-update-status" class="small text-body-secondary mt-2 mb-0" role="status">
+          Check GitHub for a new version.
+        </p>
+        <p id="about-update-error" class="small text-danger mt-2 mb-0" role="alert" hidden></p>
+      </section>
+      <p class="small text-body-secondary">Open source · MIT licence</p>
       <p>
         A desktop utility for discovering and managing Hikvision devices on your
         local network.

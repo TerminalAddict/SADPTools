@@ -4,6 +4,14 @@ Open **Updates** in the toolbar to check GitHub releases. Checks also run once
 at startup unless disabled in Settings. Downloads and installation are explicit
 actions; an available update never closes the app automatically.
 
+**About** also displays the running version and live update status. Use **Check
+for updates** there to check manually. When a newer Windows release is available,
+**Update now** opens the Updates screen and starts downloading it. Once verified,
+choose **Install and close** to continue. If the download is already ready,
+**Update now** goes straight to that confirmation screen. Linux offers **View
+release** instead. Opening About alone does not start a network check when
+startup checks are disabled.
+
 1. **Check now** compares published versions with the running version.
 2. **Download update** downloads the complete offline Windows installer, shows
    progress and verifies its SHA-256. You can cancel and retry a failed download.

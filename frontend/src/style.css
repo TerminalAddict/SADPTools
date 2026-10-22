@@ -513,6 +513,20 @@ dialog .form-label {
   overflow-wrap: anywhere;
 }
 
+.about-update {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  overflow-wrap: anywhere;
+}
+.about-update-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
 .about-author {
   display: flex;
   gap: 20px;

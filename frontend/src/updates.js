@@ -1,6 +1,6 @@
 import { Browser, Events } from "@wailsio/runtime";
 import * as Backend from "../bindings/github.com/TerminalAddict/SADPTools/desktopservice.js";
-import { updateControls } from "./updates-view.js";
+import { aboutUpdateView, updateControls } from "./updates-view.js";
 
 export function initUpdates({ getSnapshot, getSettings }) {
   const $ = (id) => document.getElementById(id);
@@ -27,6 +27,13 @@ export function initUpdates({ getSnapshot, getSettings }) {
     $("update-device-busy").hidden = !controls.install || !controls.installDisabled;
     $("updates-open").textContent = state.status === "ready" ? "Update ready" : controls.offered ? "Update available" : "Updates";
     $("updates-open").classList.toggle("btn-outline-primary", controls.offered);
+    const about = aboutUpdateView(state);
+    if (state.currentVersion) $("about-version").textContent = state.currentVersion;
+    $("about-update-status").textContent = about.message;
+    $("about-update-action").textContent = about.label;
+    $("about-update-action").disabled = about.disabled;
+    $("about-update-action").classList.toggle("btn-primary", about.primary);
+    $("about-update-action").classList.toggle("btn-outline-secondary", !about.primary);
   }
   async function refresh() {
     if (loading) { again = true; return; }
@@ -39,19 +46,23 @@ export function initUpdates({ getSnapshot, getSettings }) {
       } while (again);
     } finally { loading = false; }
   }
-  async function act(fn) {
-    $("update-error").hidden = true;
+  async function act(fn, errorID = "update-error") {
+    $(errorID).hidden = true;
     try { await fn(); }
     catch (error) {
-      $("update-error").textContent = error?.message || String(error);
-      $("update-error").hidden = false;
+      $(errorID).textContent = error?.message || String(error);
+      $(errorID).hidden = false;
     }
     try { await refresh(); } catch { /* The app may be closing after setup starts. */ }
+    finally { render(); }
   }
-  $("updates-open").onclick = () => {
+  function openUpdates() {
+    $("about-dialog").close();
     $("updates-dialog").showModal();
     void act(refresh);
-  };
+  }
+  const openRelease = () => Browser.OpenURL(state.releaseURL || "https://github.com/TerminalAddict/SADPTools/releases");
+  $("updates-open").onclick = openUpdates;
   $("updates-close").onclick = () => $("updates-dialog").close();
   $("update-check").onclick = () => void act(() => Backend.CheckForUpdates());
   $("update-download").onclick = () => void act(() => Backend.DownloadUpdate());
@@ -60,10 +71,22 @@ export function initUpdates({ getSnapshot, getSettings }) {
     $("update-install").disabled = true;
     void act(() => Backend.InstallUpdate());
   };
-  $("update-release").onclick = () => void act(() => Browser.OpenURL(state.releaseURL || "https://github.com/TerminalAddict/SADPTools/releases"));
+  $("update-release").onclick = () => void act(openRelease);
+  $("about-update-action").onclick = () => {
+    const about = aboutUpdateView(state);
+    if (about.disabled) return;
+    $("about-update-action").disabled = true;
+    if (about.action === "download" || about.action === "details") {
+      openUpdates();
+      if (about.action === "download") void act(() => Backend.DownloadUpdate());
+    } else {
+      void act(about.action === "release" ? openRelease : () => Backend.CheckForUpdates(), "about-update-error");
+    }
+  };
   Events.On("updates:changed", () => void act(refresh));
   return {
     render,
+    refreshAbout: () => act(refresh, "about-update-error"),
     async start() {
       await refresh();
       if (getSettings()?.checkUpdates && !state.currentVersion?.includes("-dev")) {
