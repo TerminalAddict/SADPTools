@@ -16,6 +16,10 @@ Output:
 
 The installer includes all notices; distribute this one EXE. The checksum is optional for users and useful for release verification. Both the application and installer are currently unsigned. Signing is a future release step; an unsigned build can trigger Windows reputation/publisher warnings.
 
+The [code signing policy](code-signing.md) describes the selected SignPath
+Foundation route, eligibility disclosures and required signing order. Signing
+only the setup executable does not sign the application it installs.
+
 The root Wails `package` task builds the frontend and Windows binary, then calls `build/windows/package.py`. Python 3.11+ is required only on the build host. On Linux AMD64, the helper uses an installed NSIS 3.10 if present, otherwise downloads two pinned Ubuntu packages and extracts them with `dpkg-deb` into `.cache/windows-installer/nsis/`. It never uses sudo, registers packages or runs the Windows redistributable on the build host. This bootstrap is intended for Ubuntu 24.04+ AMD64 (including Sparx); other hosts should supply NSIS 3.10 on PATH or through `MAKENSIS`, with `NSISDIR` if necessary.
 
 All downloaded input files are verified against committed SHA-256 hashes and sizes, including cached files. Partial, oversized or corrupt downloads cannot become build inputs. Microsoft URLs are pinned to a specific payload, not the moving “latest” redirect. `SADPTOOLS_BUILD_CACHE` can relocate the cache. Do not commit the 204 MiB Microsoft redistributable or generated installers to Git.

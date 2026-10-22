@@ -18,6 +18,10 @@ that, use **About → Check for updates** and **Update now**, or the **Updates**
 
 Setup automatically prepares the display component if needed. It installs SADPTools for the current user and provides an entry in Windows' installed-apps list for removal. Builds are currently unsigned, so Windows may show a publisher/SmartScreen warning. Installation and startup still need validation on Windows; see [validation results](docs/validation.md).
 
+See the [code signing policy](docs/code-signing.md) for the SignPath Foundation
+application and signing requirements. Published beta.1/beta.2 downloads are
+unsigned; signing will apply to a new, verified release.
+
 ## What works
 
 - IPv4 adapter enumeration and selected/all-adapter multicast discovery on `239.255.255.250:37020`.

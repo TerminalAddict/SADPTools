@@ -140,3 +140,10 @@ See [branding sources and regeneration](branding.md).
 
 - Added the beta.2 release notes and the manual beta.1 upgrade instructions. The release builder runs the full checks again and records the exact source commit and artifact hashes in `build-manifest.json`.
 - Microsoft's current x64 Evergreen Standalone download resolves to the same pinned versioned URL and 214,156,024-byte payload as beta.1. The current official Evergreen licence text matches `LICENSES/Microsoft-WebView2.txt` after whitespace normalization. The installer builder verifies the cached payload's pinned SHA-256 again; no runtime or licence change is needed. Authenticode and Windows runtime checks remain outstanding as described above.
+
+## Signing diagnosis — 23 October 2026
+
+- The user reported Windows SmartScreen blocking `SADPTools-windows-amd64.exe` with **Unknown publisher**. Inspection of the local beta.2 desktop/CLI binaries and the released beta.2 setup found empty PE certificate tables: these files are unsigned. This does not constitute Windows signature-trust or installation validation.
+- Selected SignPath Foundation's free open-source application route. Added the code signing policy and documented the GitHub-hosted build requirement, signing order, third-party runtime disclosure and Windows verification needed before claiming a signed release.
+- Prepared the application and attempted one submission through the official web form. The form remained at “Form is submitting” without a receipt. Application details and the unconfirmed status are retained privately under ignored `.cache/signpath/`; no successful submission, approval or certificate is claimed.
+- Only documentation changed. `git diff --check` and local documentation-link checks passed; application tests/builds were not repeated. Existing public release files remain unchanged and unsigned.
