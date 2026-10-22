@@ -23,16 +23,20 @@ Usage:
   sadptools interfaces [--json]
   sadptools send <IP> <action> --mac MAC --interface NAME [options]
   sadptools send --help
+  sadptools recovery --help
   sadptools --version
 
 Discovery defaults to all suitable IPv4 adapters. Ctrl+C cancels an active scan.
-Exit codes: 0 success (including no devices), 1 failure, 2 usage, 3 partial scan,
+Exit codes: 0 success (including no devices), 1 failure, 2 usage, 3 partial scan or recovery unavailable,
 4 device rejected command, 5 command outcome unconfirmed, 130 cancelled.
 `
 
 type scanFunc func(context.Context, discovery.Options, *slog.Logger) (discovery.Result, error)
 
 func Run(ctx context.Context, args []string, out, errOut io.Writer) int {
+	if len(args) > 0 && args[0] == "recovery" {
+		return runRecovery(ctx, args[1:], os.Stdin, out, errOut, nil, platform.Interfaces)
+	}
 	if len(args) > 0 && args[0] == "send" {
 		return runSend(ctx, args[1:], os.Stdin, out, errOut, nil)
 	}

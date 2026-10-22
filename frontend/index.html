@@ -9,17 +9,28 @@
   <body>
     <header class="app-header">
       <div class="brand">
-        <img class="brand-mark" src="/src/assets/brand-icon.svg" width="48" height="48" alt="" />
+        <img
+          class="brand-mark"
+          src="/src/assets/brand-icon.svg"
+          width="48"
+          height="48"
+          alt=""
+        />
         <div>
           <h1>SADP<span>Tools</span></h1>
           <p>NETWORK DEVICE MANAGEMENT</p>
         </div>
       </div>
       <div class="header-actions">
-        <button id="updates-open" class="btn btn-sm btn-outline-secondary">Updates</button>
+        <button id="updates-open" class="btn btn-sm btn-outline-secondary">
+          Updates
+        </button>
         <span class="badge rounded-pill text-bg-secondary"
           >Device management</span
-        ><button id="about-open" class="btn btn-sm btn-outline-secondary about-trigger">
+        ><button
+          id="about-open"
+          class="btn btn-sm btn-outline-secondary about-trigger"
+        >
           <img src="/src/assets/brand-icon.svg" width="20" height="20" alt="" />
           About
         </button>
@@ -120,7 +131,13 @@
               <tbody id="devices"></tbody>
             </table>
             <div id="empty" class="empty-state">
-              <img class="empty-symbol" src="/src/assets/brand-icon.svg" width="64" height="64" alt="" />
+              <img
+                class="empty-symbol"
+                src="/src/assets/brand-icon.svg"
+                width="64"
+                height="64"
+                alt=""
+              />
               <h3>No devices discovered yet</h3>
               <p>
                 Choose a network adapter, then select
@@ -197,7 +214,8 @@
           ><span>Latest 500 entries · This session only</span>
         </div>
         <pre id="logs" tabindex="0" aria-label="Discovery log">
-No discovery activity yet.</pre>
+No discovery activity yet.</pre
+        >
       </details>
     </main>
     <footer class="app-footer">
@@ -221,15 +239,30 @@ No discovery activity yet.</pre>
       </div>
       <section class="about-update" aria-label="Version and updates">
         <div class="about-update-heading">
-          <p class="mb-0 fw-semibold">Version <span id="about-version">unavailable</span></p>
-          <button type="button" id="about-update-action" class="btn btn-sm btn-outline-secondary">
+          <p class="mb-0 fw-semibold">
+            Version <span id="about-version">unavailable</span>
+          </p>
+          <button
+            type="button"
+            id="about-update-action"
+            class="btn btn-sm btn-outline-secondary"
+          >
             Check for updates
           </button>
         </div>
-        <p id="about-update-status" class="small text-body-secondary mt-2 mb-0" role="status">
+        <p
+          id="about-update-status"
+          class="small text-body-secondary mt-2 mb-0"
+          role="status"
+        >
           Check GitHub for a new version.
         </p>
-        <p id="about-update-error" class="small text-danger mt-2 mb-0" role="alert" hidden></p>
+        <p
+          id="about-update-error"
+          class="small text-danger mt-2 mb-0"
+          role="alert"
+          hidden
+        ></p>
       </section>
       <p class="small text-body-secondary">Open source · MIT licence</p>
       <p>
@@ -247,14 +280,17 @@ No discovery activity yet.</pre>
         <div>
           <p class="about-eyebrow">Created by</p>
           <h3 id="about-author-name">Paul Willard</h3>
-          <p class="small text-body-secondary">TerminalAddict · Waikato, New Zealand</p>
+          <p class="small text-body-secondary">
+            TerminalAddict · Waikato, New Zealand
+          </p>
           <p class="about-quote">“At heart, I’m a geek.”</p>
           <p class="mb-0">
             Paul is a systems engineer, network manager and longtime Linux
-            enthusiast. He owns Central Communications and has led infrastructure,
-            customer support and development teams. His experience spans ISP
-            networks, wireless systems, firewalls and Linux servers, with a
-            passion for telecommunications and business strategy.
+            enthusiast. He owns Central Communications and has led
+            infrastructure, customer support and development teams. His
+            experience spans ISP networks, wireless systems, firewalls and Linux
+            servers, with a passion for telecommunications and business
+            strategy.
           </p>
         </div>
       </section>
@@ -265,16 +301,23 @@ No discovery activity yet.</pre>
           rel="noopener noreferrer"
           class="btn btn-primary"
           title="Open Paul’s website in your browser"
-        >Paul’s website ↗</a>
+          >Paul’s website ↗</a
+        >
         <a
           href="https://github.com/TerminalAddict/SADPTools"
           target="_blank"
           rel="noopener noreferrer"
           class="btn btn-outline-secondary"
           title="Open the SADPTools repository in your browser"
-        >SADPTools on GitHub ↗</a>
+          >SADPTools on GitHub ↗</a
+        >
       </div>
-      <p id="about-error" class="small text-danger mt-2" role="alert" hidden></p>
+      <p
+        id="about-error"
+        class="small text-danger mt-2"
+        role="alert"
+        hidden
+      ></p>
       <details id="about-credits" class="about-credits small">
         <summary>Credits &amp; licences</summary>
         <p class="mt-2 mb-2">
@@ -283,9 +326,10 @@ No discovery activity yet.</pre>
             href="https://github.com/cameronnewman/hikvision-tooling"
             target="_blank"
             rel="noopener noreferrer"
-          >hikvision-tooling</a>
-          (MIT). Built with Go, Wails v3 and Bootstrap 5. Full third-party licence
-          notices are included with the application.
+            >hikvision-tooling</a
+          >
+          (MIT). Built with Go, Wails v3 and Bootstrap 5. Full third-party
+          licence notices are included with the application.
         </p>
         <p class="mb-0">© 2026 SADPTools contributors.</p>
       </details>
@@ -330,14 +374,19 @@ No discovery activity yet.</pre>
         <hr />
         <div class="form-check mb-3">
           <input id="check-updates" type="checkbox" class="form-check-input" />
-          <label for="check-updates" class="form-check-label">Check GitHub for updates on startup</label>
+          <label for="check-updates" class="form-check-label"
+            >Check GitHub for updates on startup</label
+          >
         </div>
         <label for="update-channel" class="form-label">Update channel</label>
         <select id="update-channel" class="form-select">
           <option value="stable">Stable releases</option>
           <option value="beta">Stable and beta releases</option>
         </select>
-        <p class="small text-body-secondary mt-2">Downloads and installation start only when you choose. Channel changes apply to your next check.</p>
+        <p class="small text-body-secondary mt-2">
+          Downloads and installation start only when you choose. Channel changes
+          apply to your next check.
+        </p>
         <p id="settings-error" class="text-danger small" role="alert"></p>
         <button class="btn btn-primary w-100" type="submit">
           Save settings
@@ -347,23 +396,56 @@ No discovery activity yet.</pre>
     <dialog id="updates-dialog" aria-labelledby="updates-title">
       <div class="dialog-heading">
         <h2 id="updates-title">SADPTools updates</h2>
-        <button id="updates-close" class="btn-close" aria-label="Close updates" autofocus></button>
+        <button
+          id="updates-close"
+          class="btn-close"
+          aria-label="Close updates"
+          autofocus
+        ></button>
       </div>
-      <p class="small text-body-secondary">Installed version: <span id="update-current">—</span></p>
+      <p class="small text-body-secondary">
+        Installed version: <span id="update-current">—</span>
+      </p>
       <p id="update-message" role="status">Check GitHub for a new version.</p>
       <p id="update-offer" class="fw-semibold" hidden></p>
-      <progress id="update-progress" class="w-100" max="100" value="0" aria-label="Update download progress" hidden></progress>
+      <progress
+        id="update-progress"
+        class="w-100"
+        max="100"
+        value="0"
+        aria-label="Update download progress"
+        hidden
+      ></progress>
       <p id="update-size" class="small text-body-secondary" hidden></p>
-      <p id="update-platform" class="small text-body-secondary" hidden>In-app installation is available on Windows AMD64. For Linux, see the release page and build the desktop app from source.</p>
-      <p id="update-install-note" class="small text-body-secondary" hidden>Installing closes SADPTools and opens setup. Finish setup to restart the app. Export any inventory or recovery data you want to keep first; preferences are preserved.</p>
-      <p id="update-device-busy" class="small text-warning" hidden>Finish the active device operation before installing.</p>
+      <p id="update-platform" class="small text-body-secondary" hidden>
+        In-app installation is available on Windows AMD64. For Linux, see the
+        release page and build the desktop app from source.
+      </p>
+      <p id="update-install-note" class="small text-body-secondary" hidden>
+        Installing closes SADPTools and opens setup. Finish setup to restart the
+        app. Export any inventory or recovery data you want to keep first;
+        preferences are preserved.
+      </p>
+      <p id="update-device-busy" class="small text-warning" hidden>
+        Finish the active device operation before installing.
+      </p>
       <p id="update-error" class="text-danger small" role="alert" hidden></p>
       <div class="d-flex gap-2 flex-wrap">
-        <button id="update-check" class="btn btn-outline-secondary">Check now</button>
-        <button id="update-download" class="btn btn-primary" hidden>Download update</button>
-        <button id="update-install" class="btn btn-primary" hidden>Install and close</button>
-        <button id="update-cancel" class="btn btn-outline-secondary" hidden>Cancel</button>
-        <button id="update-release" class="btn btn-outline-secondary">Release notes ↗</button>
+        <button id="update-check" class="btn btn-outline-secondary">
+          Check now
+        </button>
+        <button id="update-download" class="btn btn-primary" hidden>
+          Download update
+        </button>
+        <button id="update-install" class="btn btn-primary" hidden>
+          Install and close
+        </button>
+        <button id="update-cancel" class="btn btn-outline-secondary" hidden>
+          Cancel
+        </button>
+        <button id="update-release" class="btn btn-outline-secondary">
+          Release notes ↗
+        </button>
       </div>
     </dialog>
     <dialog id="operation-dialog" aria-labelledby="operation-title">
@@ -385,7 +467,9 @@ No discovery activity yet.</pre>
             This device was discovered through multiple adapters. SADPTools
             chooses one automatically; you can override it here if needed.
           </p>
-          <label for="operation-interface" class="form-label">Network adapter</label>
+          <label for="operation-interface" class="form-label"
+            >Network adapter</label
+          >
           <select id="operation-interface" class="form-select"></select>
         </details>
         <fieldset id="network-fields" hidden>
@@ -436,61 +520,83 @@ No discovery activity yet.</pre>
           </p>
         </fieldset>
         <fieldset id="recovery-fields" hidden>
-          <p class="small">
-            Obtain a valid reset code through your authorised support provider.
-            Support varies by firmware. Vendor XML imports, GUID files, security
-            questions and email recovery are not supported here.
-          </p>
-          <label for="challenge-method" class="form-label"
-            >Request recovery data</label
+          <label for="recovery-method" class="form-label"
+            >Recovery method</label
           >
-          <div class="input-group mb-2">
-            <select id="challenge-method" class="form-select">
-              <option value="exchangecode">Exchange code</option>
-              <option value="getencryptstring">Encryption string</option>
-              <option value="getencryptstring_v31">
-                Encryption string (v3.1)
-              </option></select
-            ><button
-              id="request-challenge"
-              type="button"
-              class="btn btn-outline-primary"
-            >
-              Request data
-            </button>
-          </div>
-          <div id="challenge-result" hidden>
-            <label for="challenge-data" class="form-label"
-              >Device recovery data</label
-            ><textarea
-              id="challenge-data"
-              class="form-control"
-              rows="3"
-              readonly
-            ></textarea
-            ><button
-              id="save-challenge"
-              type="button"
-              class="btn btn-sm btn-outline-secondary mt-2 mb-3"
-            >
-              Save recovery data…
-            </button>
-          </div>
-          <label for="reset-method" class="form-label"
-            >Code submission method</label
-          ><select id="reset-method" class="form-select mb-2">
-            <option value="resetPassword">Reset password (Code)</option>
-            <option value="securityCode">Security code</option>
+          <select id="recovery-method" class="form-select mb-3">
+            <option value="questions">Security questions</option>
+            <option value="code">Support-provided code</option>
           </select>
-          <label for="recovery-code" class="form-label"
-            >Authorised recovery code</label
-          ><input
-            id="recovery-code"
-            type="password"
-            autocomplete="off"
-            maxlength="4096"
-            class="form-control mb-3"
-          />
+          <div id="security-questions-fields">
+            <p id="security-questions-status" class="small" role="status">
+              Checking camera…
+            </p>
+            <div id="security-questions-list"></div>
+            <button
+              id="check-security-questions"
+              type="button"
+              class="btn btn-sm btn-outline-secondary mb-3"
+            >
+              Check again
+            </button>
+          </div>
+          <div id="support-code-fields" hidden>
+            <p class="small">
+              Obtain a valid reset code through your authorised support
+              provider. Support varies by firmware. Vendor XML imports, GUID
+              files and email recovery are not supported here.
+            </p>
+            <label for="challenge-method" class="form-label"
+              >Request recovery data</label
+            >
+            <div class="input-group mb-2">
+              <select id="challenge-method" class="form-select">
+                <option value="exchangecode">Exchange code</option>
+                <option value="getencryptstring">Encryption string</option>
+                <option value="getencryptstring_v31">
+                  Encryption string (v3.1)
+                </option></select
+              ><button
+                id="request-challenge"
+                type="button"
+                class="btn btn-outline-primary"
+              >
+                Request data
+              </button>
+            </div>
+            <div id="challenge-result" hidden>
+              <label for="challenge-data" class="form-label"
+                >Device recovery data</label
+              ><textarea
+                id="challenge-data"
+                class="form-control"
+                rows="3"
+                readonly
+              ></textarea
+              ><button
+                id="save-challenge"
+                type="button"
+                class="btn btn-sm btn-outline-secondary mt-2 mb-3"
+              >
+                Save recovery data…
+              </button>
+            </div>
+            <label for="reset-method" class="form-label"
+              >Code submission method</label
+            ><select id="reset-method" class="form-select mb-2">
+              <option value="resetPassword">Reset password (Code)</option>
+              <option value="securityCode">Security code</option>
+            </select>
+            <label for="recovery-code" class="form-label"
+              >Authorised recovery code</label
+            ><input
+              id="recovery-code"
+              type="password"
+              autocomplete="off"
+              maxlength="4096"
+              class="form-control mb-3"
+            />
+          </div>
         </fieldset>
         <label
           id="operation-password-label"
@@ -516,7 +622,7 @@ No discovery activity yet.</pre>
             class="form-control mb-2"
           />
         </div>
-        <p class="small text-body-secondary mt-3">
+        <p id="operation-privacy-note" class="small text-body-secondary mt-3">
           Passwords and codes are not saved in preferences or logs. This SADP
           command format sends them over the local network without encryption;
           use a trusted management network.

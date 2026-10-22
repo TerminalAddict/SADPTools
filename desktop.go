@@ -9,6 +9,7 @@ import (
 	"github.com/TerminalAddict/SADPTools/internal/app"
 	"github.com/TerminalAddict/SADPTools/internal/configuration"
 	"github.com/TerminalAddict/SADPTools/internal/platform"
+	"github.com/TerminalAddict/SADPTools/internal/recovery"
 	"github.com/TerminalAddict/SADPTools/internal/update"
 	"github.com/TerminalAddict/SADPTools/internal/version"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -73,6 +74,13 @@ func (s *DesktopService) ConfigureDevice(id string, request configuration.Reques
 	return s.controller.Configure(id, request)
 }
 func (s *DesktopService) CancelOperation() { s.controller.CancelOperation() }
+
+func (s *DesktopService) CheckSecurityQuestions(id, adapter string) (recovery.Status, error) {
+	return s.controller.CheckSecurityQuestions(id, adapter)
+}
+func (s *DesktopService) ResetWithSecurityQuestions(id, adapter string, request recovery.Request) (recovery.Result, error) {
+	return s.controller.ResetWithSecurityQuestions(id, adapter, request)
+}
 
 func (s *DesktopService) SaveRecoveryData(id string, result configuration.Result) (string, error) {
 	data, err := s.controller.RecoveryExport(id, result)

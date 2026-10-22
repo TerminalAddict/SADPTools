@@ -7,7 +7,7 @@
 
 A native Go desktop utility and CLI for discovering Hikvision devices. Built with **Wails v3**, Bootstrap 5 and vanilla JavaScript. Windows 10/11 AMD64 is the primary desktop target; Linux is also supported.
 
-Milestone two adds single-device activation, IPv4/DHCP/SDK-port configuration and code-based password recovery to the CLI and desktop. These write operations have synthetic test coverage but still require physical-device/firmware validation. SADPTools adds no account, cloud service or telemetry. The Windows display runtime is supplied by Microsoft and has its own update and privacy terms, included with setup.
+Milestone two adds single-device activation, IPv4/DHCP/SDK-port configuration and code-based password recovery to the CLI and desktop. Security-question recovery is also available for compatible cameras on the host’s IPv4 subnet. These write operations have synthetic test coverage but still require physical-device/firmware validation. SADPTools adds no account, cloud service or telemetry. The Windows display runtime is supplied by Microsoft and has its own update and privacy terms, included with setup.
 
 ## Install on Windows
 
@@ -29,7 +29,7 @@ unsigned; signing will apply to a new, verified release.
 - Device model/type, network settings, MAC, serial, firmware, activation, DHCP, HTTP port and device name when advertised. Unknown values remain empty/null.
 - CLI table/JSON output and useful diagnostics/exit codes.
 - Desktop inventory with sorting, searching, selection, retained results, device details, native CSV/JSON export, web-interface action, diagnostic log, light/dark themes and saved discovery preferences.
-- Device action dialogs, automatic selection of a discovered adapter with an optional override, password input without persistent storage, recovery-data requests/export and support-code submission. See [device management](docs/device-management.md) for workflows and compatibility limits.
+- Device action dialogs, automatic selection of a discovered adapter with an optional override, password input without persistent storage, recovery-data requests/export, support-code submission and [security-question recovery](docs/security-question-recovery.md). See [device management](docs/device-management.md) for workflows and compatibility limits.
 - An About screen introducing creator [Paul Willard](https://www.paulwillard.nz/), with the application version, live update status, project link and credits. The biography and credits are available offline.
 - An in-app GitHub update checker with stable/beta channels, verified Windows installer downloads, progress/cancellation and explicit installation after closing the app. See [updates](docs/updates.md).
 - One active scan or device operation at a time. Automatic scanning starts its interval after the previous scan finishes. Last-seen timestamps identify old observations; missing one scan does not mark a device offline.

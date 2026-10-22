@@ -13,6 +13,7 @@ import (
 	"github.com/TerminalAddict/SADPTools/internal/devices"
 	"github.com/TerminalAddict/SADPTools/internal/discovery"
 	"github.com/TerminalAddict/SADPTools/internal/platform"
+	"github.com/TerminalAddict/SADPTools/internal/recovery"
 )
 
 type Scanner interface {
@@ -35,28 +36,31 @@ type Snapshot struct {
 }
 
 type Controller struct {
-	mu              sync.Mutex
-	logMu           sync.Mutex
-	inventory       *devices.Inventory
-	scanner         Scanner
-	writer          configuration.Engine
-	configuring     bool
-	operationCancel context.CancelFunc
-	log             *slog.Logger
-	logs            []LogEntry
-	settings        Settings
-	path            string
-	ctx             context.Context
-	cancel          context.CancelFunc
-	scanCancel      context.CancelFunc
-	wg              sync.WaitGroup
-	closed          bool
-	scanning        bool
-	lastScan        string
-	lastError       string
-	warnings        []string
-	nextScan        time.Time
-	notify          func()
+	mu                 sync.Mutex
+	logMu              sync.Mutex
+	inventory          *devices.Inventory
+	scanner            Scanner
+	writer             configuration.Engine
+	questionRecovery   recovery.Engine
+	recoveryInterfaces func() ([]platform.Adapter, error)
+	recoveryCheck      *questionCheck
+	configuring        bool
+	operationCancel    context.CancelFunc
+	log                *slog.Logger
+	logs               []LogEntry
+	settings           Settings
+	path               string
+	ctx                context.Context
+	cancel             context.CancelFunc
+	scanCancel         context.CancelFunc
+	wg                 sync.WaitGroup
+	closed             bool
+	scanning           bool
+	lastScan           string
+	lastError          string
+	warnings           []string
+	nextScan           time.Time
+	notify             func()
 }
 
 func New(path string, notify func()) *Controller {
@@ -65,6 +69,8 @@ func New(path string, notify func()) *Controller {
 	c.log = slog.New(slog.NewJSONHandler(c, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	c.scanner = discovery.New(c.log)
 	c.writer = configuration.New(c.log)
+	c.questionRecovery = recovery.New()
+	c.recoveryInterfaces = platform.Interfaces
 	s, err := loadSettings(path)
 	c.settings = s
 	if err != nil {

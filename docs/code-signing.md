@@ -41,8 +41,8 @@ SignPath.io, certificate by SignPath Foundation”, with links to the providers.
 ## Privacy and eligibility disclosure
 
 SADPTools discovers and configures devices on the local network. Device writes
-are explicit actions, and password recovery requires a valid vendor/support
-code. It does not implement vulnerability scanning, password cracking or a
+are explicit actions, and password recovery requires device-validated security
+answers or a valid vendor/support code. It does not implement vulnerability scanning, password cracking or a
 device-security bypass. No credentials or recovery data are logged or sent to
 the signing service.
 

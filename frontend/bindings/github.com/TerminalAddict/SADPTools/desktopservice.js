@@ -22,6 +22,9 @@ import * as configuration$0 from "./internal/configuration/models.js";
 import * as platform$0 from "./internal/platform/models.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
+import * as recovery$0 from "./internal/recovery/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
 import * as update$0 from "./internal/update/models.js";
 
 /**
@@ -54,12 +57,23 @@ export function CheckForUpdates() {
 
 /**
  * @param {string} id
+ * @param {string} adapter
+ * @returns {$CancellablePromise<recovery$0.Status>}
+ */
+export function CheckSecurityQuestions(id, adapter) {
+    return $Call.ByID(3193697086, id, adapter).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
+}
+
+/**
+ * @param {string} id
  * @param {configuration$0.Request} request
  * @returns {$CancellablePromise<configuration$0.Result>}
  */
 export function ConfigureDevice(id, request) {
     return $Call.ByID(1765866625, id, request).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType0($result);
+        return $$createType1($result);
     }));
 }
 
@@ -84,7 +98,7 @@ export function ExportDevices(ids, format) {
  */
 export function GetSettings() {
     return $Call.ByID(682518218).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType1($result);
+        return $$createType2($result);
     }));
 }
 
@@ -100,7 +114,7 @@ export function InstallUpdate() {
  */
 export function Interfaces() {
     return $Call.ByID(456230649).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType3($result);
+        return $$createType4($result);
     }));
 }
 
@@ -110,6 +124,18 @@ export function Interfaces() {
  */
 export function OpenDevice(id) {
     return $Call.ByID(3129080327, id);
+}
+
+/**
+ * @param {string} id
+ * @param {string} adapter
+ * @param {recovery$0.Request} request
+ * @returns {$CancellablePromise<recovery$0.Result>}
+ */
+export function ResetWithSecurityQuestions(id, adapter, request) {
+    return $Call.ByID(765388391, id, adapter, request).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType5($result);
+    }));
 }
 
 /**
@@ -134,7 +160,7 @@ export function SaveSettings(settings) {
  */
 export function Snapshot() {
     return $Call.ByID(431882765).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType4($result);
+        return $$createType6($result);
     }));
 }
 
@@ -150,7 +176,7 @@ export function StartScan() {
  */
 export function UpdateStatus() {
     return $Call.ByID(1486237054).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType5($result);
+        return $$createType7($result);
     }));
 }
 
@@ -162,9 +188,11 @@ export function Version() {
 }
 
 // Private type creation functions
-const $$createType0 = configuration$0.Result.createFrom;
-const $$createType1 = app$0.Settings.createFrom;
-const $$createType2 = platform$0.Adapter.createFrom;
-const $$createType3 = $Create.Array($$createType2);
-const $$createType4 = app$0.Snapshot.createFrom;
-const $$createType5 = update$0.State.createFrom;
+const $$createType0 = recovery$0.Status.createFrom;
+const $$createType1 = configuration$0.Result.createFrom;
+const $$createType2 = app$0.Settings.createFrom;
+const $$createType3 = platform$0.Adapter.createFrom;
+const $$createType4 = $Create.Array($$createType3);
+const $$createType5 = recovery$0.Result.createFrom;
+const $$createType6 = app$0.Snapshot.createFrom;
+const $$createType7 = update$0.State.createFrom;

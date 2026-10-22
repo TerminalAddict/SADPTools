@@ -22,3 +22,14 @@ Future discovery providers can feed the same inventory. Further configuration pr
 The desktop controller resolves the selected inventory ID to its normalized MAC and checks the chosen adapter against observed interfaces. It prevents activation of a known active device and network updates to a known inactive device. It rejects operations while discovery is running, and automatic discovery cannot start during a command. Shutdown/cancellation closes the transaction socket and joins pending work.
 
 Configuration sends once, with explicit network values, XML-escaped credentials and exact reply correlation. It never retries a write or treats timeout as rollback. Results distinguish not-sent, acknowledged, rejected, challenge and unconfirmed. The inventory changes only through discovery. Passwords and recovery data are excluded from snapshots and diagnostics; recovery data is exported only through an explicit native save dialog. CLI commands use the same configuration engine without Wails.
+
+## Security-question recovery
+
+`internal/recovery` provides a separate ISAPI capability/question reader and
+single-submission encrypted reset client. It binds HTTP connections to an
+on-link address of a discovered adapter and does not follow redirects or use
+proxies. The controller shares its operation/cancellation guard with SADP writes,
+discovery and updates, and binds a short-lived one-use check to the selected
+device, route and question IDs. Recovery secrets never enter inventory or
+snapshots. Desktop bindings and the standalone `recovery` CLI use the same
+engine. See [protocol and compatibility details](security-question-recovery.md).

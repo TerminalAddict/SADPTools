@@ -4,6 +4,7 @@ import {
   operationInterfaces,
   networkFromDevice,
 } from "./configuration-view.js";
+import { questionsReady, questionRequest } from "./security-questions-view.js";
 
 const $ = (id) => document.getElementById(id);
 const textError = (e) => e?.message || String(e);
@@ -17,7 +18,8 @@ export function initConfiguration({
   let target,
     kind,
     busy = false,
-    challenge;
+    challenge,
+    questionStatus = null;
   const dialog = $("operation-dialog");
   const result = (text, success = false) => {
     $("operation-result").textContent = text;
@@ -25,6 +27,8 @@ export function initConfiguration({
       `small ${success ? "text-success" : "text-danger"}`;
   };
   function clearSecrets() {
+    for (const input of $("security-questions-list").querySelectorAll("input"))
+      input.value = "";
     for (const id of [
       "operation-password",
       "operation-password-confirm",
@@ -37,6 +41,63 @@ export function initConfiguration({
     for (const el of $("operation-form").elements) el.disabled = value;
     $("operation-cancel").disabled = false;
     $("operation-cancel").hidden = !value;
+    renderRecovery();
+  }
+  const usingQuestions = () =>
+    kind === "recovery" && $("recovery-method").value === "questions";
+  function renderRecovery() {
+    const questions = usingQuestions();
+    $("security-questions-fields").hidden = !questions;
+    $("support-code-fields").hidden = questions;
+    $("recovery-code").required = kind === "recovery" && !questions;
+    for (const input of $("security-questions-list").querySelectorAll(
+      "input",
+    )) {
+      input.required = questions && questionsReady(questionStatus);
+      input.disabled = busy || !questions;
+    }
+    $("operation-submit").disabled =
+      busy || (questions && !questionsReady(questionStatus));
+    $("operation-privacy-note").textContent = questions
+      ? "Answers and passwords are encrypted using the camera’s recovery protocol and are not saved in preferences or logs. Submit once; a missing reply does not prove the password stayed unchanged."
+      : "Passwords and codes are not saved in preferences or logs. This SADP command format sends them over the local network without encryption; use a trusted management network.";
+  }
+  async function checkQuestions() {
+    if (busy || !target || !usingQuestions()) return;
+    clearSecrets();
+    questionStatus = null;
+    $("security-questions-list").replaceChildren();
+    $("security-questions-status").textContent =
+      "Checking camera support and configured questions…";
+    result("");
+    setBusy(true);
+    try {
+      questionStatus = await Backend.CheckSecurityQuestions(
+        target.id,
+        $("operation-interface").value,
+      );
+      $("security-questions-status").textContent = questionStatus.message;
+      if (questionsReady(questionStatus)) {
+        for (const [index, question] of questionStatus.questions.entries()) {
+          const label = document.createElement("label");
+          label.htmlFor = `security-answer-${index}`;
+          label.className = "form-label";
+          label.textContent = question.text;
+          const input = document.createElement("input");
+          input.id = label.htmlFor;
+          input.type = "password";
+          input.autocomplete = "off";
+          input.maxLength = 128;
+          input.className = "form-control mb-3";
+          $("security-questions-list").append(label, input);
+        }
+      }
+    } catch (e) {
+      $("security-questions-status").textContent = textError(e);
+    } finally {
+      setBusy(false);
+      await refresh();
+    }
   }
   function open(mode) {
     const d = getDevice();
@@ -44,6 +105,8 @@ export function initConfiguration({
     target = structuredClone(d);
     kind = mode;
     challenge = null;
+    questionStatus = null;
+    $("security-questions-list").replaceChildren();
     $("operation-form").reset();
     clearSecrets();
     result("");
@@ -62,7 +125,7 @@ export function initConfiguration({
         ? "Set the admin password for this inactive device. Firmware may impose its own password rules."
         : mode === "update"
           ? "Review the complete network configuration below, then enter the current admin password to apply it."
-          : "Request recovery data or submit a support-provided code with a new admin password.";
+          : "Answer the camera’s configured security questions, or use a support-provided recovery code.";
     const adapters = operationInterfaces(d);
     $("operation-connection").hidden = adapters.length <= 1;
     $("operation-connection").open = false;
@@ -99,13 +162,21 @@ export function initConfiguration({
       update: "Apply network changes",
       recovery: "Reset this device’s password",
     }[mode];
+    renderRecovery();
     dialog.showModal();
+    if (mode === "recovery") void checkQuestions();
   }
-  async function execute(request) {
+  async function execute(request, questions = false) {
     setBusy(true);
     result("Waiting for the device…");
     try {
-      const reply = await Backend.ConfigureDevice(target.id, request);
+      const reply = questions
+        ? await Backend.ResetWithSecurityQuestions(
+            target.id,
+            $("operation-interface").value,
+            request,
+          )
+        : await Backend.ConfigureDevice(target.id, request);
       const ok = ["acknowledged", "challenge"].includes(reply.outcome);
       result(
         `${reply.message}${reply.errorCode ? ` Device error code: ${reply.errorCode}.` : ""}`,
@@ -121,6 +192,11 @@ export function initConfiguration({
     } catch (e) {
       result(textError(e));
     } finally {
+      if (questions) {
+        questionStatus = null;
+        $("security-questions-status").textContent =
+          "Check again before another submission. If the outcome is unconfirmed, verify the password through the camera login first.";
+      }
       setBusy(false);
       await refresh();
     }
@@ -148,6 +224,29 @@ export function initConfiguration({
       $("operation-password").value !== $("operation-password-confirm").value
     ) {
       result("The passwords do not match.");
+      return;
+    }
+    if (usingQuestions()) {
+      let request;
+      try {
+        request = questionRequest(
+          questionStatus,
+          [...$("security-questions-list").querySelectorAll("input")].map(
+            (input) => input.value,
+          ),
+          $("operation-password").value,
+        );
+      } catch (e) {
+        result(textError(e));
+        return;
+      }
+      clearSecrets();
+      try {
+        await execute(request, true);
+      } finally {
+        request.password = "";
+        for (const answer of request.answers) answer.answer = "";
+      }
       return;
     }
     const request = base(kind === "recovery" ? $("reset-method").value : kind);
@@ -195,6 +294,8 @@ export function initConfiguration({
     clearSecrets();
     $("challenge-data").value = "";
     challenge = null;
+    questionStatus = null;
+    $("security-questions-list").replaceChildren();
     target = null;
   });
   $("operation-rediscover").onclick = async () => {
@@ -210,6 +311,18 @@ export function initConfiguration({
   $("activate-device").onclick = () => open("activate");
   $("network-device").onclick = () => open("update");
   $("recover-device").onclick = () => open("recovery");
+  $("check-security-questions").onclick = checkQuestions;
+  $("recovery-method").onchange = () => {
+    clearSecrets();
+    result("");
+    questionStatus = null;
+    $("security-questions-list").replaceChildren();
+    renderRecovery();
+    if (usingQuestions()) void checkQuestions();
+  };
+  $("operation-interface").onchange = () => {
+    if (usingQuestions()) void checkQuestions();
+  };
   return () => {
     const d = getDevice(),
       state = getSnapshot();
