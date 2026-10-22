@@ -52,8 +52,8 @@ administrator approval (`sudo apt install 7zip`).
 
 The build runs `make check`, regenerates bindings, installs the locked frontend
 dependencies, builds the frontend and Windows app, packages/tests the offline
-installer, and builds Windows/Linux AMD64 CLIs. It checks embedded Go version
-flags and executes the Linux CLI's `--version`. Generated bindings must match
+installer, and builds Windows/Linux AMD64 CLIs. It checks the embedded Go version
+string and executes the Linux CLI's `--version`. Generated bindings must match
 the committed bindings or the clean-checkout check fails.
 
 The ignored `bin/releases/v<VERSION>/` directory contains:

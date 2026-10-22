@@ -38,6 +38,14 @@ def digest(path):
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
+def verify_binary_version(binary, version):
+    # -trimpath deliberately omits ldflags from `go version -m`. The linker
+    # stores the -X string separately with NUL padding; PE resource strings are
+    # UTF-16 and cannot accidentally satisfy this UTF-8 Go-string check.
+    if b"\0" + version.encode() + b"\0" not in binary.read_bytes():
+        raise ValueError(f"Missing release version in {binary}")
+
+
 def clean_commit():
     if run("git", "status", "--porcelain", "--untracked-files=all", capture=True):
         raise ValueError("Commit all source changes before building or publishing a release")
@@ -145,8 +153,7 @@ def build(version, folder):
         "-o", windows_cli, "./cmd/sadptools",
         env=dict(env, GOOS="windows", GOARCH="amd64", CGO_ENABLED="0"))
     for binary in (ROOT / "bin/sadptools", windows_cli, ROOT / "bin/SADPTools-windows-amd64.exe"):
-        if f"{VERSION_SYMBOL}={version}" not in run("go", "version", "-m", binary, capture=True):
-            raise ValueError(f"Missing release version in {binary}")
+        verify_binary_version(binary, version)
     if clean_commit() != commit:
         raise ValueError("Source changed during the release build; rebuild from a clean commit")
     folder.parent.mkdir(parents=True, exist_ok=True)

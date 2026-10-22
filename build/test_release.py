@@ -31,6 +31,18 @@ class VersionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Development"):
             windows_version("0.2.0-dev", release=True)
 
+    def test_binary_version_requires_exact_go_string_not_windows_resource(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "synthetic.exe"
+            path.write_bytes(b"synthetic\0" + "0.2.0-beta.1".encode("utf-16-le") + b"\0\0")
+            with self.assertRaisesRegex(ValueError, "Missing release version"):
+                release.verify_binary_version(path, "0.2.0-beta.1")
+            path.write_bytes(b"synthetic\0" + b"0.2.0-beta.10\0")
+            with self.assertRaisesRegex(ValueError, "Missing release version"):
+                release.verify_binary_version(path, "0.2.0-beta.1")
+            path.write_bytes(b"synthetic\0" + b"0.2.0-beta.1\0")
+            release.verify_binary_version(path, "0.2.0-beta.1")
+
 
 class ReleaseTests(unittest.TestCase):
     def setUp(self):
