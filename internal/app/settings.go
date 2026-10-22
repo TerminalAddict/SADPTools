@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/TerminalAddict/SADPTools/internal/update"
+	"github.com/TerminalAddict/SADPTools/internal/version"
 )
 
 type Settings struct {
@@ -13,12 +16,18 @@ type Settings struct {
 	TimeoutSeconds  int    `json:"timeoutSeconds"`
 	IntervalSeconds int    `json:"intervalSeconds"`
 	Automatic       bool   `json:"automatic"`
+	CheckUpdates    bool   `json:"checkUpdates"`
+	UpdateChannel   string `json:"updateChannel"`
 }
 
 func DefaultSettings() Settings {
-	return Settings{Theme: "dark", TimeoutSeconds: 5, IntervalSeconds: 30}
+	return Settings{Theme: "dark", TimeoutSeconds: 5, IntervalSeconds: 30,
+		CheckUpdates: true, UpdateChannel: update.DefaultChannel(version.Value)}
 }
 func (s Settings) Validate() error {
+	if s.UpdateChannel != "stable" && s.UpdateChannel != "beta" {
+		return fmt.Errorf("update channel must be stable or beta")
+	}
 	if s.Theme != "dark" && s.Theme != "light" {
 		return fmt.Errorf("theme must be dark or light")
 	}

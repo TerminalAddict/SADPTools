@@ -39,7 +39,6 @@ VIAddVersionKey "LegalCopyright" "Copyright (c) 2026 SADPTools contributors"
 !insertmacro MUI_PAGE_LICENSE "${SETUP_TERMS}"
 !insertmacro MUI_PAGE_INSTFILES
 !define MUI_FINISHPAGE_RUN "$INSTDIR\SADPTools.exe"
-!define MUI_FINISHPAGE_RUN_NOTCHECKED
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
@@ -77,6 +76,75 @@ Function .onInit
             Quit
         ${EndIf}
     ${EndIf}
+    Call WaitForUpdatingProcess
+FunctionEnd
+
+; An in-app update launches this independent installer before quitting. Wait on
+; the original process handle, not a guessed delay or a process-name kill.
+; Manual installations without /WAITPID continue normally.
+Function WaitForUpdatingProcess
+    ${GetParameters} $0
+    ClearErrors
+    ${GetOptions} $0 "/WAITPID=" $1
+    ${If} ${Errors}
+        Return
+    ${EndIf}
+    StrLen $2 $1
+    ${If} $2 == 0
+    ${OrIf} $2 > 10
+        Goto InvalidWaitPID
+    ${EndIf}
+    StrCpy $3 0
+    ${DoWhile} $3 < $2
+        StrCpy $4 $1 1 $3
+        ${If} $4 != "0"
+        ${AndIf} $4 != "1"
+        ${AndIf} $4 != "2"
+        ${AndIf} $4 != "3"
+        ${AndIf} $4 != "4"
+        ${AndIf} $4 != "5"
+        ${AndIf} $4 != "6"
+        ${AndIf} $4 != "7"
+        ${AndIf} $4 != "8"
+        ${AndIf} $4 != "9"
+            Goto InvalidWaitPID
+        ${EndIf}
+        IntOp $3 $3 + 1
+    ${Loop}
+    ; Restrict to positive signed DWORD values before NSIS integer conversion.
+    System::Int64Op $1 > 2147483647
+    Pop $2
+    ${If} $2 != 0
+        Goto InvalidWaitPID
+    ${EndIf}
+    IntOp $1 $1 + 0
+    ${If} $1 <= 0
+        Goto InvalidWaitPID
+    ${EndIf}
+    ; Capture GetLastError inside the plug-in call; a later call can overwrite it.
+    System::Call 'kernel32::OpenProcess(i 0x00100000, i 0, i r1) p.r2 ?e'
+    Pop $3
+    ${If} $2 == 0
+        ; The app can exit before setup opens its process handle.
+        ${If} $3 == 87
+            Return
+        ${EndIf}
+        Goto WaitFailed
+    ${EndIf}
+    System::Call 'kernel32::WaitForSingleObject(p r2, i 30000) i.r3'
+    System::Call 'kernel32::CloseHandle(p r2)'
+    ${If} $3 != 0
+        Goto WaitFailed
+    ${EndIf}
+    Return
+InvalidWaitPID:
+    MessageBox MB_OK|MB_ICONSTOP "Setup received an invalid update process identifier. Start setup manually after closing SADPTools." /SD IDOK
+    SetErrorLevel 70
+    Quit
+WaitFailed:
+    MessageBox MB_OK|MB_ICONSTOP "SADPTools has not finished closing. Close it, then start setup again. Your existing application has not been replaced." /SD IDOK
+    SetErrorLevel 71
+    Quit
 FunctionEnd
 
 ; Microsoft documents these two registry locations. 0.0.0.0 is not installed.
@@ -135,10 +203,22 @@ Section "SADPTools" SEC_APP
     SetOutPath "$INSTDIR"
     SetOverwrite on
     ClearErrors
-    File /oname=SADPTools.exe "${APP_BINARY}"
+    ; Fully extract beside the existing application, then replace it on the
+    ; same volume. A partial extraction never truncates the working EXE.
+    File /oname=SADPTools.update.exe "${APP_BINARY}"
     ${If} ${Errors}
+        Delete "$INSTDIR\SADPTools.update.exe"
         SetErrorLevel 69
-        Abort "Could not install SADPTools. Close the application and run setup again."
+        Abort "Could not stage SADPTools. Check free disk space and run setup again."
+    ${EndIf}
+    ; MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH. Never defer to reboot
+    ; and never terminate a process. Another running instance can block this.
+    System::Call 'kernel32::MoveFileExW(w "$INSTDIR\SADPTools.update.exe", w "$INSTDIR\SADPTools.exe", i 9) i.r0'
+    ${If} $0 == 0
+        Delete "$INSTDIR\SADPTools.update.exe"
+        MessageBox MB_OK|MB_ICONSTOP "Setup could not replace SADPTools. Close every running instance and try again. The previous executable is still in place." /SD IDOK
+        SetErrorLevel 69
+        Abort "Could not replace the application executable."
     ${EndIf}
     File "${PROJECT_ROOT}/LICENSE"
     File "${PROJECT_ROOT}/THIRD_PARTY_NOTICES.md"
@@ -198,6 +278,7 @@ Section "Uninstall"
     Delete "$INSTDIR\LICENSES\NSIS.txt"
     RMDir "$INSTDIR\LICENSES"
     Delete "$INSTDIR\Uninstall.exe"
+    Delete "$INSTDIR\SADPTools.update.exe"
     Delete "$SMPROGRAMS\SADPTools\SADPTools.lnk"
     Delete "$SMPROGRAMS\SADPTools\Uninstall SADPTools.lnk"
     RMDir "$SMPROGRAMS\SADPTools"

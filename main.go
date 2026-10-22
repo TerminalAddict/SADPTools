@@ -5,8 +5,12 @@ package main
 import (
 	"embed"
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/TerminalAddict/SADPTools/internal/app"
+	"github.com/TerminalAddict/SADPTools/internal/update"
+	"github.com/TerminalAddict/SADPTools/internal/version"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -30,7 +34,13 @@ func main() {
 	})
 	controller := app.New(path, func() { desktop.Event.Emit("inventory:changed") })
 	defer controller.Close()
-	desktop.RegisterService(application.NewService(&DesktopService{controller: controller, app: desktop}))
+	cache, err := os.UserCacheDir()
+	if err != nil {
+		log.Fatal(err)
+	}
+	updates := update.NewManager(version.Value, filepath.Join(cache, "SADPTools", "updates"), func() { desktop.Event.Emit("updates:changed") })
+	defer updates.Close()
+	desktop.RegisterService(application.NewService(&DesktopService{controller: controller, app: desktop, updates: updates}))
 	desktop.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title: "SADPTools", Width: 1440, Height: 880, MinWidth: 960, MinHeight: 640,
 		BackgroundColour: application.NewRGB(17, 27, 40), URL: "/",

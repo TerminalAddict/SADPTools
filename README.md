@@ -24,6 +24,7 @@ Setup automatically prepares the display component if needed. It installs SADPTo
 - Desktop inventory with sorting, searching, selection, retained results, device details, native CSV/JSON export, web-interface action, diagnostic log, light/dark themes and saved discovery preferences.
 - Device action dialogs, automatic selection of a discovered adapter with an optional override, password input without persistent storage, recovery-data requests/export and support-code submission. See [device management](docs/device-management.md) for workflows and compatibility limits.
 - An offline About screen introducing creator [Paul Willard](https://www.paulwillard.nz/), with the application version, project link and credits.
+- An in-app GitHub update checker with stable/beta channels, verified Windows installer downloads, progress/cancellation and explicit installation after closing the app. See [updates](docs/updates.md).
 - One active scan or device operation at a time. Automatic scanning starts its interval after the previous scan finishes. Last-seen timestamps identify old observations; missing one scan does not mark a device offline.
 
 A one-second scan on Sparx received **17 real devices** during initial validation. This verifies basic Linux discovery on that network, not every firmware, VLAN, firewall or Windows adapter combination. See [validation results](docs/validation.md).
@@ -131,6 +132,7 @@ This implementation uses UDP SADP, not the legacy raw-Ethernet protocol or an AR
 | `internal/devices/` | Normalized device model and synchronized inventory |
 | `internal/configuration/` | Single-device validation, SADP transactions and confirmed/rejected/uncertain outcomes |
 | `internal/app/` | GUI-independent controller, preferences, diagnostics and export |
+| `internal/update/` | GitHub release selection, verified installer downloads and process handoff |
 | `main.go`, `desktop.go` | Wails v3 entry point and desktop service |
 | `frontend/` | Bootstrap UI, vanilla JS/CSS and generated bindings |
 | `build/`, `Makefile`, `Taskfile.yml` | Repeatable Windows/Linux builds and metadata |

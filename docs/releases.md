@@ -83,6 +83,10 @@ SADPTOOLS_VERSION=0.2.0-beta.1 wails3 build GOOS=windows GOARCH=amd64
 python3 build/windows/package.py --version 0.2.0-beta.1
 ```
 
+The [in-app updater](updates.md) reads these published releases and exact asset
+names. Keep `SHA256SUMS` and the installer's `/WAITPID` handoff in future releases.
+The first release with the checker requires a manual upgrade from beta.1.
+
 Package an existing binary only with the same version used to build it. Prefer
 the release command, which rebuilds and verifies the binaries. PE, NSIS and
 archive timestamps may vary; identical inputs, not byte-identical rebuilds, are

@@ -16,6 +16,7 @@
         </div>
       </div>
       <div class="header-actions">
+        <button id="updates-open" class="btn btn-sm btn-outline-secondary">Updates</button>
         <span class="badge rounded-pill text-bg-secondary"
           >Device management</span
         ><button id="about-open" class="btn btn-sm btn-outline-secondary about-trigger">
@@ -282,7 +283,7 @@ No discovery activity yet.</pre>
     <dialog id="settings-dialog">
       <form id="settings-form">
         <div class="dialog-heading">
-          <h2>Discovery settings</h2>
+          <h2>Settings</h2>
           <button
             type="button"
             id="settings-close"
@@ -316,11 +317,44 @@ No discovery activity yet.</pre>
           The interval starts after each scan finishes. Changes apply to the
           next scan.
         </p>
+        <hr />
+        <div class="form-check mb-3">
+          <input id="check-updates" type="checkbox" class="form-check-input" />
+          <label for="check-updates" class="form-check-label">Check GitHub for updates on startup</label>
+        </div>
+        <label for="update-channel" class="form-label">Update channel</label>
+        <select id="update-channel" class="form-select">
+          <option value="stable">Stable releases</option>
+          <option value="beta">Stable and beta releases</option>
+        </select>
+        <p class="small text-body-secondary mt-2">Downloads and installation start only when you choose. Channel changes apply to your next check.</p>
         <p id="settings-error" class="text-danger small" role="alert"></p>
         <button class="btn btn-primary w-100" type="submit">
           Save settings
         </button>
       </form>
+    </dialog>
+    <dialog id="updates-dialog" aria-labelledby="updates-title">
+      <div class="dialog-heading">
+        <h2 id="updates-title">SADPTools updates</h2>
+        <button id="updates-close" class="btn-close" aria-label="Close updates" autofocus></button>
+      </div>
+      <p class="small text-body-secondary">Installed version: <span id="update-current">—</span></p>
+      <p id="update-message" role="status">Check GitHub for a new version.</p>
+      <p id="update-offer" class="fw-semibold" hidden></p>
+      <progress id="update-progress" class="w-100" max="100" value="0" aria-label="Update download progress" hidden></progress>
+      <p id="update-size" class="small text-body-secondary" hidden></p>
+      <p id="update-platform" class="small text-body-secondary" hidden>In-app installation is available on Windows AMD64. For Linux, see the release page and build the desktop app from source.</p>
+      <p id="update-install-note" class="small text-body-secondary" hidden>Installing closes SADPTools and opens setup. Finish setup to restart the app. Export any inventory or recovery data you want to keep first; preferences are preserved.</p>
+      <p id="update-device-busy" class="small text-warning" hidden>Finish the active device operation before installing.</p>
+      <p id="update-error" class="text-danger small" role="alert" hidden></p>
+      <div class="d-flex gap-2 flex-wrap">
+        <button id="update-check" class="btn btn-outline-secondary">Check now</button>
+        <button id="update-download" class="btn btn-primary" hidden>Download update</button>
+        <button id="update-install" class="btn btn-primary" hidden>Install and close</button>
+        <button id="update-cancel" class="btn btn-outline-secondary" hidden>Cancel</button>
+        <button id="update-release" class="btn btn-outline-secondary">Release notes ↗</button>
+      </div>
     </dialog>
     <dialog id="operation-dialog" aria-labelledby="operation-title">
       <form id="operation-form" autocomplete="off">

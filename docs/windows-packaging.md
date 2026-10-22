@@ -45,6 +45,13 @@ Microsoft controls the installed Evergreen runtime's updates. An existing runtim
 
 The small raw application EXE remains available for development; it does not carry the runtime itself. End users should receive the Setup EXE.
 
+In-app updates use the same installer with `/WAITPID=<PID>`. Setup waits up to
+30 seconds for that process to exit, stages the new executable beside the old
+one, then replaces it without truncating the old executable during extraction.
+The Finish page offers to launch the installed app. Invalid PID input exits 70;
+failure to wait exits 71 before any application replacement. See the
+[update lifecycle and Windows acceptance checks](updates.md).
+
 Managed deployment can run `SADPTools-Setup-windows-amd64.exe /S /ACCEPTLICENSE=yes` after reviewing the bundled terms. This installs for the account running setup; it is not an all-users deployment. Silent mode without explicit acceptance exits 66. Other setup-specific errors: 64 unsupported Windows, 65 unsupported architecture, 67 runtime preparation failed, 68 uninstaller could not remove the running app, 69 application-file/shortcut/registration failure. NSIS may also return its own failure/cancellation codes. Interactive setup displays details; silent callers must inspect the process exit status.
 
 ## Maintaining the runtime

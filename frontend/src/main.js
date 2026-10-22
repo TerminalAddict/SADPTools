@@ -3,6 +3,7 @@ import "./style.css";
 import { Browser, Events } from "@wailsio/runtime";
 import * as Backend from "../bindings/github.com/TerminalAddict/SADPTools/desktopservice.js";
 import { initConfiguration } from "./configuration.js";
+import { initUpdates } from "./updates.js";
 import { activation, model, visibleDevices } from "./view.js";
 
 const $ = (id) => document.getElementById(id);
@@ -124,6 +125,7 @@ function render() {
     ? `Last scan ${date(snapshot.lastScan)}`
     : "No scan completed";
   updateConfiguration();
+  updates.render();
   renderDetails();
   renderLogs();
 }
@@ -319,6 +321,8 @@ $("settings-open").onclick = () => {
   $("theme").value = settings.theme;
   $("timeout").value = settings.timeoutSeconds;
   $("interval").value = settings.intervalSeconds;
+  $("check-updates").checked = settings.checkUpdates;
+  $("update-channel").value = settings.updateChannel;
   $("settings-error").textContent = "";
   $("settings-dialog").showModal();
 };
@@ -331,6 +335,8 @@ $("settings-form").onsubmit = async (e) => {
       theme: $("theme").value,
       timeoutSeconds: Number($("timeout").value),
       intervalSeconds: Number($("interval").value),
+      checkUpdates: $("check-updates").checked,
+      updateChannel: $("update-channel").value,
     });
     $("settings-dialog").close();
   } catch (error) {
@@ -348,6 +354,7 @@ async function init() {
     Events.On("inventory:changed", queueRefresh);
     await adapters();
     await refresh();
+    await updates.start();
     setInterval(() => {
       if (snapshot.scanning) queueRefresh();
     }, 1000);
@@ -366,4 +373,5 @@ const updateConfiguration = initConfiguration({
   refresh,
   notice,
 });
+const updates = initUpdates({ getSnapshot: () => snapshot, getSettings: () => settings });
 void init();

@@ -20,6 +20,9 @@ import * as configuration$0 from "./internal/configuration/models.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
 import * as platform$0 from "./internal/platform/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as update$0 from "./internal/update/models.js";
 
 /**
  * @returns {$CancellablePromise<void>}
@@ -36,6 +39,20 @@ export function CancelScan() {
 }
 
 /**
+ * @returns {$CancellablePromise<void>}
+ */
+export function CancelUpdate() {
+    return $Call.ByID(4179813658);
+}
+
+/**
+ * @returns {$CancellablePromise<void>}
+ */
+export function CheckForUpdates() {
+    return $Call.ByID(897995752);
+}
+
+/**
  * @param {string} id
  * @param {configuration$0.Request} request
  * @returns {$CancellablePromise<configuration$0.Result>}
@@ -44,6 +61,13 @@ export function ConfigureDevice(id, request) {
     return $Call.ByID(1765866625, id, request).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
+}
+
+/**
+ * @returns {$CancellablePromise<void>}
+ */
+export function DownloadUpdate() {
+    return $Call.ByID(2111023480);
 }
 
 /**
@@ -62,6 +86,13 @@ export function GetSettings() {
     return $Call.ByID(682518218).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
+}
+
+/**
+ * @returns {$CancellablePromise<void>}
+ */
+export function InstallUpdate() {
+    return $Call.ByID(894177249);
 }
 
 /**
@@ -115,6 +146,15 @@ export function StartScan() {
 }
 
 /**
+ * @returns {$CancellablePromise<update$0.State>}
+ */
+export function UpdateStatus() {
+    return $Call.ByID(1486237054).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType5($result);
+    }));
+}
+
+/**
  * @returns {$CancellablePromise<string>}
  */
 export function Version() {
@@ -127,3 +167,4 @@ const $$createType1 = app$0.Settings.createFrom;
 const $$createType2 = platform$0.Adapter.createFrom;
 const $$createType3 = $Create.Array($$createType2);
 const $$createType4 = app$0.Snapshot.createFrom;
+const $$createType5 = update$0.State.createFrom;

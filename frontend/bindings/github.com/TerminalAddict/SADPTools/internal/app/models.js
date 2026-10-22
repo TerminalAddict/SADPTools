@@ -100,6 +100,20 @@ export class Settings {
              */
             this["automatic"] = false;
         }
+        if (!("checkUpdates" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["checkUpdates"] = false;
+        }
+        if (!("updateChannel" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["updateChannel"] = "";
+        }
 
         Object.assign(this, $$source);
     }
