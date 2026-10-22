@@ -11,7 +11,10 @@ Milestone two adds single-device activation, IPv4/DHCP/SDK-port configuration an
 
 ## Install on Windows
 
-Download the **Setup EXE** from [GitHub Releases](https://github.com/TerminalAddict/SADPTools/releases), run it, follow setup, then open **SADPTools** from the Start menu. Release downloads include the version in the filename (for example, `SADPTools-0.2.0-beta.1-Setup-windows-amd64.exe`). Setup includes everything needed to run the application on Windows 10/11 AMD64 and works without an internet connection. There are no separate prerequisites to download or configure.
+Download the **Setup EXE** from [GitHub Releases](https://github.com/TerminalAddict/SADPTools/releases), run it, follow setup, then open **SADPTools** from the Start menu. Release downloads include the version in the filename (for example, `SADPTools-0.2.0-beta.2-Setup-windows-amd64.exe`). Setup includes everything needed to run the application on Windows 10/11 AMD64 and works without an internet connection. There are no separate prerequisites to download or configure.
+
+Beta.1 users need one manual upgrade to beta.2 to get the in-app updater. After
+that, use **About → Check for updates** and **Update now**, or the **Updates** screen.
 
 Setup automatically prepares the display component if needed. It installs SADPTools for the current user and provides an entry in Windows' installed-apps list for removal. Builds are currently unsigned, so Windows may show a publisher/SmartScreen warning. Installation and startup still need validation on Windows; see [validation results](docs/validation.md).
 
@@ -23,7 +26,7 @@ Setup automatically prepares the display component if needed. It installs SADPTo
 - CLI table/JSON output and useful diagnostics/exit codes.
 - Desktop inventory with sorting, searching, selection, retained results, device details, native CSV/JSON export, web-interface action, diagnostic log, light/dark themes and saved discovery preferences.
 - Device action dialogs, automatic selection of a discovered adapter with an optional override, password input without persistent storage, recovery-data requests/export and support-code submission. See [device management](docs/device-management.md) for workflows and compatibility limits.
-- An offline About screen introducing creator [Paul Willard](https://www.paulwillard.nz/), with the application version, project link and credits.
+- An About screen introducing creator [Paul Willard](https://www.paulwillard.nz/), with the application version, live update status, project link and credits. The biography and credits are available offline.
 - An in-app GitHub update checker with stable/beta channels, verified Windows installer downloads, progress/cancellation and explicit installation after closing the app. See [updates](docs/updates.md).
 - One active scan or device operation at a time. Automatic scanning starts its interval after the previous scan finishes. Last-seen timestamps identify old observations; missing one scan does not mark a device offline.
 
@@ -103,8 +106,8 @@ make dev            # Wails desktop development, on a graphical Linux host
 ```
 
 To prepare and publish a tagged beta using `gh`, see the [release process](docs/releases.md).
-`make release-build VERSION=0.2.0-beta.1` builds and verifies the downloads from a
-clean commit. `make release-publish VERSION=0.2.0-beta.1` pushes the commit/tag,
+`make release-build VERSION=0.2.0-beta.2` builds and verifies the downloads from a
+clean commit. `make release-publish VERSION=0.2.0-beta.2` pushes the commit/tag,
 verifies uploaded files and publishes the GitHub pre-release.
 
 For headless Go validation, use `go test ./...` and `go vet ./...`. The root desktop entry uses `//go:build desktop` to avoid requiring GUI development libraries for ordinary engine checks. With desktop dependencies installed, also run `go test -tags desktop ./...` and `go vet -tags desktop ./...`. Desktop builds include `desktop,production`.
