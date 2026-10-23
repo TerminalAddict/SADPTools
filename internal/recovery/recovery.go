@@ -11,8 +11,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/TerminalAddict/SADPTools/internal/configuration"
-	"github.com/TerminalAddict/SADPTools/internal/devices"
-	"github.com/TerminalAddict/SADPTools/internal/platform"
 )
 
 type Target struct {
@@ -93,69 +91,6 @@ func (t Target) validate() error {
 		return errors.New("security-question recovery requires a usable device IPv4 address, HTTP port and local adapter address")
 	}
 	return nil
-}
-
-// ForAddress chooses a current on-link source address, including on adapters
-// with multiple IPv4 addresses. Publicly numbered local networks are supported.
-func ForAddress(address string, port int, adapter string, all []platform.Adapter) (Target, error) {
-	if !validIP(address) || port < 1 || port > 65535 {
-		return Target{}, errors.New("device has no usable advertised IPv4 address and HTTP port")
-	}
-	ip := netip.MustParseAddr(address)
-	for _, a := range all {
-		if a.Name != adapter || !a.Suitable {
-			continue
-		}
-		for _, value := range a.Addresses {
-			p, err := netip.ParsePrefix(value)
-			if err != nil || !p.Addr().Is4() || !p.Contains(ip) || p.Addr() == ip || p.Bits() < 1 || p.Bits() > 30 {
-				continue
-			}
-			v := ip.As4()
-			n := uint32(v[0])<<24 | uint32(v[1])<<16 | uint32(v[2])<<8 | uint32(v[3])
-			mask := ^uint32(0) >> p.Bits()
-			if ip == p.Masked().Addr() || n&mask == mask {
-				continue
-			}
-			t := Target{address, port, a.Name, p.Addr().String()}
-			if err := t.validate(); err == nil {
-				return t, nil
-			}
-		}
-	}
-	return Target{}, errors.New("no usable IPv4 address on the selected adapter shares the camera subnet; SADP discovery alone does not provide web connectivity")
-}
-func ForDevice(d devices.Device, requested, preferred string, all []platform.Adapter) (Target, error) {
-	if d.HTTPPort == nil {
-		return Target{}, errors.New("camera did not advertise an HTTP port; rediscover or use its web interface")
-	}
-	names := []string{}
-	for _, observed := range d.Interfaces {
-		if observed.Name != "" {
-			names = append(names, observed.Name)
-		}
-	}
-	if requested != "" {
-		for _, name := range names {
-			if name == requested {
-				return ForAddress(d.IPv4, *d.HTTPPort, name, all)
-			}
-		}
-		return Target{}, errors.New("select an adapter on which this camera was discovered")
-	}
-	for _, name := range names {
-		if name == preferred {
-			if t, err := ForAddress(d.IPv4, *d.HTTPPort, name, all); err == nil {
-				return t, nil
-			}
-		}
-	}
-	for _, name := range names {
-		if t, err := ForAddress(d.IPv4, *d.HTTPPort, name, all); err == nil {
-			return t, nil
-		}
-	}
-	return Target{}, errors.New("camera is not on a usable local IPv4 subnet through its discovered adapters; check its address and network connection")
 }
 
 func SameQuestions(questions []Question, answers []Answer) bool {

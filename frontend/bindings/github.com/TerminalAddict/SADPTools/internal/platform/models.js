@@ -47,6 +47,14 @@ export class Adapter {
              */
             this["reason"] = "";
         }
+        if (!("unicastSuitable" in $$source)) {
+            /**
+             * UnicastSuitable does not require multicast support (for example, a VPN).
+             * @member
+             * @type {boolean}
+             */
+            this["unicastSuitable"] = false;
+        }
 
         Object.assign(this, $$source);
     }

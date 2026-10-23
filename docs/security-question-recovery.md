@@ -7,12 +7,27 @@ set, enter and confirm a new admin password, then select **Reset this device's
 password**. Opening the dialog and **Check again** only read availability and
 question text; they do not validate answers or reset anything.
 
-The camera needs a usable advertised IPv4 address and HTTP port, plus an active
-discovered adapter on that IPv4 subnet. The application chooses that adapter
-automatically, including a suitable secondary IPv4 address when available.
-The connection uses that source address without a proxy. SADP visibility across
-subnets alone does not establish IP connectivity. Firewall rules and network
-isolation can still prevent the HTTP connection.
+The camera needs a usable advertised IPv4 address and HTTP port reachable from
+the computer. **It does not need to share the computer's subnet.** A working
+route through a gateway is sufficient for the HTTP connection; firmware must
+also support the recovery API.
+
+Automatic selection uses the operating system's route to choose a current
+local source address, including secondary addresses or VPN adapters. This can
+differ from the adapter that received SADP discovery. An explicit adapter
+override is respected. If route lookup is unavailable, selection falls back to
+an observed adapter, preferring a directly connected subnet, then the selected
+discovery adapter or first usable observed adapter.
+
+Route lookup uses a temporary connected UDP socket without sending a datagram
+(Go's [DialUDP](https://pkg.go.dev/net#DialUDP)); it is only a source-selection
+hint. The bounded recovery HTTP requests establish actual reachability and API
+support. There is no ping or same-subnet requirement. The connection binds the
+chosen source address without a proxy. A connection failure reports the camera
+address/port and local adapter/source, without trying other adapters. SADP
+visibility alone does not establish HTTP connectivity; routing, firewalls and
+the camera's HTTP service still matter. A browser connection using HTTPS or a
+proxy does not prove the advertised direct HTTP endpoint is available.
 
 The app distinguishes ready, unsupported, not configured, unknown and unavailable
 responses. It never assumes that questions are configured because a model usually
@@ -61,7 +76,8 @@ question IDs returned by the check. Keep that input out of Git and shell history
 ```
 
 Both commands accept `--port` (default 80) and `--timeout` (default 10s, maximum
-5m). Exit codes: 0 ready/acknowledged, 1 communication failure, 2 invalid input,
+5m). The selected adapter can reach the camera directly or through a router.
+Exit codes: 0 ready/acknowledged, 1 communication failure, 2 invalid input,
 3 recovery unavailable, 4 rejected, 5 unconfirmed, 130 cancellation before a
 reset was submitted. No administrator credentials or answers are sent by the
 `questions` command.

@@ -80,6 +80,7 @@ func (c *Controller) CheckSecurityQuestions(id, adapter string) (recovery.Status
 	c.mu.Lock()
 	c.recoveryCheck = nil
 	c.mu.Unlock()
+	c.log.Info("Checking security-question recovery", "interface", target.Interface, "source", target.Source, "address", target.Address, "port", target.Port)
 	status, err := c.questionRecovery.Check(ctx, target)
 	if err == nil && status.State == "ready" && ctx.Err() == nil {
 		var nonce [16]byte

@@ -13,6 +13,8 @@ type Adapter struct {
 	Addresses []string `json:"addresses"`
 	Suitable  bool     `json:"suitable"`
 	Reason    string   `json:"reason"`
+	// UnicastSuitable does not require multicast support (for example, a VPN).
+	UnicastSuitable bool `json:"unicastSuitable"`
 }
 
 // Inspect is separate from enumeration so filtering can be tested without hardware.
@@ -24,6 +26,7 @@ func Inspect(iface net.Interface, addrs []net.Addr, addrErr error) Adapter {
 			a.Addresses = append(a.Addresses, p.String())
 		}
 	}
+	a.UnicastSuitable = iface.Flags&net.FlagUp != 0 && iface.Flags&net.FlagLoopback == 0 && addrErr == nil && len(a.Addresses) > 0
 	switch {
 	case iface.Flags&net.FlagUp == 0:
 		a.Reason = "interface is down"

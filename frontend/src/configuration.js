@@ -130,7 +130,7 @@ export function initConfiguration({
     $("operation-connection").hidden = adapters.length <= 1;
     $("operation-connection").open = false;
     $("operation-interface").replaceChildren(
-      new Option("Automatic (from discovery)", ""),
+      new Option("Automatic", ""),
       ...adapters.map((name) => new Option(name, name)),
     );
     $("operation-interface").value = "";

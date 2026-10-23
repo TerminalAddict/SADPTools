@@ -20,8 +20,6 @@ import (
 	"time"
 
 	"github.com/TerminalAddict/SADPTools/internal/configuration"
-	"github.com/TerminalAddict/SADPTools/internal/devices"
-	"github.com/TerminalAddict/SADPTools/internal/platform"
 )
 
 // All identities, questions, answers and challenges in this file are synthetic.
@@ -324,23 +322,6 @@ func TestTimeoutIsBounded(t *testing.T) {
 	_, err := f.client().Check(ctx, fixtureTarget)
 	if !errors.Is(err, context.DeadlineExceeded) {
 		t.Fatal(err)
-	}
-}
-func TestOnLinkAdapterSelection(t *testing.T) {
-	all := []platform.Adapter{{Name: "Wi-Fi Fixture", Suitable: true, Addresses: []string{"198.51.100.10/24"}}, {Name: "Ethernet Fixture", Suitable: true, Addresses: []string{"203.0.113.10/24", "192.0.2.10/24"}}}
-	port := 80
-	d := devices.Device{IPv4: "192.0.2.40", HTTPPort: &port, Interfaces: []devices.Interface{{Name: "Wi-Fi Fixture"}, {Name: "Ethernet Fixture"}}}
-	target, err := ForDevice(d, "", "Wi-Fi Fixture", all)
-	if err != nil || target != fixtureTarget {
-		t.Fatal(target, err)
-	}
-	if _, err := ForDevice(d, "Wi-Fi Fixture", "", all); err == nil {
-		t.Fatal("off-subnet explicit override accepted")
-	}
-	for _, bad := range []string{"192.0.2.0", "192.0.2.255", "192.0.2.10", "127.0.0.1", "239.1.1.1", "198.51.100.40"} {
-		if _, err := ForAddress(bad, 80, "Ethernet Fixture", all); err == nil {
-			t.Fatal("invalid target accepted", bad)
-		}
 	}
 }
 func TestCredentialFormattingAndCipherVector(t *testing.T) {

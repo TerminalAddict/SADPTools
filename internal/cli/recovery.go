@@ -17,7 +17,8 @@ import (
 const recoveryUsage = `Usage:
  sadptools recovery questions <IP> --interface NAME [--port 80] [--timeout 10s] [--json]
  sadptools recovery reset <IP> --interface NAME --secrets-stdin --confirm-reset [--port 80] [--timeout 10s] [--json]
-The camera must be on the adapter's IPv4 subnet. Questions reads availability
+The camera's HTTP service must be reachable through the adapter, directly or
+through a router. Questions reads availability
 and the configured question text without submitting answers or changing passwords.
 Reset reads one JSON object from stdin: {"answers":[{"id":1,"answer":"..."},...],"password":"..."}
 Use the three IDs returned by questions. Never put real secrets in shell history.

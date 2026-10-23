@@ -36,7 +36,7 @@ func questionController(t *testing.T) (*Controller, string, *recoveryFixture, re
 	active := true
 	c.inventory.Upsert(devices.Device{MAC: "02:00:00:00:00:01", IPv4: "192.0.2.40", HTTPPort: &port, Activated: &active}, time.Now())
 	c.recoveryInterfaces = func() ([]platform.Adapter, error) {
-		return []platform.Adapter{{Name: "Ethernet Test", Suitable: true, Addresses: []string{"192.0.2.10/24"}}}, nil
+		return []platform.Adapter{{Name: "Ethernet Test", Suitable: true, UnicastSuitable: true, Addresses: []string{"192.0.2.10/24"}}}, nil
 	}
 	f := &recoveryFixture{}
 	c.questionRecovery = f
@@ -44,7 +44,7 @@ func questionController(t *testing.T) (*Controller, string, *recoveryFixture, re
 	return c, id, f, r
 }
 func TestQuestionCheckBindsOneSubmissionToDeviceAndConnection(t *testing.T) {
-	for _, kind := range []string{"success", "unchecked", "token", "address", "expired", "question"} {
+	for _, kind := range []string{"success", "unchecked", "token", "address", "source", "expired", "question"} {
 		t.Run(kind, func(t *testing.T) {
 			c, id, f, r := questionController(t)
 			if kind != "unchecked" {
@@ -59,6 +59,10 @@ func TestQuestionCheckBindsOneSubmissionToDeviceAndConnection(t *testing.T) {
 				r.CheckID = "stale-check"
 			case "address":
 				c.inventory.Upsert(devices.Device{MAC: "02:00:00:00:00:01", IPv4: "192.0.2.41"}, time.Now())
+			case "source":
+				c.recoveryInterfaces = func() ([]platform.Adapter, error) {
+					return []platform.Adapter{{Name: "Ethernet Test", UnicastSuitable: true, Addresses: []string{"198.51.100.10/24"}}}, nil
+				}
 			case "expired":
 				c.mu.Lock()
 				c.recoveryCheck.expires = time.Now().Add(-time.Second)
@@ -122,5 +126,27 @@ func TestQuestionRecoveryCancelsAndBlocksOtherOperations(t *testing.T) {
 	}
 	if _, err := c.CheckSecurityQuestions(id, ""); err == nil {
 		t.Fatal("check after shutdown")
+	}
+}
+
+func TestQuestionRecoveryOnRoutedCamera(t *testing.T) {
+	c, id, f, r := questionController(t)
+	c.recoveryInterfaces = func() ([]platform.Adapter, error) {
+		return []platform.Adapter{{Name: "Ethernet Test", UnicastSuitable: true, Addresses: []string{"198.51.100.10/24"}}}, nil
+	}
+	status, err := c.CheckSecurityQuestions(id, "")
+	if err != nil || status.State != "ready" || status.CheckID == "" || f.checks != 1 {
+		t.Fatal(status, err)
+	}
+	r.CheckID = status.CheckID
+	f.reset = func(_ context.Context, target recovery.Target, _ recovery.Request) (recovery.Result, error) {
+		if target.Source != "198.51.100.10" || target.Address != "192.0.2.40" || target.Interface != "Ethernet Test" {
+			t.Fatal("routed connection changed", target)
+		}
+		return recovery.Result{Sent: true, Outcome: "acknowledged"}, nil
+	}
+	result, err := c.ResetWithSecurityQuestions(id, "", r)
+	if err != nil || result.Outcome != "acknowledged" || f.resets != 1 {
+		t.Fatal(result, err)
 	}
 }

@@ -26,10 +26,13 @@ Configuration sends once, with explicit network values, XML-escaped credentials 
 ## Security-question recovery
 
 `internal/recovery` provides a separate ISAPI capability/question reader and
-single-submission encrypted reset client. It binds HTTP connections to an
-on-link address of a discovered adapter and does not follow redirects or use
-proxies. The controller shares its operation/cancellation guard with SADP writes,
-discovery and updates, and binds a short-lived one-use check to the selected
+single-submission encrypted reset client. Automatic selection uses the OS route
+to choose a local IPv4 source, including routed destinations and adapters not
+used for multicast discovery. An explicit adapter override is respected;
+unavailable route hints fall back to an observed adapter. HTTP connections bind
+that source and check actual API reachability, without a same-subnet requirement,
+redirects or proxies. The controller shares its operation/cancellation guard
+with SADP writes, discovery and updates, and binds a short-lived one-use check to the selected
 device, route and question IDs. Recovery secrets never enter inventory or
 snapshots. Desktop bindings and the standalone `recovery` CLI use the same
 engine. See [protocol and compatibility details](security-question-recovery.md).

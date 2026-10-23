@@ -50,10 +50,7 @@ func request(ctx context.Context, client *http.Client, target Target, method, pa
 	}
 	response, err := client.Do(r)
 	if err != nil {
-		if ctx.Err() != nil {
-			return 0, nil, ctx.Err()
-		}
-		return 0, nil, errors.New("could not communicate with the camera; check its address, HTTP service and network connection")
+		return 0, nil, connectionError(ctx, target, err)
 	}
 	defer response.Body.Close()
 	limit := int64(64 << 10)
@@ -67,6 +64,21 @@ func request(ctx context.Context, client *http.Client, target Target, method, pa
 	}
 	return response.StatusCode, data, nil
 }
+
+func connectionError(ctx context.Context, target Target, cause error) error {
+	if errors.Is(ctx.Err(), context.Canceled) {
+		return context.Canceled
+	}
+	connection := fmt.Sprintf("camera HTTP connection to %s from %s through %s", net.JoinHostPort(target.Address, strconv.Itoa(target.Port)), target.Source, target.Interface)
+	var networkError net.Error
+	if errors.Is(ctx.Err(), context.DeadlineExceeded) || (errors.As(cause, &networkError) && networkError.Timeout()) {
+		return fmt.Errorf("%s timed out; check routing, firewall rules and the camera's HTTP service: %w", connection, context.DeadlineExceeded)
+	}
+	// A transport error can contain URLs or device-supplied content. Report the
+	// attempted connection without echoing the underlying error or request data.
+	return fmt.Errorf("%s failed; check routing, firewall rules and the camera's HTTP service", connection)
+}
+
 func state(value, message string) Status {
 	return Status{State: value, Message: message, Questions: []Question{}}
 }

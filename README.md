@@ -7,7 +7,7 @@
 
 A native Go desktop utility and CLI for discovering Hikvision devices. Built with **Wails v3**, Bootstrap 5 and vanilla JavaScript. Windows 10/11 AMD64 is the primary desktop target; Linux is also supported.
 
-Milestone two adds single-device activation, IPv4/DHCP/SDK-port configuration and code-based password recovery to the CLI and desktop. Security-question recovery is also available for compatible cameras on the host’s IPv4 subnet. These write operations have synthetic test coverage but still require physical-device/firmware validation. SADPTools adds no account, cloud service or telemetry. The Windows display runtime is supplied by Microsoft and has its own update and privacy terms, included with setup.
+Milestone two adds single-device activation, IPv4/DHCP/SDK-port configuration and code-based password recovery to the CLI and desktop. Security-question recovery is also available for compatible cameras reachable over IPv4, directly or through a router. These write operations have synthetic test coverage but still require physical-device/firmware validation. SADPTools adds no account, cloud service or telemetry. The Windows display runtime is supplied by Microsoft and has its own update and privacy terms, included with setup.
 
 ## Install on Windows
 
