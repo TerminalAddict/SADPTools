@@ -65,6 +65,13 @@ export class Settings {
      * @param {Partial<Settings>} [$$source = {}] - The source object to create the Settings.
      */
     constructor($$source = {}) {
+        if (!("protocols" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["protocols"] = [];
+        }
         if (!("theme" in $$source)) {
             /**
              * @member
@@ -124,7 +131,11 @@ export class Settings {
      * @returns {Settings}
      */
     static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType0;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("protocols" in $$parsedSource) {
+            $$parsedSource["protocols"] = $$createField0_0($$parsedSource["protocols"]);
+        }
         return new Settings(/** @type {Partial<Settings>} */($$parsedSource));
     }
 }
@@ -229,8 +240,8 @@ export class Snapshot {
      * @returns {Snapshot}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType1;
-        const $$createField5_0 = $$createType2;
+        const $$createField0_0 = $$createType2;
+        const $$createField5_0 = $$createType0;
         const $$createField6_0 = $$createType4;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("devices" in $$parsedSource) {
@@ -247,8 +258,8 @@ export class Snapshot {
 }
 
 // Private type creation functions
-const $$createType0 = devices$0.Device.createFrom;
-const $$createType1 = $Create.Array($$createType0);
-const $$createType2 = $Create.Array($Create.Any);
+const $$createType0 = $Create.Array($Create.Any);
+const $$createType1 = devices$0.Device.createFrom;
+const $$createType2 = $Create.Array($$createType1);
 const $$createType3 = LogEntry.createFrom;
 const $$createType4 = $Create.Array($$createType3);

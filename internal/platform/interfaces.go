@@ -8,6 +8,7 @@ import (
 )
 
 type Adapter struct {
+	Gateway   string   `json:"gateway"`
 	Index     int      `json:"index"`
 	Name      string   `json:"name"`
 	Addresses []string `json:"addresses"`
@@ -52,7 +53,9 @@ func Interfaces() ([]Adapter, error) {
 	result := make([]Adapter, 0, len(interfaces))
 	for _, iface := range interfaces {
 		addrs, err := iface.Addrs()
-		result = append(result, Inspect(iface, addrs, err))
+		adapter := Inspect(iface, addrs, err)
+		adapter.Gateway = gateway(iface.Name)
+		result = append(result, adapter)
 	}
 	sort.Slice(result, func(i, j int) bool { return result[i].Index < result[j].Index })
 	return result, nil

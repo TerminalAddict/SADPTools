@@ -51,7 +51,13 @@ export function createWebLookup(check, changed) {
   return {
     select(next, scan = "", blocked = false) {
       const nextKey = next
-        ? JSON.stringify([next.id, next.ipv4, next.httpPort, scan])
+        ? JSON.stringify([
+            next.id,
+            next.ipv4,
+            next.httpPort,
+            next.httpsPort,
+            scan,
+          ])
         : "";
       if (nextKey === key) return;
       const selection = ++sequence;

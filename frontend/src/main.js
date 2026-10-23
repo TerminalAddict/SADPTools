@@ -1,5 +1,8 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./style.css";
+import "./toolkit.css";
+import { initToolkit } from "./toolkit.js";
+import { contextMenu } from "./toolkit-ui.js";
 import { Browser, Events } from "@wailsio/runtime";
 import * as Backend from "../bindings/github.com/TerminalAddict/SADPTools/desktopservice.js";
 import { initConfiguration } from "./configuration.js";
@@ -8,6 +11,7 @@ import { activation, model, visibleDevices } from "./view.js";
 import { createWebLookup, detectedURL } from "./web-view.js";
 import { scanPresentation } from "./scan-view.js";
 
+const multiSelected = new Set();
 const $ = (id) => document.getElementById(id);
 let settings,
   snapshot = { devices: [], logs: [], warnings: [], scanning: false },
@@ -60,6 +64,24 @@ function render() {
     row.tabIndex = 0;
     row.classList.toggle("selected", d.id === selected);
     row.setAttribute("aria-selected", String(d.id === selected));
+    const pickCell = document.createElement("td"),
+      pick = document.createElement("input");
+    pick.type = "checkbox";
+    pick.className = "form-check-input";
+    pick.checked = multiSelected.has(d.id);
+    pick.setAttribute("aria-label", `Select ${d.ipv4 || d.id}`);
+    pick.onclick = (e) => e.stopPropagation();
+    pick.onchange = () => {
+      if (pick.checked) multiSelected.add(d.id);
+      else multiSelected.delete(d.id);
+    };
+    pickCell.append(pick);
+    row.append(pickCell);
+    row.oncontextmenu = (e) =>
+      contextMenu(e, [
+        ["Add to site", () => toolkit.addLive([d.id])],
+        ["Save selected to site", () => toolkit.addLive([...multiSelected])],
+      ]);
     for (const val of [d.ipv4, model(d), d.mac, d.firmware, d.serial]) {
       const cell = document.createElement("td");
       cell.textContent = dash(val);
@@ -156,6 +178,17 @@ function renderDetails() {
     ["Serial number", d.serial],
     ["Firmware", d.firmware],
     ["Device type", d.deviceType],
+    ["Vendor", d.vendor],
+    ["Discovery protocols", d.protocols?.join(", ")],
+    ["ONVIF service addresses", d.xaddrs?.join("\n")],
+    ["HTTPS port", d.httpsPort],
+    ["RTSP port", d.rtspPort],
+    [
+      "Identity",
+      d.identityConflict
+        ? "Conflicting identifiers — review before management"
+        : "",
+    ],
     ["DHCP", d.dhcp === null ? "Unknown" : d.dhcp ? "Enabled" : "Disabled"],
     ["HTTP port", d.httpPort],
     ["SDK command port", d.commandPort],
@@ -193,6 +226,11 @@ function renderDetails() {
     fragment.append(dt, dd);
   }
   $("detail-fields").replaceChildren(fragment);
+  $("onvif-info").hidden = !d.xaddrs?.length;
+  $("onvif-info").disabled =
+    snapshot.scanning || snapshot.configuring || d.identityConflict;
+  $("onvif-info").onclick = () =>
+    document.dispatchEvent(new CustomEvent("toolkit:onvif", { detail: d.id }));
   $("open-web").disabled = !url || web.busy || snapshot.configuring;
   $("open-web").textContent = web.busy
     ? "Checking HTTP / HTTPS…"
@@ -375,6 +413,9 @@ $("settings-open").onclick = () => {
   if (!settings) return;
   $("theme").value = settings.theme;
   $("timeout").value = settings.timeoutSeconds;
+  $("protocol-sadp").checked =
+    !settings.protocols?.length || settings.protocols.includes("sadp");
+  $("protocol-onvif").checked = settings.protocols?.includes("onvif") || false;
   $("interval").value = settings.intervalSeconds;
   $("check-updates").checked = settings.checkUpdates;
   $("update-channel").value = settings.updateChannel;
@@ -385,9 +426,15 @@ $("settings-close").onclick = () => $("settings-dialog").close();
 $("settings-form").onsubmit = async (e) => {
   e.preventDefault();
   try {
+    if (!$("protocol-sadp").checked && !$("protocol-onvif").checked)
+      throw new Error("Select at least one discovery protocol");
     await save({
       ...settings,
       theme: $("theme").value,
+      protocols: [
+        $("protocol-sadp").checked ? "sadp" : "",
+        $("protocol-onvif").checked ? "onvif" : "",
+      ].filter(Boolean),
       timeoutSeconds: Number($("timeout").value),
       intervalSeconds: Number($("interval").value),
       checkUpdates: $("check-updates").checked,
@@ -424,6 +471,17 @@ async function init() {
     $("automatic").disabled = true;
   }
 }
+$("live-select-all").onchange = (e) => {
+  for (const d of visible())
+    if (e.target.checked) multiSelected.add(d.id);
+    else multiSelected.delete(d.id);
+  render();
+};
+const toolkit = initToolkit({
+  getSnapshot: () => snapshot,
+  getSelected: () =>
+    multiSelected.size ? [...multiSelected] : selected ? [selected] : [],
+});
 const webLookup = createWebLookup(Backend.CheckDeviceWeb, renderDetails);
 const updateConfiguration = initConfiguration({
   getDevice: () => snapshot.devices.find((d) => d.id === selected),

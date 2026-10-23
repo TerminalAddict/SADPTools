@@ -12,6 +12,7 @@ import (
 	"github.com/TerminalAddict/SADPTools/internal/configuration"
 	"github.com/TerminalAddict/SADPTools/internal/devices"
 	"github.com/TerminalAddict/SADPTools/internal/discovery"
+	"github.com/TerminalAddict/SADPTools/internal/multidiscovery"
 	"github.com/TerminalAddict/SADPTools/internal/platform"
 	"github.com/TerminalAddict/SADPTools/internal/recovery"
 	"github.com/TerminalAddict/SADPTools/internal/webinterface"
@@ -82,7 +83,7 @@ func New(path string, notify func()) *Controller {
 	ctx, cancel := context.WithCancel(context.Background())
 	c := &Controller{inventory: devices.NewInventory(), path: path, ctx: ctx, cancel: cancel, notify: notify, logs: []LogEntry{}, warnings: []string{}}
 	c.log = slog.New(slog.NewJSONHandler(c, &slog.HandlerOptions{Level: slog.LevelDebug}))
-	c.scanner = discovery.New(c.log)
+	c.scanner = multidiscovery.New(c.log)
 	c.writer = configuration.New(c.log)
 	c.questionRecovery = recovery.New()
 	c.recoveryInterfaces = platform.Interfaces
@@ -127,7 +128,13 @@ func (c *Controller) changed() {
 		c.notify()
 	}
 }
-func (c *Controller) Settings() Settings { c.mu.Lock(); defer c.mu.Unlock(); return c.settings }
+func (c *Controller) Settings() Settings {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	s := c.settings
+	s.Protocols = append([]string(nil), s.Protocols...)
+	return s
+}
 func (c *Controller) SaveSettings(s Settings) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -137,6 +144,7 @@ func (c *Controller) SaveSettings(s Settings) error {
 	if err := saveSettings(c.path, s); err != nil {
 		return err
 	}
+	s.Protocols = append([]string(nil), s.Protocols...)
 	c.settings = s
 	c.nextScan = time.Now().Add(time.Duration(s.IntervalSeconds) * time.Second)
 	return nil
@@ -179,7 +187,7 @@ func (c *Controller) StartScan() error {
 	}
 	ctx, cancel := context.WithCancel(c.ctx)
 	c.scanCancel = cancel
-	opts := discovery.Options{Interface: c.settings.Interface, Timeout: time.Duration(c.settings.TimeoutSeconds) * time.Second}
+	opts := discovery.Options{Protocols: append([]string{}, c.settings.Protocols...), Interface: c.settings.Interface, Timeout: time.Duration(c.settings.TimeoutSeconds) * time.Second}
 	c.scanning = true
 	c.scanStarted = time.Now().Format(time.RFC3339Nano)
 	c.scanSeconds = c.settings.TimeoutSeconds

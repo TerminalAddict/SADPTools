@@ -62,6 +62,28 @@ func TestDeviceURLUsesDetectedEndpointAndInvalidatesCache(t *testing.T) {
 	}
 }
 
+func TestSeparatelyAdvertisedHTTPSPortInvalidatesWebCache(t *testing.T) {
+	c, id := webController(t)
+	port := 8443
+	c.inventory.Upsert(devices.Device{MAC: "02:00:00:00:00:01", HTTPSPort: &port}, time.Now())
+	calls := 0
+	c.webDetector = webDetectFunc(func(_ context.Context, target webinterface.Target) (webinterface.Result, error) {
+		calls++
+		if target.HTTPSPort != port {
+			t.Errorf("advertised HTTPS port lost: %d", target.HTTPSPort)
+		}
+		return syntheticEndpoint(target.Address), nil
+	})
+	if _, err := c.DeviceURL(id); err != nil {
+		t.Fatal(err)
+	}
+	port = 9443
+	c.inventory.Upsert(devices.Device{MAC: "02:00:00:00:00:01", HTTPSPort: &port}, time.Now())
+	if _, err := c.DeviceURL(id); err != nil || calls != 2 {
+		t.Fatal("HTTPS port change reused stale web endpoint", calls, err)
+	}
+}
+
 func TestWebProbeCancellationAndStaleAddress(t *testing.T) {
 	for _, change := range []string{"address", "selection", "shutdown"} {
 		t.Run(change, func(t *testing.T) {

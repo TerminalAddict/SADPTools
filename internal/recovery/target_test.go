@@ -105,6 +105,16 @@ func TestRecoveryPointToPointSource(t *testing.T) {
 	}
 }
 
+func TestRecoveryKeepsSeparatelyAdvertisedHTTPSPort(t *testing.T) {
+	d, all := targetFixtures()
+	port := 8443
+	d.HTTPSPort = &port
+	target, err := ForDevice(d, "Ethernet Fixture", "", all)
+	if err != nil || target.HTTPSPort != port || target.Port != 80 {
+		t.Fatal("HTTPS discovery port lost", target, err)
+	}
+}
+
 func TestRoutedRecoveryChecksActualHTTPResponse(t *testing.T) {
 	for _, tc := range []struct {
 		name, state string

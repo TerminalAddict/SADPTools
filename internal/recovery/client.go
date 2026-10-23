@@ -141,7 +141,7 @@ func (c *Client) resolve(ctx context.Context, target Target) (Target, webinterfa
 		endpoint := webinterface.Endpoint{URL: (&url.URL{Scheme: target.Scheme, Host: host, Path: "/"}).String(), Scheme: target.Scheme, Port: target.Port, CertificateSHA256: target.CertificateSHA256}
 		return target, endpoint, Status{}, nil
 	}
-	result, err := c.detector.Detect(ctx, webinterface.Target{Address: target.Address, Port: target.Port, Source: target.Source})
+	result, err := c.detector.Detect(ctx, webinterface.Target{Address: target.Address, Port: target.Port, HTTPSPort: target.HTTPSPort, Source: target.Source})
 	if err != nil {
 		return target, webinterface.Endpoint{}, state("unavailable", err.Error()), err
 	}

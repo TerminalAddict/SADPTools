@@ -1,0 +1,445 @@
+package onvif
+
+import (
+	"bytes"
+	"context"
+	"crypto/rand"
+	"crypto/sha1" // Required by the ONVIF WS-Security UsernameToken PasswordDigest standard.
+	"crypto/sha256"
+	"crypto/tls"
+	"encoding/base64"
+	"encoding/hex"
+	"encoding/xml"
+	"errors"
+	"fmt"
+	"io"
+	"net"
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/TerminalAddict/SADPTools/internal/devices"
+	"github.com/TerminalAddict/SADPTools/internal/vault"
+	"github.com/icholy/digest"
+)
+
+var ErrAuthentication = errors.New("ONVIF authentication denied; check the credential profile and the camera's ONVIF user permissions")
+var ErrUnsupported = errors.New("ONVIF operation unsupported or rejected by this device")
+
+const deviceNS = "http://www.onvif.org/ver10/device/wsdl"
+
+// Target is an explicit, previously discovered service endpoint. A certificate
+// pin is accepted only after the operator confirms that exact fingerprint.
+type Target struct {
+	Address           string
+	URL               string
+	Source            string
+	CertificateSHA256 string
+}
+type Client struct {
+	target Target
+	http   *http.Client
+}
+
+func NewClient(t Target) (*Client, error) {
+	if !ValidXAddr(t.URL, t.Address) {
+		return nil, errors.New("ONVIF service URL must belong to the discovered IPv4 device")
+	}
+	if t.Source != "" && net.ParseIP(t.Source).To4() == nil {
+		return nil, errors.New("invalid source IPv4 address")
+	}
+	var config *tls.Config
+	if t.CertificateSHA256 != "" {
+		pin, e := hex.DecodeString(t.CertificateSHA256)
+		if e != nil || len(pin) != 32 {
+			return nil, errors.New("invalid certificate fingerprint")
+		}
+		config = &tls.Config{MinVersion: tls.VersionTLS12, InsecureSkipVerify: true, VerifyConnection: func(cs tls.ConnectionState) error {
+			if len(cs.PeerCertificates) > 0 {
+				sum := sha256.Sum256(cs.PeerCertificates[0].Raw)
+				if bytes.Equal(sum[:], pin) {
+					return nil
+				}
+			}
+			return errors.New("device certificate changed")
+		}}
+	}
+	dialer := &net.Dialer{Timeout: 3 * time.Second, LocalAddr: &net.TCPAddr{IP: net.ParseIP(t.Source)}}
+	transport := &http.Transport{DialContext: dialer.DialContext, TLSClientConfig: config, TLSHandshakeTimeout: 3 * time.Second, ResponseHeaderTimeout: 4 * time.Second, DisableKeepAlives: true, MaxResponseHeaderBytes: 32 << 10}
+	return &Client{target: t, http: &http.Client{Transport: transport, Timeout: 6 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}, nil
+}
+func usernameToken(s vault.Secret, now time.Time, nonce []byte) string {
+	created := now.UTC().Format(time.RFC3339Nano)
+	raw := append(append(append([]byte{}, nonce...), []byte(created)...), []byte(s.Password)...)
+	hash := sha1.Sum(raw)
+	clear(raw)
+	return `<wsse:Security s:mustUnderstand="1" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"><wsse:UsernameToken><wsse:Username>` + xmlText(s.Username) + `</wsse:Username><wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">` + base64.StdEncoding.EncodeToString(hash[:]) + `</wsse:Password><wsse:Nonce EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">` + base64.StdEncoding.EncodeToString(nonce) + `</wsse:Nonce><wsu:Created>` + created + `</wsu:Created></wsse:UsernameToken></wsse:Security>`
+}
+
+var readOperations = map[string]bool{"GetDeviceInformation": true, "GetNetworkInterfaces": true, "GetDNS": true, "GetNTP": true, "GetSystemDateAndTime": true, "GetNetworkProtocols": true, "GetNetworkDefaultGateway": true}
+
+func (c *Client) Read(ctx context.Context, operation string, secret vault.Secret) ([]byte, error) {
+	if !readOperations[operation] {
+		return nil, errors.New("only implemented read-only ONVIF operations are allowed")
+	}
+	security := ""
+	if secret.Username != "" {
+		nonce := make([]byte, 20)
+		rand.Read(nonce)
+		security = usernameToken(secret, time.Now(), nonce)
+		clear(nonce)
+	}
+	body := []byte(`<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:tds="` + deviceNS + `"><s:Header>` + security + `</s:Header><s:Body><tds:` + operation + `/></s:Body></s:Envelope>`)
+	defer clear(body)
+	do := func(auth string) (*http.Response, error) {
+		req, e := http.NewRequestWithContext(ctx, http.MethodPost, c.target.URL, bytes.NewReader(body))
+		if e != nil {
+			return nil, errors.New("could not prepare ONVIF request")
+		}
+		req.GetBody = nil
+		req.Header.Set("Content-Type", `application/soap+xml; charset=utf-8; action="`+deviceNS+`/`+operation+`"`)
+		req.Header.Set("Cache-Control", "no-store")
+		if auth != "" {
+			req.Header.Set("Authorization", auth)
+		}
+		return c.http.Do(req)
+	}
+	response, e := do("")
+	if e != nil {
+		return nil, safeConnectionError(ctx, e)
+	}
+	if response.StatusCode == http.StatusUnauthorized && secret.Username != "" {
+		challenge, err := digest.FindChallenge(response.Header)
+		response.Body.Close()
+		if err != nil {
+			return nil, ErrAuthentication
+		}
+		parsed, _ := url.Parse(c.target.URL)
+		credential, err := digest.Digest(challenge, digest.Options{Method: http.MethodPost, URI: parsed.RequestURI(), GetBody: func() (io.ReadCloser, error) { return io.NopCloser(bytes.NewReader(body)), nil }, Count: 1, Username: secret.Username, Password: secret.Password})
+		if err != nil {
+			return nil, ErrAuthentication
+		}
+		// One standards-based challenge response for a read operation; never retry
+		// a network failure, and never use this client to perform device writes.
+		response, e = do(credential.String())
+		if e != nil {
+			return nil, safeConnectionError(ctx, e)
+		}
+	}
+	defer response.Body.Close()
+	if response.StatusCode == 401 || response.StatusCode == 403 {
+		return nil, ErrAuthentication
+	}
+	if response.StatusCode < 200 || response.StatusCode >= 300 {
+		return nil, ErrUnsupported
+	}
+	data, e := io.ReadAll(io.LimitReader(response.Body, (1<<20)+1))
+	if e != nil || len(data) > 1<<20 {
+		clear(data)
+		return nil, errors.New("incomplete or oversized ONVIF response")
+	}
+	var envelope struct {
+		XMLName xml.Name
+		Body    struct {
+			Fault *struct{} `xml:"Fault"`
+		} `xml:"Body"`
+	}
+	if e = decode(data, &envelope); e != nil {
+		clear(data)
+		return nil, e
+	}
+	if envelope.XMLName.Local != "Envelope" || envelope.XMLName.Space != "http://www.w3.org/2003/05/soap-envelope" {
+		clear(data)
+		return nil, errors.New("invalid ONVIF SOAP envelope")
+	}
+	if envelope.Body.Fault != nil {
+		clear(data)
+		return nil, ErrUnsupported
+	}
+	return data, nil
+}
+func safeConnectionError(ctx context.Context, e error) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	var cert *tls.CertificateVerificationError
+	if errors.As(e, &cert) {
+		return errors.New("ONVIF HTTPS certificate is not trusted; verify and explicitly accept its fingerprint before sending credentials")
+	}
+	return errors.New("ONVIF connection failed or timed out; no device changes were requested")
+}
+func decode(data []byte, v any) error {
+	d := xml.NewDecoder(bytes.NewReader(data))
+	if e := d.Decode(v); e != nil {
+		return errors.New("malformed ONVIF response")
+	}
+	for {
+		t, e := d.Token()
+		if e == io.EOF {
+			return nil
+		}
+		if e != nil {
+			return errors.New("malformed trailing ONVIF XML")
+		}
+		if s, ok := t.(xml.CharData); !ok || len(bytes.TrimSpace(s)) != 0 {
+			return errors.New("unexpected trailing ONVIF XML")
+		}
+	}
+}
+
+type Information struct {
+	Device   devices.Device `json:"device"`
+	Warnings []string       `json:"warnings"`
+}
+
+func (c *Client) Information(ctx context.Context, base devices.Device, s vault.Secret) (Information, error) {
+	result := Information{Device: base, Warnings: []string{}}
+	data, e := c.Read(ctx, "GetDeviceInformation", s)
+	if e != nil {
+		return result, e
+	}
+	defer clear(data)
+	var doc struct {
+		Body struct {
+			Info *struct{ Manufacturer, Model, FirmwareVersion, SerialNumber, HardwareId string } `xml:"GetDeviceInformationResponse"`
+		} `xml:"Body"`
+	}
+	if e = decode(data, &doc); e != nil {
+		return result, e
+	}
+	if doc.Body.Info == nil {
+		return result, errors.New("device information missing from ONVIF response")
+	}
+	info := doc.Body.Info
+	result.Device.Vendor = bounded(info.Manufacturer)
+	result.Device.Model = bounded(info.Model)
+	result.Device.Firmware = bounded(info.FirmwareVersion)
+	result.Device.Serial = bounded(info.SerialNumber)
+	network, e := c.Read(ctx, "GetNetworkInterfaces", s)
+	if e != nil {
+		result.Warnings = append(result.Warnings, e.Error())
+	} else {
+		defer clear(network)
+		var n struct {
+			Body struct {
+				Response struct {
+					Interfaces []struct {
+						Enabled bool
+						Info    struct{ HwAddress string }
+						IPv4    struct {
+							Enabled bool
+							Config  struct {
+								Manual []struct {
+									Address      string
+									PrefixLength int
+								}
+								FromDHCP struct {
+									Address      string
+									PrefixLength int
+								}
+								DHCP *bool
+							}
+						}
+					} `xml:"NetworkInterfaces"`
+				} `xml:"GetNetworkInterfacesResponse"`
+			} `xml:"Body"`
+		}
+		if decode(network, &n) == nil {
+			for _, iface := range n.Body.Response.Interfaces {
+				if !iface.Enabled || !iface.IPv4.Enabled {
+					continue
+				}
+				ips := iface.IPv4.Config.Manual
+				ips = append(ips, iface.IPv4.Config.FromDHCP)
+				for _, ip := range ips {
+					if ip.Address == c.target.Address {
+						mac := devices.NormalizeMAC(iface.Info.HwAddress)
+						if mac != "" {
+							result.Device.MAC = mac
+						}
+						if ip.PrefixLength >= 0 && ip.PrefixLength <= 32 {
+							result.Device.SubnetMask = net.IP(net.CIDRMask(ip.PrefixLength, 32)).String()
+						}
+						result.Device.DHCP = iface.IPv4.Config.DHCP
+					}
+				}
+			}
+		}
+	}
+	protocols, e := c.Read(ctx, "GetNetworkProtocols", s)
+	if e != nil {
+		result.Warnings = append(result.Warnings, e.Error())
+	} else {
+		defer clear(protocols)
+		var p struct {
+			Body struct {
+				Response struct {
+					Protocols []struct {
+						Name    string
+						Enabled bool
+						Port    []int
+					} `xml:"NetworkProtocols"`
+				} `xml:"GetNetworkProtocolsResponse"`
+			} `xml:"Body"`
+		}
+		if decode(protocols, &p) == nil {
+			for _, protocol := range p.Body.Response.Protocols {
+				if !protocol.Enabled || len(protocol.Port) == 0 || protocol.Port[0] < 1 || protocol.Port[0] > 65535 {
+					continue
+				}
+				port := protocol.Port[0]
+				switch protocol.Name {
+				case "HTTP":
+					result.Device.HTTPPort = &port
+				case "HTTPS":
+					result.Device.HTTPSPort = &port
+				case "RTSP":
+					result.Device.RTSPPort = &port
+				}
+			}
+		}
+	}
+	gateway, e := c.Read(ctx, "GetNetworkDefaultGateway", s)
+	if e != nil {
+		result.Warnings = append(result.Warnings, e.Error())
+	} else {
+		defer clear(gateway)
+		var g struct {
+			Body struct {
+				Response struct {
+					Gateway struct {
+						Address []string `xml:"IPv4Address"`
+					} `xml:"NetworkGateway"`
+				} `xml:"GetNetworkDefaultGatewayResponse"`
+			} `xml:"Body"`
+		}
+		if decode(gateway, &g) == nil && len(g.Body.Response.Gateway.Address) > 0 && net.ParseIP(g.Body.Response.Gateway.Address[0]).To4() != nil {
+			result.Device.Gateway = g.Body.Response.Gateway.Address[0]
+		}
+	}
+	result.Device.LastSeen = time.Now().UTC()
+	result.Device.ID = result.Device.Key()
+	return result, nil
+}
+func bounded(s string) string {
+	s = strings.TrimSpace(s)
+	if len(s) > 512 {
+		return ""
+	}
+	return s
+}
+
+// Configuration returns only supported, read-only health data; absent values
+// remain unknown. Errors are associated with individual reads, not hidden.
+type Configuration struct {
+	DNS    []string          `json:"dns"`
+	NTP    []string          `json:"ntp"`
+	UTC    string            `json:"utc"`
+	Errors map[string]string `json:"errors"`
+}
+
+func (c *Client) Configuration(ctx context.Context, s vault.Secret) Configuration {
+	out := Configuration{DNS: []string{}, NTP: []string{}, Errors: map[string]string{}}
+	type host struct{ IPv4Address, IPv6Address, DNSname string }
+	hosts := func(h []host) []string {
+		r := []string{}
+		for _, v := range h {
+			for _, x := range []string{v.IPv4Address, v.IPv6Address, v.DNSname} {
+				if x != "" && len(x) <= 253 {
+					r = append(r, x)
+				}
+			}
+		}
+		return r
+	}
+	data, e := c.Read(ctx, "GetDNS", s)
+	if e != nil {
+		out.Errors["dns"] = e.Error()
+	} else {
+		var doc struct {
+			Body struct {
+				Response struct {
+					DNS struct {
+						FromDHCP bool
+						Manual   []host `xml:"DNSManual"`
+						DHCP     []host `xml:"DNSFromDHCP"`
+					}
+				} `xml:"GetDNSResponse"`
+			} `xml:"Body"`
+		}
+		if decode(data, &doc) == nil {
+			if doc.Body.Response.DNS.FromDHCP {
+				out.DNS = hosts(doc.Body.Response.DNS.DHCP)
+			} else {
+				out.DNS = hosts(doc.Body.Response.DNS.Manual)
+			}
+		}
+		clear(data)
+	}
+	data, e = c.Read(ctx, "GetNTP", s)
+	if e != nil {
+		out.Errors["ntp"] = e.Error()
+	} else {
+		var doc struct {
+			Body struct {
+				Response struct {
+					NTP struct {
+						FromDHCP bool
+						Manual   []host `xml:"NTPManual"`
+						DHCP     []host `xml:"NTPFromDHCP"`
+					}
+				} `xml:"GetNTPResponse"`
+			} `xml:"Body"`
+		}
+		if decode(data, &doc) == nil {
+			if doc.Body.Response.NTP.FromDHCP {
+				out.NTP = hosts(doc.Body.Response.NTP.DHCP)
+			} else {
+				out.NTP = hosts(doc.Body.Response.NTP.Manual)
+			}
+		}
+		clear(data)
+	}
+	data, e = c.Read(ctx, "GetSystemDateAndTime", s)
+	if e != nil {
+		out.Errors["clock"] = e.Error()
+	} else {
+		var doc struct {
+			Body struct {
+				Response struct {
+					Clock struct {
+						UTC *struct {
+							Time struct{ Hour, Minute, Second int }
+							Date struct{ Year, Month, Day int }
+						} `xml:"UTCDateTime"`
+					} `xml:"SystemDateAndTime"`
+				} `xml:"GetSystemDateAndTimeResponse"`
+			} `xml:"Body"`
+		}
+		if decode(data, &doc) == nil && doc.Body.Response.Clock.UTC != nil {
+			v := doc.Body.Response.Clock.UTC
+			stamp := fmt.Sprintf("%04d-%02d-%02dT%02d:%02d:%02dZ", v.Date.Year, v.Date.Month, v.Date.Day, v.Time.Hour, v.Time.Minute, v.Time.Second)
+			if _, e = time.Parse(time.RFC3339, stamp); e == nil {
+				out.UTC = stamp
+			}
+		}
+		clear(data)
+	}
+	return out
+}
+func servicePort(raw string) int {
+	u, e := url.Parse(raw)
+	if e != nil {
+		return 0
+	}
+	if u.Port() != "" {
+		p, _ := strconv.Atoi(u.Port())
+		return p
+	}
+	if u.Scheme == "https" {
+		return 443
+	}
+	return 80
+}

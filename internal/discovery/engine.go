@@ -22,6 +22,7 @@ const DefaultTimeout = 5 * time.Second
 const MaxTimeout = 5 * time.Minute
 
 type Options struct {
+	Protocols []string
 	Interface string
 	Timeout   time.Duration
 }

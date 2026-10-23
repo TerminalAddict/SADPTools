@@ -39,226 +39,293 @@
         </button>
       </div>
     </header>
+    <nav class="app-navigation" aria-label="Application views">
+      <button class="btn btn-sm active" data-view="live">Live discovery</button>
+      <button class="btn btn-sm" data-view="sites">Sites</button>
+      <button class="btn btn-sm" data-view="scanner">IP scanner</button>
+      <button class="btn btn-sm" data-view="provision">Provision</button>
+      <button class="btn btn-sm" data-view="audit">Audit</button>
+      <button class="btn btn-sm" data-view="switches">Switches</button>
+      <span id="site-context">No site selected</span>
+    </nav>
     <main>
-      <section class="toolbar" aria-label="Discovery controls">
-        <button id="discover" class="btn btn-primary">
+      <div
+        id="toolkit-error"
+        class="alert alert-danger"
+        role="alert"
+        hidden
+      ></div>
+      <section id="toolkit-job" aria-label="Toolkit operation" hidden>
+        <div class="d-flex align-items-center gap-2">
           <span
-            id="discover-spinner"
-            class="spinner-border spinner-border-sm me-2"
+            id="toolkit-job-spinner"
+            class="spinner-border spinner-border-sm"
             aria-hidden="true"
-            hidden
           ></span
-          ><span id="discover-label">Discover devices</span></button
-        ><button id="cancel" class="btn btn-outline-secondary" hidden>
-          Cancel scan
-        </button>
-        <div class="form-check form-switch auto-control">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            role="switch"
-            id="automatic"
-          /><label class="form-check-label" for="automatic">Automatic</label>
-        </div>
-        <div class="adapter-control">
-          <label class="visually-hidden" for="adapter">Network interface</label
-          ><select id="adapter" class="form-select">
-            <option value="">All suitable interfaces</option>
-          </select>
-        </div>
-        <button
-          id="adapters-refresh"
-          class="btn btn-outline-secondary"
-          title="Re-detect network adapters"
-          aria-label="Re-detect network adapters"
-        >
-          ↻
-        </button>
-        <input
-          id="search"
-          class="form-control search"
-          type="search"
-          placeholder="Search IP, model, MAC, serial…"
-          aria-label="Filter devices"
-        />
-        <div class="export-control">
-          <select
-            id="export-format"
-            class="form-select"
-            aria-label="Export format"
-          >
-            <option value="csv">CSV</option>
-            <option value="json">JSON</option></select
-          ><button id="export" class="btn btn-outline-secondary" disabled>
-            Export
+          ><span id="toolkit-job-label" role="status"></span
+          ><span id="toolkit-job-count" class="ms-auto"></span
+          ><button id="toolkit-cancel" class="btn btn-sm btn-outline-secondary">
+            Cancel
           </button>
         </div>
-      </section>
-      <section
-        id="scan-activity"
-        class="scan-activity"
-        aria-label="Network discovery activity"
-        hidden
-      >
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-          <span
-            id="scan-spinner"
-            class="spinner-border spinner-border-sm text-primary"
-            aria-hidden="true"
-          ></span>
-          <strong id="scan-activity-label" role="status"></strong>
-          <span id="scan-counts" class="text-body-secondary"></span>
-          <span
-            id="scan-timing"
-            class="ms-auto small text-body-secondary"
-          ></span>
+        <div class="progress">
+          <div id="toolkit-job-progress" class="progress-bar"></div>
         </div>
-        <div
-          id="scan-progress-track"
-          class="progress mt-2"
-          role="progressbar"
-          aria-label="Discovery listening window"
-          aria-valuemin="0"
-          aria-valuemax="100"
+      </section>
+      <div id="live-view">
+        <section class="toolbar" aria-label="Discovery controls">
+          <button id="discover" class="btn btn-primary">
+            <span
+              id="discover-spinner"
+              class="spinner-border spinner-border-sm me-2"
+              aria-hidden="true"
+              hidden
+            ></span
+            ><span id="discover-label">Discover devices</span></button
+          ><button id="cancel" class="btn btn-outline-secondary" hidden>
+            Cancel scan
+          </button>
+          <div class="form-check form-switch auto-control">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              role="switch"
+              id="automatic"
+            /><label class="form-check-label" for="automatic">Automatic</label>
+          </div>
+          <div class="adapter-control">
+            <label class="visually-hidden" for="adapter"
+              >Network interface</label
+            ><select id="adapter" class="form-select">
+              <option value="">All suitable interfaces</option>
+            </select>
+          </div>
+          <button
+            id="adapters-refresh"
+            class="btn btn-outline-secondary"
+            title="Re-detect network adapters"
+            aria-label="Re-detect network adapters"
+          >
+            ↻
+          </button>
+          <input
+            id="search"
+            class="form-control search"
+            type="search"
+            placeholder="Search IP, model, MAC, serial…"
+            aria-label="Filter devices"
+          />
+          <button id="save-live-selected" class="btn btn-outline-secondary">
+            Save selected to site
+          </button>
+          <div class="export-control">
+            <select
+              id="export-format"
+              class="form-select"
+              aria-label="Export format"
+            >
+              <option value="csv">CSV</option>
+              <option value="json">JSON</option></select
+            ><button id="export" class="btn btn-outline-secondary" disabled>
+              Export
+            </button>
+          </div>
+        </section>
+        <section
+          id="scan-activity"
+          class="scan-activity"
+          aria-label="Network discovery activity"
+          hidden
         >
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span
+              id="scan-spinner"
+              class="spinner-border spinner-border-sm text-primary"
+              aria-hidden="true"
+            ></span>
+            <strong id="scan-activity-label" role="status"></strong>
+            <span id="scan-counts" class="text-body-secondary"></span>
+            <span
+              id="scan-timing"
+              class="ms-auto small text-body-secondary"
+            ></span>
+          </div>
           <div
-            id="scan-progress"
-            class="progress-bar progress-bar-striped progress-bar-animated"
-          ></div>
-        </div>
-      </section>
-      <div id="notice" class="alert alert-danger" role="alert" hidden></div>
-      <section class="workspace" aria-label="Device inventory">
-        <div class="inventory">
-          <div class="inventory-heading">
-            <div>
-              <h2>
-                Discovered devices <span id="count" class="count">0</span>
-              </h2>
-              <p id="inventory-caption">
-                Discover devices on your local network to get started.
-              </p>
+            id="scan-progress-track"
+            class="progress mt-2"
+            role="progressbar"
+            aria-label="Discovery listening window"
+            aria-valuemin="0"
+            aria-valuemax="100"
+          >
+            <div
+              id="scan-progress"
+              class="progress-bar progress-bar-striped progress-bar-animated"
+            ></div>
+          </div>
+        </section>
+        <div id="notice" class="alert alert-danger" role="alert" hidden></div>
+        <section class="workspace" aria-label="Device inventory">
+          <div class="inventory">
+            <div class="inventory-heading">
+              <div>
+                <h2>
+                  Discovered devices <span id="count" class="count">0</span>
+                </h2>
+                <p id="inventory-caption">
+                  Discover devices on your local network to get started.
+                </p>
+              </div>
+              <div class="scan-indicator">
+                <span id="scan-dot" class="status-dot"></span
+                ><span id="scan-status" role="status">Ready to discover</span>
+              </div>
             </div>
-            <div class="scan-indicator">
-              <span id="scan-dot" class="status-dot"></span
-              ><span id="scan-status" role="status">Ready to discover</span>
+            <div class="table-container">
+              <table class="table table-hover align-middle device-table">
+                <thead>
+                  <tr>
+                    <th>
+                      <input
+                        id="live-select-all"
+                        class="form-check-input"
+                        type="checkbox"
+                        aria-label="Select all visible devices"
+                      />
+                    </th>
+                    <th scope="col" data-key="ipv4" aria-sort="ascending">
+                      <button>IP address <span>↑</span></button>
+                    </th>
+                    <th scope="col" data-key="model">
+                      <button>Device model <span></span></button>
+                    </th>
+                    <th scope="col" data-key="mac">
+                      <button>MAC address <span></span></button>
+                    </th>
+                    <th scope="col" data-key="firmware">
+                      <button>Firmware <span></span></button>
+                    </th>
+                    <th scope="col" data-key="serial">
+                      <button>Serial number <span></span></button>
+                    </th>
+                    <th scope="col" data-key="activated">
+                      <button>Activation <span></span></button>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="devices"></tbody>
+              </table>
+              <div id="empty" class="empty-state">
+                <img
+                  class="empty-symbol"
+                  src="/src/assets/brand-icon.svg"
+                  width="64"
+                  height="64"
+                  alt=""
+                />
+                <h3>No devices discovered yet</h3>
+                <p>
+                  Choose a network adapter, then select
+                  <strong>Discover devices</strong>.<br />Devices will appear
+                  here as they respond.
+                </p>
+              </div>
+            </div>
+            <div class="inventory-footer">
+              <span id="visible-count">0 devices</span
+              ><span
+                >Inventory retained between scans · Select a row for
+                details</span
+              >
             </div>
           </div>
-          <div class="table-container">
-            <table class="table table-hover align-middle device-table">
-              <thead>
-                <tr>
-                  <th scope="col" data-key="ipv4" aria-sort="ascending">
-                    <button>IP address <span>↑</span></button>
-                  </th>
-                  <th scope="col" data-key="model">
-                    <button>Device model <span></span></button>
-                  </th>
-                  <th scope="col" data-key="mac">
-                    <button>MAC address <span></span></button>
-                  </th>
-                  <th scope="col" data-key="firmware">
-                    <button>Firmware <span></span></button>
-                  </th>
-                  <th scope="col" data-key="serial">
-                    <button>Serial number <span></span></button>
-                  </th>
-                  <th scope="col" data-key="activated">
-                    <button>Activation <span></span></button>
-                  </th>
-                </tr>
-              </thead>
-              <tbody id="devices"></tbody>
-            </table>
-            <div id="empty" class="empty-state">
-              <img
-                class="empty-symbol"
-                src="/src/assets/brand-icon.svg"
-                width="64"
-                height="64"
-                alt=""
-              />
-              <h3>No devices discovered yet</h3>
-              <p>
-                Choose a network adapter, then select
-                <strong>Discover devices</strong>.<br />Devices will appear here
-                as they respond.
-              </p>
+          <aside class="device-details" aria-label="Selected device details">
+            <div class="panel-heading">
+              <h2>Device details</h2>
+              <span id="detail-status" class="badge text-bg-secondary"
+                >No selection</span
+              >
             </div>
-          </div>
-          <div class="inventory-footer">
-            <span id="visible-count">0 devices</span
-            ><span
-              >Inventory retained between scans · Select a row for details</span
-            >
-          </div>
-        </div>
-        <aside class="device-details" aria-label="Selected device details">
-          <div class="panel-heading">
-            <h2>Device details</h2>
-            <span id="detail-status" class="badge text-bg-secondary"
-              >No selection</span
-            >
-          </div>
-          <div id="detail-empty" class="detail-empty">
-            Select a discovered device to inspect its network and system
-            information.
-          </div>
-          <div id="detail-content" hidden>
-            <h3 id="detail-model"></h3>
-            <p id="detail-name" class="text-body-secondary"></p>
-            <dl id="detail-fields"></dl>
-            <button id="open-web" class="btn btn-outline-primary w-100">
-              Open web interface ↗
-            </button>
-            <p id="web-note" class="small text-body-secondary mt-2"></p>
-            <button id="check-web" class="btn btn-sm btn-link px-0">
-              Check web interface again
-            </button>
-          </div>
-          <div class="configuration">
-            <h3>Device configuration</h3>
-            <p id="configuration-note">Select a device to manage it.</p>
-            <div class="d-grid gap-2">
-              <button
-                id="activate-device"
-                disabled
-                class="btn btn-outline-secondary"
-              >
-                Activate device</button
-              ><button
-                id="network-device"
-                disabled
-                class="btn btn-outline-secondary"
-              >
-                Configure IP / DHCP</button
-              ><button
-                id="recover-device"
-                disabled
-                class="btn btn-outline-secondary"
-              >
-                Password recovery
+            <div id="detail-empty" class="detail-empty">
+              Select a discovered device to inspect its network and system
+              information.
+            </div>
+            <div id="detail-content" hidden>
+              <h3 id="detail-model"></h3>
+              <p id="detail-name" class="text-body-secondary"></p>
+              <dl id="detail-fields"></dl>
+              <button id="open-web" class="btn btn-outline-primary w-100">
+                Open web interface ↗
+              </button>
+              <p id="web-note" class="small text-body-secondary mt-2"></p>
+              <button id="check-web" class="btn btn-sm btn-link px-0">
+                Check web interface again
               </button>
             </div>
+            <button
+              id="onvif-info"
+              class="btn btn-sm btn-outline-primary mt-2"
+              hidden
+            >
+              Read ONVIF information
+            </button>
+            <button
+              id="save-detail-site"
+              class="btn btn-sm btn-outline-secondary mt-2"
+            >
+              Add to site
+            </button>
+            <div class="configuration">
+              <h3>Device configuration</h3>
+              <p id="configuration-note">Select a device to manage it.</p>
+              <div class="d-grid gap-2">
+                <button
+                  id="activate-device"
+                  disabled
+                  class="btn btn-outline-secondary"
+                >
+                  Activate device</button
+                ><button
+                  id="network-device"
+                  disabled
+                  class="btn btn-outline-secondary"
+                >
+                  Configure IP / DHCP</button
+                ><button
+                  id="recover-device"
+                  disabled
+                  class="btn btn-outline-secondary"
+                >
+                  Password recovery
+                </button>
+              </div>
+            </div>
+          </aside>
+        </section>
+        <details id="diagnostics" class="diagnostics">
+          <summary>
+            Discovery diagnostics <span id="log-count">0 entries</span>
+          </summary>
+          <div class="diagnostic-toolbar">
+            <label class="form-check-label"
+              ><input
+                id="debug-logs"
+                class="form-check-input me-2"
+                type="checkbox"
+              />Include debug messages</label
+            ><span>Latest 500 entries · This session only</span>
           </div>
-        </aside>
-      </section>
-      <details id="diagnostics" class="diagnostics">
-        <summary>
-          Discovery diagnostics <span id="log-count">0 entries</span>
-        </summary>
-        <div class="diagnostic-toolbar">
-          <label class="form-check-label"
-            ><input
-              id="debug-logs"
-              class="form-check-input me-2"
-              type="checkbox"
-            />Include debug messages</label
-          ><span>Latest 500 entries · This session only</span>
-        </div>
-        <pre id="logs" tabindex="0" aria-label="Discovery log">
+          <pre id="logs" tabindex="0" aria-label="Discovery log">
 No discovery activity yet.</pre>
-      </details>
+        </details>
+      </div>
+      <section id="toolkit-view" hidden>
+        <section id="sites-page" class="tool-page" hidden></section>
+        <section id="scanner-page" class="tool-page" hidden></section>
+        <section id="provision-page" class="tool-page" hidden></section>
+        <section id="audit-page" class="tool-page" hidden></section>
+        <section id="switches-page" class="tool-page" hidden></section>
+      </section>
     </main>
     <footer class="app-footer">
       <span>SADPTools <span id="version"></span></span
@@ -390,8 +457,18 @@ No discovery activity yet.</pre>
         <label for="theme" class="form-label">Appearance</label
         ><select id="theme" class="form-select mb-3">
           <option value="dark">Dark</option>
-          <option value="light">Light</option></select
-        ><label for="timeout" class="form-label">Scan timeout (seconds)</label
+          <option value="light">Light</option>
+        </select>
+        <fieldset class="mb-3">
+          <legend class="fs-6">Discovery protocols</legend>
+          <label class="me-3"
+            ><input type="checkbox" id="protocol-sadp" /> Hikvision SADP</label
+          ><label
+            ><input type="checkbox" id="protocol-onvif" /> ONVIF (compatible
+            manufacturers)</label
+          >
+        </fieldset>
+        <label for="timeout" class="form-label">Scan timeout (seconds)</label
         ><input
           id="timeout"
           type="number"

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/TerminalAddict/SADPTools/internal/app"
+	"github.com/TerminalAddict/SADPTools/internal/toolkit"
 	"github.com/TerminalAddict/SADPTools/internal/update"
 	"github.com/TerminalAddict/SADPTools/internal/version"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -26,7 +27,7 @@ func main() {
 		log.Fatal(err)
 	}
 	desktop := application.New(application.Options{
-		Name: "SADPTools", Description: "Hikvision discovery and device management",
+		Name: "SADPTools", Description: "CCTV discovery and technician toolkit",
 		Icon:   appIcon,
 		Assets: application.AssetOptions{Handler: application.AssetFileServerFS(assets)},
 		Mac:    application.MacOptions{ApplicationShouldTerminateAfterLastWindowClosed: true},
@@ -41,6 +42,11 @@ func main() {
 	updates := update.NewManager(version.Value, filepath.Join(cache, "SADPTools", "updates"), func() { desktop.Event.Emit("updates:changed") })
 	defer updates.Close()
 	desktop.RegisterService(application.NewService(&DesktopService{controller: controller, app: desktop, updates: updates}))
+	kit, kitError := toolkit.New(filepath.Join(filepath.Dir(path), "sites.sqlite"), controller, func() { desktop.Event.Emit("toolkit:changed") })
+	if kit != nil {
+		defer kit.Close()
+	}
+	desktop.RegisterService(application.NewService(&ToolkitService{manager: kit, app: desktop, loadError: kitError}))
 	desktop.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title: "SADPTools", Width: 1440, Height: 880, MinWidth: 960, MinHeight: 640,
 		BackgroundColour: application.NewRGB(17, 27, 40), URL: "/",

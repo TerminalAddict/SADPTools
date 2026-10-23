@@ -40,7 +40,7 @@ func (c *Controller) beginQuestionOperation(id, adapter string) (context.Context
 			break
 		}
 	}
-	if device == nil || device.MAC == "" {
+	if device == nil || device.MAC == "" || !device.SADPCompatible() {
 		return fail(errors.New("select a discovered camera with a valid MAC address"))
 	}
 	if device.Activated != nil && !*device.Activated {

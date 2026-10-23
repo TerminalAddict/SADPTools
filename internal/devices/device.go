@@ -14,7 +14,15 @@ type Interface struct {
 
 // Nil booleans and ports mean the device did not report a recognized value.
 type Device struct {
+	IdentityConflict     bool        `json:"identityConflict"`
 	ID                   string      `json:"id"`
+	UUID                 string      `json:"uuid"`
+	Vendor               string      `json:"vendor"`
+	Protocols            []string    `json:"protocols"`
+	Capabilities         []string    `json:"capabilities"`
+	XAddrs               []string    `json:"xaddrs"`
+	HTTPSPort            *int        `json:"httpsPort"`
+	RTSPPort             *int        `json:"rtspPort"`
 	Model                string      `json:"model"`
 	DeviceType           string      `json:"deviceType"`
 	IPv4                 string      `json:"ipv4"`
@@ -50,5 +58,28 @@ func (d Device) Key() string {
 	if s := strings.TrimSpace(d.Serial); s != "" {
 		return "serial:" + s
 	}
+	if d.UUID != "" {
+		return "uuid:" + d.UUID
+	}
 	return ""
+}
+
+// SADPCompatible also accepts legacy records without a protocol annotation.
+// ONVIF-only observations never imply support for Hikvision write operations.
+func (d Device) SADPCompatible() bool {
+	if d.IdentityConflict {
+		return false
+	}
+	if len(d.Protocols) == 0 {
+		return true
+	}
+	for _, p := range d.Protocols {
+		if p == "sadp" {
+			return true
+		}
+	}
+	return false
+}
+func ConflictingIdentity(a, b Device) bool {
+	return a.MAC != "" && b.MAC != "" && NormalizeMAC(a.MAC) != NormalizeMAC(b.MAC) || a.Serial != "" && b.Serial != "" && a.Serial != b.Serial || a.Vendor != "" && b.Vendor != "" && !strings.EqualFold(a.Vendor, b.Vendor)
 }

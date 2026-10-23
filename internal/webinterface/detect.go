@@ -18,9 +18,10 @@ import (
 )
 
 type Target struct {
-	Address string
-	Port    int    // Advertised web port; zero means unknown.
-	Source  string // Optional local source for an explicit recovery adapter.
+	Address   string
+	Port      int    // Advertised web port; zero means unknown.
+	HTTPSPort int    // Separately advertised HTTPS port, for example from ONVIF.
+	Source    string // Optional local source for an explicit recovery adapter.
 }
 
 type Endpoint struct {
@@ -52,7 +53,7 @@ func UsableAddress(address string) bool {
 }
 
 func (t Target) Validate() error {
-	if !UsableAddress(t.Address) || t.Port < 0 || t.Port > 65535 || (t.Source != "" && !UsableAddress(t.Source)) {
+	if !UsableAddress(t.Address) || t.Port < 0 || t.Port > 65535 || t.HTTPSPort < 0 || t.HTTPSPort > 65535 || (t.Source != "" && !UsableAddress(t.Source)) {
 		return errors.New("camera has no usable IPv4 web address or port")
 	}
 	return nil
@@ -96,7 +97,11 @@ func (c *Client) Detect(parent context.Context, target Target) (Result, error) {
 	if port == 0 {
 		port = 80
 	}
-	urls := []string{origin("http", target.Address, port), origin("https", target.Address, port)}
+	urls := []string{}
+	if target.HTTPSPort != 0 && target.HTTPSPort != port && target.HTTPSPort != 443 {
+		urls = append(urls, origin("https", target.Address, target.HTTPSPort))
+	}
+	urls = append(urls, origin("http", target.Address, port), origin("https", target.Address, port))
 	if port != 443 {
 		urls = append(urls, origin("https", target.Address, 443))
 	}

@@ -1,0 +1,358 @@
+.app-navigation {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 26px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  flex-wrap: wrap;
+}
+.app-navigation .active {
+  background: var(--accent);
+  color: var(--surface);
+}
+#site-context {
+  margin-left: auto;
+  color: var(--bs-secondary-color);
+  font-size: 11px;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#live-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 380px;
+  height: 0;
+}
+#toolkit-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 380px;
+  height: 0;
+  gap: 12px;
+}
+.tool-page {
+  flex: 1;
+  min-height: 300px;
+  overflow: auto;
+}
+#sites-page {
+  display: flex;
+  gap: 18px;
+}
+.site-sidebar {
+  width: 240px;
+  flex: none;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--panel);
+}
+.site-sidebar h2,
+.tool-heading h2,
+.tool-empty h2 {
+  font-size: 19px;
+  margin: 0 0 8px;
+}
+.site-choice {
+  display: block;
+  border: 0;
+  background: transparent;
+  color: var(--bs-body-color);
+  width: 100%;
+  text-align: left;
+  padding: 12px 8px;
+  border-radius: 5px;
+  overflow-wrap: anywhere;
+}
+.site-choice small {
+  display: block;
+  color: var(--bs-secondary-color);
+}
+.site-choice.active {
+  background: var(--bs-tertiary-bg);
+  box-shadow: inset 3px 0 var(--accent);
+}
+.site-content {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px;
+}
+.tool-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.tool-heading p {
+  color: var(--bs-secondary-color);
+  margin: 4px 0 10px;
+}
+.tool-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.tool-actions .form-control {
+  min-width: 180px;
+  max-width: 420px;
+  flex: 1;
+}
+.tool-table-wrap {
+  overflow: auto;
+  max-height: 60vh;
+}
+.tool-table-wrap table {
+  font-size: 12px;
+  min-width: 700px;
+  margin: 0;
+}
+.tool-table-wrap td {
+  vertical-align: middle;
+  max-width: 250px;
+  overflow-wrap: anywhere;
+}
+.tool-table-wrap th {
+  position: sticky;
+  top: 0;
+  background: var(--bs-tertiary-bg);
+  z-index: 1;
+  white-space: nowrap;
+}
+.tool-table-wrap small {
+  color: var(--bs-secondary-color);
+}
+.tool-empty {
+  padding: 50px;
+  color: var(--bs-secondary-color);
+}
+.tool-dialog {
+  width: min(700px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+}
+.tool-dialog .form-label {
+  margin: 12px 0;
+}
+.tool-dialog-wide {
+  width: min(1040px, calc(100vw - 48px));
+}
+.tool-dialog .dialog-heading {
+  margin-bottom: 12px;
+}
+.tool-readable {
+  font-size: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 65vh;
+  user-select: text;
+}
+.tool-context {
+  position: fixed;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  min-width: 220px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 6px;
+  border-radius: 8px;
+  box-shadow: 0 12px 35px #0005;
+}
+.credential-row {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.credential-row > div {
+  margin-top: 8px;
+}
+#toolkit-job {
+  padding: 10px 14px;
+  background: var(--bs-tertiary-bg);
+  border-radius: 8px;
+  font-size: 12px;
+}
+#toolkit-job .progress {
+  height: 5px;
+  margin-top: 8px;
+}
+#toolkit-job-progress {
+  background: var(--accent);
+}
+#site-pagination {
+  font-size: 12px;
+  margin-top: 8px;
+}
+@media (max-width: 1150px) {
+  .site-sidebar {
+    width: 190px;
+  }
+  .app-navigation {
+    padding-inline: 14px;
+  }
+  #site-context {
+    max-width: 160px;
+  }
+}
+#scanner-page,
+#provision-page,
+#audit-page,
+#switches-page {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px;
+}
+.ip-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: end;
+}
+.ip-controls > label {
+  font-size: 11px;
+  flex: 1;
+  min-width: 130px;
+}
+.ip-controls > label:first-child {
+  min-width: 220px;
+}
+.ip-grid {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 5px;
+  min-width: 700px;
+}
+.ip-cell {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px 3px;
+  color: var(--bs-body-color);
+  min-height: 60px;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.ip-cell strong {
+  display: block;
+  font-size: 12px;
+}
+.ip-cell small {
+  font-size: 9px;
+  display: block;
+}
+.ip-cell:hover {
+  outline: 2px solid var(--accent);
+}
+.ip-legend {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  font-size: 11px;
+}
+.ip-legend span {
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+.ip-responding {
+  background: #8c30304d;
+}
+.ip-known {
+  background: #326cab55;
+}
+.ip-no-response {
+  background: var(--bs-tertiary-bg);
+}
+.ip-reserved {
+  background: #9a6b164d;
+}
+.ip-unscanned {
+  background: #77889922;
+}
+.ip-conflict {
+  background: #9e3d8355;
+  border: 2px dashed #be71a6;
+}
+
+.review-card {
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.4rem;
+  padding: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+.review-card p {
+  margin: 0.4rem 0;
+}
+.review-card th,
+.review-card td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+#toolkit-job {
+  padding: 0.5rem 1rem;
+  background: var(--bs-tertiary-bg);
+}
+
+.provision-settings {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  max-width: 1000px;
+}
+.queue-state {
+  font-weight: 600;
+}
+.queue-unconfirmed,
+.queue-rejected {
+  color: var(--bs-danger-text-emphasis);
+}
+.queue-confirmed {
+  color: var(--bs-success-text-emphasis);
+}
+.queue-in-progress {
+  color: var(--bs-warning-text-emphasis);
+}
+
+.audit-status {
+  font-weight: 600;
+}
+.audit-fail {
+  color: var(--bs-danger-text-emphasis);
+}
+.audit-warning {
+  color: var(--bs-warning-text-emphasis);
+}
+.audit-pass {
+  color: var(--bs-success-text-emphasis);
+}
+.audit-unknown,
+.audit-not-checked {
+  color: var(--bs-secondary-color);
+}
+
+.tool-page h3 {
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+.tool-dialog .form-control,
+.tool-dialog .form-select {
+  max-width: 100%;
+}
+.provision-settings .form-label {
+  margin: 8px 0;
+}
+.provision-settings > div {
+  min-width: 0;
+}

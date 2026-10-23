@@ -6,25 +6,30 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/TerminalAddict/SADPTools/internal/multidiscovery"
 	"github.com/TerminalAddict/SADPTools/internal/update"
 	"github.com/TerminalAddict/SADPTools/internal/version"
 )
 
 type Settings struct {
-	Theme           string `json:"theme"`
-	Interface       string `json:"interface"`
-	TimeoutSeconds  int    `json:"timeoutSeconds"`
-	IntervalSeconds int    `json:"intervalSeconds"`
-	Automatic       bool   `json:"automatic"`
-	CheckUpdates    bool   `json:"checkUpdates"`
-	UpdateChannel   string `json:"updateChannel"`
+	Protocols       []string `json:"protocols"`
+	Theme           string   `json:"theme"`
+	Interface       string   `json:"interface"`
+	TimeoutSeconds  int      `json:"timeoutSeconds"`
+	IntervalSeconds int      `json:"intervalSeconds"`
+	Automatic       bool     `json:"automatic"`
+	CheckUpdates    bool     `json:"checkUpdates"`
+	UpdateChannel   string   `json:"updateChannel"`
 }
 
 func DefaultSettings() Settings {
-	return Settings{Theme: "dark", TimeoutSeconds: 5, IntervalSeconds: 30,
+	return Settings{Protocols: []string{"sadp"}, Theme: "dark", TimeoutSeconds: 5, IntervalSeconds: 30,
 		CheckUpdates: true, UpdateChannel: update.DefaultChannel(version.Value)}
 }
 func (s Settings) Validate() error {
+	if e := multidiscovery.Validate(s.Protocols); e != nil {
+		return e
+	}
 	if s.UpdateChannel != "stable" && s.UpdateChannel != "beta" {
 		return fmt.Errorf("update channel must be stable or beta")
 	}

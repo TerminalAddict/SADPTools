@@ -7,6 +7,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -114,7 +115,7 @@ func TestSettingsRoundTripAndValidation(t *testing.T) {
 		t.Fatal(err)
 	}
 	got, err := loadSettings(path)
-	if err != nil || got != s {
+	if err != nil || !reflect.DeepEqual(got, s) {
 		t.Fatal(got, err)
 	}
 	invalid := s
@@ -123,14 +124,14 @@ func TestSettingsRoundTripAndValidation(t *testing.T) {
 		t.Fatal("invalid timeout saved")
 	}
 	got, _ = loadSettings(path)
-	if got != s {
+	if !reflect.DeepEqual(got, s) {
 		t.Fatal("bad save damaged settings")
 	}
 	if err := os.WriteFile(path, []byte("{broken"), 0600); err != nil {
 		t.Fatal(err)
 	}
 	got, err = loadSettings(path)
-	if err == nil || got != DefaultSettings() {
+	if err == nil || !reflect.DeepEqual(got, DefaultSettings()) {
 		t.Fatal("bad settings not recovered")
 	}
 }

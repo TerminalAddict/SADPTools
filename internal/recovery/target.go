@@ -25,7 +25,14 @@ func ForDevice(d devices.Device, requested, preferred string, all []platform.Ada
 		d.HTTPPort = &port
 	}
 	source, _ := platform.IPv4RouteSource(d.IPv4, *d.HTTPPort)
-	return targetForDevice(d, requested, preferred, all, source)
+	target, err := targetForDevice(d, requested, preferred, all, source)
+	if err == nil && d.HTTPSPort != nil {
+		if *d.HTTPSPort < 1 || *d.HTTPSPort > 65535 {
+			return Target{}, errors.New("invalid advertised HTTPS port")
+		}
+		target.HTTPSPort = *d.HTTPSPort
+	}
+	return target, err
 }
 
 func targetForDevice(d devices.Device, requested, preferred string, all []platform.Adapter, routeSource string) (Target, error) {

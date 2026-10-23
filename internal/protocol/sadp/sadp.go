@@ -113,6 +113,7 @@ func Parse(data []byte) (Reply, error) {
 		return Reply{}, errors.New("not an inquiry reply")
 	}
 	d := devices.Device{
+		Protocols: []string{"sadp"}, Capabilities: []string{"sadp-configuration", "sadp-recovery"},
 		Model: strings.TrimSpace(r.Description), DeviceType: strings.TrimSpace(r.DeviceType),
 		MAC: devices.NormalizeMAC(r.MAC), Serial: strings.TrimSpace(r.Serial),
 		IPv4: ipv4(r.IPv4), SubnetMask: ipv4(r.Mask), Gateway: ipv4(r.Gateway),

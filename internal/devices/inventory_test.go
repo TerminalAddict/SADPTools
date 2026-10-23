@@ -82,3 +82,27 @@ func TestReconcileSeparateSerialAndMACRecords(t *testing.T) {
 		t.Fatalf("lost observations during identity reconciliation: %+v", list)
 	}
 }
+
+func TestONVIFUUIDPromotionAndConflictsStaySeparate(t *testing.T) {
+	i := NewInventory()
+	now := time.Now()
+	i.Upsert(Device{UUID: "synthetic-uuid", IPv4: "192.0.2.10", Protocols: []string{"onvif"}}, now)
+	i.Upsert(Device{UUID: "synthetic-uuid", MAC: "02:00:00:00:00:01", Serial: "SYNTHETIC-1", Protocols: []string{"onvif"}}, now)
+	i.Upsert(Device{MAC: "02:00:00:00:00:01", Serial: "SYNTHETIC-1", Protocols: []string{"sadp"}}, now)
+	if list := i.Snapshot(); len(list) != 1 || len(list[0].Protocols) != 2 || list[0].ID != "mac:02:00:00:00:00:01" {
+		t.Fatal(list)
+	}
+	i.Upsert(Device{MAC: "02:00:00:00:00:01", Serial: "CONFLICTING-SYNTHETIC", UUID: "another-uuid"}, now)
+	for range 3 {
+		i.Upsert(Device{MAC: "02:00:00:00:00:01", Serial: "CONFLICTING-SYNTHETIC", UUID: "another-uuid"}, now)
+	}
+	list := i.Snapshot()
+	if len(list) != 2 {
+		t.Fatal("collision lost an identity", list)
+	}
+	for _, d := range list {
+		if !d.IdentityConflict || d.SADPCompatible() {
+			t.Fatal("ambiguous identity can be configured", d)
+		}
+	}
+}

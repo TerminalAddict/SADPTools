@@ -201,3 +201,28 @@ See [branding sources and regeneration](branding.md).
   with synthetic loopback TLS servers, not a physical HTTPS camera. Physical
   HTTPS/recovery writes and Windows runtime/browser/installer execution still
   require testing. Local artifacts remain `0.2.0-dev`; no release was published.
+
+## Technician toolkit 0.3.0-beta.1 — 23 October 2026
+
+- Implemented all seven roadmap groups: persistent sites and protected credentials,
+  IPv4 investigation, reviewed rescans/history, explicit bulk provisioning, ONVIF,
+  read-only audits and switch/PoE evidence. The
+  [implementation guide](toolkit-implementation.md) records architecture, files,
+  compatibility limits and a hands-on checklist.
+- `make check` passed: Go tests, vet and race detector, 21 frontend tests, five
+  installer-input tests and twelve release-tool tests. Desktop-tag Go tests/vet,
+  generated bindings, frontend production build, Linux CLI/GUI and Windows
+  standalone/offline installer builds passed. Installer integrity and SHA-256
+  verification passed; the standalone retains icon/version/manifest resources.
+- Linux production GUI checks under Xvfb used isolated preferences and labelled
+  synthetic sites. Site creation, vault unlock, saved inventories, reconciliation,
+  manual-field protection, saved audit/switch reports, native HTML export and
+  persistence after restart worked. Credentials were omitted from ordinary export;
+  the vault reopened locked. No synthetic device is added by normal app startup.
+- Read-only live discovery returned 18 SADP and 18 ONVIF observations, not 36
+  confirmed distinct cameras. Strong identity is required before merging partial
+  ONVIF records. No camera or switch writes were sent.
+- Setup and standalone are local `0.3.0-beta.1` candidates. Windows runtime,
+  DPAPI, native ICMP/IP Helper, installation/update handoff, authenticated physical
+  ONVIF access, camera writes and physical switch/PoE mapping still need testing.
+  No GitHub publication or signing is claimed; SignPath approval remains pending.

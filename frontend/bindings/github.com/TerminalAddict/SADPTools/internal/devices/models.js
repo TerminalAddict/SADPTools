@@ -15,12 +15,68 @@ export class Device {
      * @param {Partial<Device>} [$$source = {}] - The source object to create the Device.
      */
     constructor($$source = {}) {
+        if (!("identityConflict" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["identityConflict"] = false;
+        }
         if (!("id" in $$source)) {
             /**
              * @member
              * @type {string}
              */
             this["id"] = "";
+        }
+        if (!("uuid" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["uuid"] = "";
+        }
+        if (!("vendor" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["vendor"] = "";
+        }
+        if (!("protocols" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["protocols"] = [];
+        }
+        if (!("capabilities" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["capabilities"] = [];
+        }
+        if (!("xaddrs" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["xaddrs"] = [];
+        }
+        if (!("httpsPort" in $$source)) {
+            /**
+             * @member
+             * @type {number | null}
+             */
+            this["httpsPort"] = null;
+        }
+        if (!("rtspPort" in $$source)) {
+            /**
+             * @member
+             * @type {number | null}
+             */
+            this["rtspPort"] = null;
         }
         if (!("model" in $$source)) {
             /**
@@ -158,10 +214,22 @@ export class Device {
      * @returns {Device}
      */
     static createFrom($$source = {}) {
-        const $$createField16_0 = $$createType1;
+        const $$createField4_0 = $$createType0;
+        const $$createField5_0 = $$createType0;
+        const $$createField6_0 = $$createType0;
+        const $$createField24_0 = $$createType2;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("protocols" in $$parsedSource) {
+            $$parsedSource["protocols"] = $$createField4_0($$parsedSource["protocols"]);
+        }
+        if ("capabilities" in $$parsedSource) {
+            $$parsedSource["capabilities"] = $$createField5_0($$parsedSource["capabilities"]);
+        }
+        if ("xaddrs" in $$parsedSource) {
+            $$parsedSource["xaddrs"] = $$createField6_0($$parsedSource["xaddrs"]);
+        }
         if ("interfaces" in $$parsedSource) {
-            $$parsedSource["interfaces"] = $$createField16_0($$parsedSource["interfaces"]);
+            $$parsedSource["interfaces"] = $$createField24_0($$parsedSource["interfaces"]);
         }
         return new Device(/** @type {Partial<Device>} */($$parsedSource));
     }
@@ -210,5 +278,6 @@ export class Interface {
 }
 
 // Private type creation functions
-const $$createType0 = Interface.createFrom;
-const $$createType1 = $Create.Array($$createType0);
+const $$createType0 = $Create.Array($Create.Any);
+const $$createType1 = Interface.createFrom;
+const $$createType2 = $Create.Array($$createType1);

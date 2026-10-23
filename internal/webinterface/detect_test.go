@@ -51,6 +51,16 @@ func fixtureClient(ports map[string]*httptest.Server) *Client {
 	}}
 }
 
+func TestSeparatelyAdvertisedHTTPSPort(t *testing.T) {
+	handler := func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusUnauthorized) }
+	plain := fixtureServer(t, false, handler)
+	secure := fixtureServer(t, true, handler)
+	result, err := fixtureClient(map[string]*httptest.Server{"80": plain, "8443": secure}).Detect(context.Background(), Target{Address: cameraIP, Port: 80, HTTPSPort: 8443})
+	if err != nil || result.Endpoint.URL != "https://192.0.2.40:8443/" {
+		t.Fatal("separate ONVIF HTTPS port was ignored", result, err)
+	}
+}
+
 func TestDetectWebProtocolsAndPorts(t *testing.T) {
 	for _, tc := range []struct {
 		name                            string

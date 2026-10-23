@@ -18,6 +18,7 @@ import (
 type Target struct {
 	Address           string
 	Port              int
+	HTTPSPort         int // Optional separately advertised port for initial detection.
 	Interface         string
 	Source            string
 	Scheme            string

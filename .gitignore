@@ -10,4 +10,8 @@ __pycache__/
 *.test
 *.test.exe
 coverage.out
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.sadpsite
 .DS_Store

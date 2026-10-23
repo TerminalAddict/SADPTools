@@ -12,6 +12,13 @@ export class Adapter {
      * @param {Partial<Adapter>} [$$source = {}] - The source object to create the Adapter.
      */
     constructor($$source = {}) {
+        if (!("gateway" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["gateway"] = "";
+        }
         if (!("index" in $$source)) {
             /**
              * @member
@@ -65,10 +72,10 @@ export class Adapter {
      * @returns {Adapter}
      */
     static createFrom($$source = {}) {
-        const $$createField2_0 = $$createType0;
+        const $$createField3_0 = $$createType0;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("addresses" in $$parsedSource) {
-            $$parsedSource["addresses"] = $$createField2_0($$parsedSource["addresses"]);
+            $$parsedSource["addresses"] = $$createField3_0($$parsedSource["addresses"]);
         }
         return new Adapter(/** @type {Partial<Adapter>} */($$parsedSource));
     }

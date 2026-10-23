@@ -31,7 +31,7 @@ func (c *Controller) Configure(id string, r configuration.Request) (configuratio
 			break
 		}
 	}
-	if device == nil || device.MAC == "" {
+	if device == nil || device.MAC == "" || !device.SADPCompatible() {
 		c.mu.Unlock()
 		return configuration.Result{}, errors.New("select a discovered device with a valid MAC address")
 	}

@@ -22,6 +22,9 @@ func (c *Controller) webTarget(id string) (webinterface.Target, error) {
 			if d.HTTPPort != nil {
 				t.Port = *d.HTTPPort
 			}
+			if d.HTTPSPort != nil {
+				t.HTTPSPort = *d.HTTPSPort
+			}
 			return t, t.Validate()
 		}
 	}

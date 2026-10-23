@@ -79,11 +79,13 @@ test("selection probes once and refreshes on address, port, scan and explicit re
   await flush();
   lookup.select({ ...camera, httpPort: 8080 });
   await flush();
+  lookup.select({ ...camera, httpPort: 8080, httpsPort: 8443 });
+  await flush();
   lookup.select(camera, "synthetic-scan-time");
   await flush();
   await lookup.retry();
-  assert.equal(calls.length, 5);
-  assert.equal(calls[4].force, true);
+  assert.equal(calls.length, 6);
+  assert.equal(calls[5].force, true);
 });
 
 test("recovery's detected endpoint supersedes an outstanding web lookup", async () => {
