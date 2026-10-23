@@ -6,6 +6,10 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as webinterface$0 from "../webinterface/models.js";
+
 export class Answer {
     /**
      * Creates a new Answer instance.
@@ -212,6 +216,13 @@ export class Status {
              */
             this["checkID"] = "";
         }
+        if (!("endpoint" in $$source)) {
+            /**
+             * @member
+             * @type {webinterface$0.Endpoint}
+             */
+            this["endpoint"] = (new webinterface$0.Endpoint());
+        }
 
         Object.assign(this, $$source);
     }
@@ -223,9 +234,13 @@ export class Status {
      */
     static createFrom($$source = {}) {
         const $$createField2_0 = $$createType3;
+        const $$createField4_0 = $$createType4;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("questions" in $$parsedSource) {
             $$parsedSource["questions"] = $$createField2_0($$parsedSource["questions"]);
+        }
+        if ("endpoint" in $$parsedSource) {
+            $$parsedSource["endpoint"] = $$createField4_0($$parsedSource["endpoint"]);
         }
         return new Status(/** @type {Partial<Status>} */($$parsedSource));
     }
@@ -236,3 +251,4 @@ const $$createType0 = Answer.createFrom;
 const $$createType1 = $Create.Array($$createType0);
 const $$createType2 = Question.createFrom;
 const $$createType3 = $Create.Array($$createType2);
+const $$createType4 = webinterface$0.Endpoint.createFrom;

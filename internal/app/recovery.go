@@ -10,11 +10,13 @@ import (
 	"github.com/TerminalAddict/SADPTools/internal/configuration"
 	"github.com/TerminalAddict/SADPTools/internal/devices"
 	"github.com/TerminalAddict/SADPTools/internal/recovery"
+	"github.com/TerminalAddict/SADPTools/internal/webinterface"
 )
 
 type questionCheck struct {
 	deviceID, token string
 	target          recovery.Target
+	original        recovery.Target
 	questions       []recovery.Question
 	expires         time.Time
 }
@@ -54,6 +56,9 @@ func (c *Controller) beginQuestionOperation(id, adapter string) (context.Context
 	}
 	ctx, cancel := context.WithTimeout(c.ctx, time.Duration(c.settings.TimeoutSeconds)*time.Second)
 	c.configuring = true
+	if c.webCancel != nil {
+		c.webCancel()
+	}
 	c.operationCancel = cancel
 	c.wg.Add(1)
 	c.mu.Unlock()
@@ -71,7 +76,7 @@ func (c *Controller) beginQuestionOperation(id, adapter string) (context.Context
 	return ctx, target, finish, nil
 }
 
-func (c *Controller) CheckSecurityQuestions(id, adapter string) (recovery.Status, error) {
+func (c *Controller) CheckSecurityQuestions(id, adapter, certificateSHA256 string) (recovery.Status, error) {
 	ctx, target, finish, err := c.beginQuestionOperation(id, adapter)
 	if err != nil {
 		return recovery.Status{}, err
@@ -80,16 +85,29 @@ func (c *Controller) CheckSecurityQuestions(id, adapter string) (recovery.Status
 	c.mu.Lock()
 	c.recoveryCheck = nil
 	c.mu.Unlock()
+	original := target
+	target.CertificateSHA256 = certificateSHA256
 	c.log.Info("Checking security-question recovery", "interface", target.Interface, "source", target.Source, "address", target.Address, "port", target.Port)
 	status, err := c.questionRecovery.Check(ctx, target)
+	if err == nil && ctx.Err() == nil && status.Endpoint.ValidFor(target.Address) {
+		c.mu.Lock()
+		if webTarget, e := c.webTarget(id); e == nil && webTarget.Address == target.Address {
+			c.rememberWeb(id, webTarget, webinterface.Result{Endpoint: status.Endpoint, Message: "Detected " + status.Endpoint.Scheme + " web interface."})
+		}
+		c.mu.Unlock()
+	}
 	if err == nil && status.State == "ready" && ctx.Err() == nil {
+		if !status.Endpoint.ValidFor(target.Address) {
+			return recovery.Status{}, errors.New("recovery endpoint could not be verified")
+		}
+		target.Scheme, target.Port = status.Endpoint.Scheme, status.Endpoint.Port
 		var nonce [16]byte
 		if _, err := rand.Read(nonce[:]); err != nil {
 			return recovery.Status{}, errors.New("could not create recovery check identity")
 		}
 		status.CheckID = hex.EncodeToString(nonce[:])
 		c.mu.Lock()
-		c.recoveryCheck = &questionCheck{id, status.CheckID, target, status.Questions, time.Now().Add(5 * time.Minute)}
+		c.recoveryCheck = &questionCheck{deviceID: id, token: status.CheckID, target: target, original: original, questions: status.Questions, expires: time.Now().Add(5 * time.Minute)}
 		c.mu.Unlock()
 	}
 	c.log.Info("Security-question availability checked", "state", status.State)
@@ -111,10 +129,10 @@ func (c *Controller) ResetWithSecurityQuestions(id, adapter string, request reco
 	// uncertain outcomes. It contains no answers, password or crypto challenge.
 	c.recoveryCheck = nil
 	c.mu.Unlock()
-	if checked == nil || checked.deviceID != id || request.CheckID == "" || checked.token != request.CheckID || checked.target != target || time.Now().After(checked.expires) || !recovery.SameQuestions(checked.questions, request.Answers) {
+	if checked == nil || checked.deviceID != id || request.CheckID == "" || checked.token != request.CheckID || checked.original != target || time.Now().After(checked.expires) || !recovery.SameQuestions(checked.questions, request.Answers) {
 		return recovery.Result{}, errors.New("camera, connection or questions changed, or the check expired; check security questions again")
 	}
-	result, err := c.questionRecovery.Reset(ctx, target, request)
+	result, err := c.questionRecovery.Reset(ctx, checked.target, request)
 	c.log.Info("Security-question recovery finished", "outcome", result.Outcome)
 	// Preserve uncertain/rejected outcomes across Wails' error/result boundary.
 	if result.Sent {

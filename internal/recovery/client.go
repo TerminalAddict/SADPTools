@@ -5,6 +5,9 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha256"
+	"crypto/tls"
+	"encoding/hex"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
@@ -12,10 +15,13 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/TerminalAddict/SADPTools/internal/configuration"
+	"github.com/TerminalAddict/SADPTools/internal/webinterface"
 )
 
 const capabilitiesPath = "/ISAPI/Security/extern/capabilities"
@@ -24,20 +30,39 @@ const challengePath = "/ISAPI/Security/challenge"
 const resetPath = "/ISAPI/Security/questionCertification"
 const catalogPath = "/doc/i18n/en/Common.json"
 
-type Client struct{ newHTTP func(Target) *http.Client }
+var errCertificateChanged = errors.New("camera HTTPS certificate changed; check and confirm it again")
 
-func New() *Client { return &Client{newHTTP: localHTTP} }
+type Client struct {
+	newHTTP  func(Target) *http.Client
+	detector webinterface.Detector
+}
+
+func New() *Client { return &Client{newHTTP: localHTTP, detector: webinterface.New()} }
 func localHTTP(t Target) *http.Client {
 	dialer := &net.Dialer{Timeout: 5 * time.Second, LocalAddr: &net.TCPAddr{IP: net.ParseIP(t.Source)}}
+	var tlsConfig *tls.Config
+	if t.CertificateSHA256 != "" {
+		// A user explicitly accepted this exact camera certificate for this
+		// operation. Every connection checks the pin; changed certificates fail.
+		tlsConfig = &tls.Config{InsecureSkipVerify: true, VerifyConnection: func(cs tls.ConnectionState) error {
+			if len(cs.PeerCertificates) > 0 {
+				hash := sha256.Sum256(cs.PeerCertificates[0].Raw)
+				if hex.EncodeToString(hash[:]) == strings.ToLower(t.CertificateSHA256) {
+					return nil
+				}
+			}
+			return errCertificateChanged
+		}}
+	}
 	return &http.Client{
 		Timeout: 30 * time.Second,
 		// No proxies, cookies, auth guesses, redirects, connection reuse or retries.
-		Transport:     &http.Transport{DialContext: dialer.DialContext, DisableKeepAlives: true, ResponseHeaderTimeout: 10 * time.Second},
+		Transport:     &http.Transport{DialContext: dialer.DialContext, TLSClientConfig: tlsConfig, TLSHandshakeTimeout: 5 * time.Second, DisableKeepAlives: true, ResponseHeaderTimeout: 10 * time.Second},
 		CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
 	}
 }
 func request(ctx context.Context, client *http.Client, target Target, method, path string, body []byte) (int, []byte, error) {
-	url := "http://" + net.JoinHostPort(target.Address, strconv.Itoa(target.Port)) + path
+	url := target.Scheme + "://" + net.JoinHostPort(target.Address, strconv.Itoa(target.Port)) + path
 	r, err := http.NewRequestWithContext(ctx, method, url, bytes.NewReader(body))
 	if err != nil {
 		return 0, nil, errors.New("could not prepare device request")
@@ -69,14 +94,21 @@ func connectionError(ctx context.Context, target Target, cause error) error {
 	if errors.Is(ctx.Err(), context.Canceled) {
 		return context.Canceled
 	}
-	connection := fmt.Sprintf("camera HTTP connection to %s from %s through %s", net.JoinHostPort(target.Address, strconv.Itoa(target.Port)), target.Source, target.Interface)
+	connection := fmt.Sprintf("camera %s connection to %s from %s through %s", strings.ToUpper(target.Scheme), net.JoinHostPort(target.Address, strconv.Itoa(target.Port)), target.Source, target.Interface)
+	var certificateError *tls.CertificateVerificationError
+	if errors.Is(cause, errCertificateChanged) {
+		return errCertificateChanged
+	}
+	if errors.As(cause, &certificateError) {
+		return fmt.Errorf("%s could not verify the HTTPS certificate; check the camera connection and certificate again", connection)
+	}
 	var networkError net.Error
 	if errors.Is(ctx.Err(), context.DeadlineExceeded) || (errors.As(cause, &networkError) && networkError.Timeout()) {
-		return fmt.Errorf("%s timed out; check routing, firewall rules and the camera's HTTP service: %w", connection, context.DeadlineExceeded)
+		return fmt.Errorf("%s timed out; check routing, firewall rules and the camera's web service: %w", connection, context.DeadlineExceeded)
 	}
 	// A transport error can contain URLs or device-supplied content. Report the
 	// attempted connection without echoing the underlying error or request data.
-	return fmt.Errorf("%s failed; check routing, firewall rules and the camera's HTTP service", connection)
+	return fmt.Errorf("%s failed; check routing, firewall rules and the camera's web service", connection)
 }
 
 func state(value, message string) Status {
@@ -86,9 +118,49 @@ func (c *Client) Check(ctx context.Context, target Target) (Status, error) {
 	if err := target.validate(); err != nil {
 		return state("unavailable", err.Error()), err
 	}
+	target, endpoint, blocked, err := c.resolve(ctx, target)
+	if err != nil || blocked.State != "" {
+		return blocked, err
+	}
 	client := c.newHTTP(target)
 	defer client.CloseIdleConnections()
-	return check(ctx, client, target)
+	status, err := check(ctx, client, target)
+	status.Endpoint = endpoint
+	return status, err
+}
+
+func (c *Client) resolve(ctx context.Context, target Target) (Target, webinterface.Endpoint, Status, error) {
+	if err := ctx.Err(); err != nil {
+		return target, webinterface.Endpoint{}, state("unavailable", err.Error()), err
+	}
+	if target.Scheme != "" {
+		host := target.Address
+		if (target.Scheme == "http" && target.Port != 80) || (target.Scheme == "https" && target.Port != 443) {
+			host = net.JoinHostPort(host, strconv.Itoa(target.Port))
+		}
+		endpoint := webinterface.Endpoint{URL: (&url.URL{Scheme: target.Scheme, Host: host, Path: "/"}).String(), Scheme: target.Scheme, Port: target.Port, CertificateSHA256: target.CertificateSHA256}
+		return target, endpoint, Status{}, nil
+	}
+	result, err := c.detector.Detect(ctx, webinterface.Target{Address: target.Address, Port: target.Port, Source: target.Source})
+	if err != nil {
+		return target, webinterface.Endpoint{}, state("unavailable", err.Error()), err
+	}
+	e := result.Endpoint
+	if !e.ValidFor(target.Address) {
+		return target, e, state("unavailable", result.Message), nil
+	}
+	if target.CertificateSHA256 != "" && (e.Scheme != "https" || !strings.EqualFold(target.CertificateSHA256, e.CertificateSHA256)) {
+		s := state("certificate_required", "The camera's HTTPS certificate changed or HTTPS is unavailable. Check the connection and certificate again.")
+		s.Endpoint = e
+		return target, e, s, nil
+	}
+	if e.Scheme == "https" && !e.CertificateTrusted && target.CertificateSHA256 == "" {
+		s := state("certificate_required", "HTTPS is available, but this computer does not trust the camera's certificate. Confirm this camera certificate to use security-question recovery, or use its web interface.")
+		s.Endpoint = e
+		return target, e, s, nil
+	}
+	target.Scheme, target.Port = e.Scheme, e.Port
+	return target, e, Status{}, nil
 }
 func check(ctx context.Context, client *http.Client, target Target) (Status, error) {
 	code, data, err := request(ctx, client, target, http.MethodGet, capabilitiesPath, nil)
@@ -172,6 +244,13 @@ func (c *Client) Reset(ctx context.Context, target Target, r Request) (Result, e
 	}
 	if err := r.Validate(); err != nil {
 		return Result{}, err
+	}
+	target, _, blocked, err := c.resolve(ctx, target)
+	if err != nil {
+		return Result{}, err
+	}
+	if blocked.State != "" {
+		return Result{}, errors.New(blocked.Message)
 	}
 	client := c.newHTTP(target)
 	defer client.CloseIdleConnections()

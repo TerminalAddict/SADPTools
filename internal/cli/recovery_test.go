@@ -16,10 +16,30 @@ type questionEngine struct {
 	resets  int
 	state   string
 	failure error
+	target  recovery.Target
 }
 
-func (e *questionEngine) Check(context.Context, recovery.Target) (recovery.Status, error) {
+func (e *questionEngine) Check(_ context.Context, target recovery.Target) (recovery.Status, error) {
+	e.target = target
 	return recovery.Status{State: e.state, Questions: []recovery.Question{{ID: 2, Text: "Synthetic question?"}}}, nil
+}
+
+func TestRecoveryCLICertificateTrust(t *testing.T) {
+	for _, pin := range []string{strings.Repeat("ab", 32), "invalid"} {
+		engine := &questionEngine{state: "certificate_required"}
+		var out, errOut bytes.Buffer
+		args := []string{"questions", "192.0.2.40", "--interface", "Ethernet Fixture", "--trust-certificate", pin}
+		code := runRecovery(context.Background(), args, strings.NewReader(""), &out, &errOut, engine, func() ([]platform.Adapter, error) {
+			return []platform.Adapter{{Name: "Ethernet Fixture", UnicastSuitable: true, Addresses: []string{"192.0.2.10/24"}}}, nil
+		})
+		if pin == "invalid" {
+			if code != 2 || engine.target.CertificateSHA256 != "" {
+				t.Fatal(code, engine.target)
+			}
+		} else if code != 3 || engine.target.CertificateSHA256 != pin {
+			t.Fatal(code, engine.target)
+		}
+	}
 }
 func (e *questionEngine) Reset(context.Context, recovery.Target, recovery.Request) (recovery.Result, error) {
 	e.resets++

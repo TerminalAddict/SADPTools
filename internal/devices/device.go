@@ -1,9 +1,7 @@
 package devices
 
 import (
-	"fmt"
 	"net"
-	"net/netip"
 	"strings"
 	"time"
 )
@@ -53,13 +51,4 @@ func (d Device) Key() string {
 		return "serial:" + s
 	}
 	return ""
-}
-
-// WebURL only offers an address and HTTP port actually advertised by the device.
-func (d Device) WebURL() string {
-	ip, err := netip.ParseAddr(d.IPv4)
-	if err != nil || !ip.Is4() || ip.IsUnspecified() || ip.IsMulticast() || ip.IsLoopback() || d.IPv4 == "255.255.255.255" || d.HTTPPort == nil || *d.HTTPPort < 1 || *d.HTTPPort > 65535 {
-		return ""
-	}
-	return fmt.Sprintf("http://%s:%d/", ip, *d.HTTPPort)
 }

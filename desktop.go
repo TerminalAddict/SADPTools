@@ -12,6 +12,7 @@ import (
 	"github.com/TerminalAddict/SADPTools/internal/recovery"
 	"github.com/TerminalAddict/SADPTools/internal/update"
 	"github.com/TerminalAddict/SADPTools/internal/version"
+	"github.com/TerminalAddict/SADPTools/internal/webinterface"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -55,6 +56,9 @@ func (s *DesktopService) OpenDevice(id string) error {
 	}
 	return s.app.Browser.OpenURL(url)
 }
+func (s *DesktopService) CheckDeviceWeb(id string, refresh bool) (webinterface.Result, error) {
+	return s.controller.CheckDeviceWeb(id, refresh)
+}
 func (s *DesktopService) ExportDevices(ids []string, format string) (string, error) {
 	content, err := s.controller.Export(ids, format)
 	if err != nil {
@@ -75,8 +79,8 @@ func (s *DesktopService) ConfigureDevice(id string, request configuration.Reques
 }
 func (s *DesktopService) CancelOperation() { s.controller.CancelOperation() }
 
-func (s *DesktopService) CheckSecurityQuestions(id, adapter string) (recovery.Status, error) {
-	return s.controller.CheckSecurityQuestions(id, adapter)
+func (s *DesktopService) CheckSecurityQuestions(id, adapter, certificateSHA256 string) (recovery.Status, error) {
+	return s.controller.CheckSecurityQuestions(id, adapter, certificateSHA256)
 }
 func (s *DesktopService) ResetWithSecurityQuestions(id, adapter string, request recovery.Request) (recovery.Result, error) {
 	return s.controller.ResetWithSecurityQuestions(id, adapter, request)

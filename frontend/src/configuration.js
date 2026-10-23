@@ -14,6 +14,7 @@ export function initConfiguration({
   getSettings,
   refresh,
   notice,
+  onWebEndpoint,
 }) {
   let target,
     kind,
@@ -47,6 +48,16 @@ export function initConfiguration({
     kind === "recovery" && $("recovery-method").value === "questions";
   function renderRecovery() {
     const questions = usingQuestions();
+    const certificate =
+      questions &&
+      questionStatus?.state === "certificate_required" &&
+      questionStatus?.endpoint?.scheme === "https" &&
+      /^[a-f0-9]{64}$/i.test(questionStatus.endpoint.certificateSHA256);
+    $("recovery-certificate").hidden = !certificate;
+    $("recovery-fingerprint").textContent = certificate
+      ? questionStatus.endpoint.certificateSHA256
+      : "";
+    $("trust-recovery-certificate").disabled = busy || !certificate;
     $("security-questions-fields").hidden = !questions;
     $("support-code-fields").hidden = questions;
     $("recovery-code").required = kind === "recovery" && !questions;
@@ -62,7 +73,7 @@ export function initConfiguration({
       ? "Answers and passwords are encrypted using the camera’s recovery protocol and are not saved in preferences or logs. Submit once; a missing reply does not prove the password stayed unchanged."
       : "Passwords and codes are not saved in preferences or logs. This SADP command format sends them over the local network without encryption; use a trusted management network.";
   }
-  async function checkQuestions() {
+  async function checkQuestions(certificateSHA256 = "") {
     if (busy || !target || !usingQuestions()) return;
     clearSecrets();
     questionStatus = null;
@@ -75,7 +86,10 @@ export function initConfiguration({
       questionStatus = await Backend.CheckSecurityQuestions(
         target.id,
         $("operation-interface").value,
+        certificateSHA256,
       );
+      if (questionStatus.endpoint?.url)
+        onWebEndpoint?.(target.id, questionStatus.endpoint);
       $("security-questions-status").textContent = questionStatus.message;
       if (questionsReady(questionStatus)) {
         for (const [index, question] of questionStatus.questions.entries()) {
@@ -311,7 +325,9 @@ export function initConfiguration({
   $("activate-device").onclick = () => open("activate");
   $("network-device").onclick = () => open("update");
   $("recover-device").onclick = () => open("recovery");
-  $("check-security-questions").onclick = checkQuestions;
+  $("check-security-questions").onclick = () => checkQuestions();
+  $("trust-recovery-certificate").onclick = () =>
+    checkQuestions(questionStatus?.endpoint?.certificateSHA256 || "");
   $("recovery-method").onchange = () => {
     clearSecrets();
     result("");

@@ -7,9 +7,9 @@ set, enter and confirm a new admin password, then select **Reset this device's
 password**. Opening the dialog and **Check again** only read availability and
 question text; they do not validate answers or reset anything.
 
-The camera needs a usable advertised IPv4 address and HTTP port reachable from
+The camera needs a usable advertised IPv4 address and web port reachable from
 the computer. **It does not need to share the computer's subnet.** A working
-route through a gateway is sufficient for the HTTP connection; firmware must
+route through a gateway is sufficient for the HTTP/HTTPS connection; firmware must
 also support the recovery API.
 
 Automatic selection uses the operating system's route to choose a current
@@ -25,9 +25,24 @@ hint. The bounded recovery HTTP requests establish actual reachability and API
 support. There is no ping or same-subnet requirement. The connection binds the
 chosen source address without a proxy. A connection failure reports the camera
 address/port and local adapter/source, without trying other adapters. SADP
-visibility alone does not establish HTTP connectivity; routing, firewalls and
-the camera's HTTP service still matter. A browser connection using HTTPS or a
-proxy does not prove the advertised direct HTTP endpoint is available.
+visibility alone does not establish web connectivity; routing, firewalls and
+the camera's web service still matter. A browser connection through a proxy
+does not prove a direct connection is available.
+
+HTTP/HTTPS detection uses the same engine as the device-details link, with the
+recovery operation's selected source address. It probes the advertised port and
+standard HTTPS port, preferring HTTPS. The detected endpoint is shared with
+browser opening. See [web connections](web-connections.md) for custom ports and
+redirect limits. Missing advertised ports are left unknown in inventory;
+detection tries the standard ports instead.
+
+For an untrusted/self-signed HTTPS certificate, recovery stops before reading
+questions or exchanging any recovery secrets. Compare the displayed SHA-256
+fingerprint with the camera's certificate, then explicitly trust it for this
+recovery session. The backend pins that exact certificate on every subsequent
+connection. A changed certificate stops the operation; there is no HTTP fallback
+or write retry. Trust is not saved in preferences. A normally trusted HTTPS
+certificate uses the operating system's certificate validation.
 
 The app distinguishes ready, unsupported, not configured, unknown and unavailable
 responses. It never assumes that questions are configured because a model usually
@@ -40,7 +55,8 @@ supports them. Unknown question labels prevent submission. The existing
   characters and 512 UTF-8 bytes. New passwords use the existing validation;
   firmware may impose stricter rules.
 - A GUI availability check binds one submission to the inventory device,
-  address, port, adapter/source address and question IDs. It expires after five
+  address, detected protocol/port, certificate pin if accepted, adapter/source
+  address and question IDs. It expires after five
   minutes. The backend consumes it before submission and checks the camera's
   selected questions again. Changing connections requires another check.
 - The encrypted reset is sent once, without retries. Cancelling or timing out
@@ -75,8 +91,11 @@ question IDs returned by the check. Keep that input out of Git and shell history
   --secrets-stdin --confirm-reset --json < /path/to/private-recovery-input.json
 ```
 
-Both commands accept `--port` (default 80) and `--timeout` (default 10s, maximum
-5m). The selected adapter can reach the camera directly or through a router.
+Both commands accept `--port` (candidate web port, default 80) and `--timeout`
+(default 10s, maximum 5m). HTTP/HTTPS detection runs before recovery. If an
+untrusted certificate is reported, verify its fingerprint and supply
+`--trust-certificate SHA256` to each command that should trust that exact
+certificate. The selected adapter can reach the camera directly or through a router.
 Exit codes: 0 ready/acknowledged, 1 communication failure, 2 invalid input,
 3 recovery unavailable, 4 rejected, 5 unconfirmed, 130 cancellation before a
 reset was submitted. No administrator credentials or answers are sent by the

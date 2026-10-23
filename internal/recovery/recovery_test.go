@@ -20,10 +20,11 @@ import (
 	"time"
 
 	"github.com/TerminalAddict/SADPTools/internal/configuration"
+	"github.com/TerminalAddict/SADPTools/internal/webinterface"
 )
 
 // All identities, questions, answers and challenges in this file are synthetic.
-var fixtureTarget = Target{"192.0.2.40", 80, "Ethernet Fixture", "192.0.2.10"}
+var fixtureTarget = Target{Address: "192.0.2.40", Port: 80, Interface: "Ethernet Fixture", Source: "192.0.2.10"}
 
 const fixtureCapabilities = `<externSecurityCap><RestAdminPassWord><isSupportWithSecurityQuestion>true</isSupportWithSecurityQuestion></RestAdminPassWord></externSecurityCap>`
 const fixtureQuestions = `<SecurityQuestion><QuestionList><Question><id>2</id><mark>true</mark></Question><Question><id>7</id><mark>true</mark></Question><Question><id>9</id><mark>true</mark></Question></QuestionList></SecurityQuestion>`
@@ -50,7 +51,7 @@ type fixture struct {
 }
 
 func (f *fixture) client() *Client {
-	return &Client{newHTTP: func(target Target) *http.Client {
+	return &Client{detector: fixtureWeb{}, newHTTP: func(target Target) *http.Client {
 		c := localHTTP(target)
 		c.Transport = roundTrip(f.serve)
 		return c
@@ -348,4 +349,11 @@ func TestCredentialFormattingAndCipherVector(t *testing.T) {
 	if strings.Contains(string(data), r.Password) {
 		t.Fatal("result contains secrets")
 	}
+}
+
+// Synthetic endpoint resolution for protocol tests; never contacts the network.
+type fixtureWeb struct{}
+
+func (fixtureWeb) Detect(_ context.Context, t webinterface.Target) (webinterface.Result, error) {
+	return webinterface.Result{Endpoint: webinterface.Endpoint{URL: "http://" + t.Address + "/", Scheme: "http", Port: 80}}, nil
 }

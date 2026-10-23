@@ -29,6 +29,8 @@ unsigned; signing will apply to a new, verified release.
 - Device model/type, network settings, MAC, serial, firmware, activation, DHCP, HTTP port and device name when advertised. Unknown values remain empty/null.
 - CLI table/JSON output and useful diagnostics/exit codes.
 - Desktop inventory with sorting, searching, selection, retained results, device details, native CSV/JSON export, web-interface action, diagnostic log, light/dark themes and saved discovery preferences.
+- Automatic HTTP/HTTPS detection for the selected camera, with a clickable IP address and a shared endpoint for browser opening and security-question recovery. HTTPS is preferred when available; see [web connections](docs/web-connections.md).
+- Visible discovery activity: a spinner, elapsed listening-window progress, devices seen in this scan and newly added devices. Existing inventory stays visible; completion, cancellation and errors are distinguished.
 - Device action dialogs, automatic selection of a discovered adapter with an optional override, password input without persistent storage, recovery-data requests/export, support-code submission and [security-question recovery](docs/security-question-recovery.md). See [device management](docs/device-management.md) for workflows and compatibility limits.
 - An About screen introducing creator [Paul Willard](https://www.paulwillard.nz/), with the application version, live update status, project link and credits. The biography and credits are available offline.
 - An in-app GitHub update checker with stable/beta channels, verified Windows installer downloads, progress/cancellation and explicit installation after closing the app. See [updates](docs/updates.md).

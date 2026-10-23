@@ -71,25 +71,6 @@ func TestInventoryConcurrent(t *testing.T) {
 		t.Fatal("duplicate")
 	}
 }
-func TestWebURL(t *testing.T) {
-	port := 8080
-	d := Device{IPv4: "192.0.2.5", HTTPPort: &port}
-	if d.WebURL() != "http://192.0.2.5:8080/" {
-		t.Fatal(d.WebURL())
-	}
-	for _, ip := range []string{"", "0.0.0.0", "255.255.255.255", "239.1.1.1", "127.0.0.1", "javascript:alert(1)"} {
-		d.IPv4 = ip
-		if d.WebURL() != "" {
-			t.Fatal(ip)
-		}
-	}
-	d.IPv4 = "192.0.2.5"
-	d.HTTPPort = nil
-	if d.WebURL() != "" {
-		t.Fatal("guessed HTTP port")
-	}
-}
-
 func TestReconcileSeparateSerialAndMACRecords(t *testing.T) {
 	i := NewInventory()
 	now := time.Unix(100, 0)

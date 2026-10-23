@@ -3,6 +3,7 @@ package recovery
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"log/slog"
 	"net/netip"
@@ -11,23 +12,27 @@ import (
 	"unicode/utf8"
 
 	"github.com/TerminalAddict/SADPTools/internal/configuration"
+	"github.com/TerminalAddict/SADPTools/internal/webinterface"
 )
 
 type Target struct {
-	Address   string
-	Port      int
-	Interface string
-	Source    string
+	Address           string
+	Port              int
+	Interface         string
+	Source            string
+	Scheme            string
+	CertificateSHA256 string
 }
 type Question struct {
 	ID   int    `json:"id"`
 	Text string `json:"text"`
 }
 type Status struct {
-	State     string     `json:"state"`
-	Message   string     `json:"message"`
-	Questions []Question `json:"questions"`
-	CheckID   string     `json:"checkID"`
+	State     string                `json:"state"`
+	Message   string                `json:"message"`
+	Questions []Question            `json:"questions"`
+	CheckID   string                `json:"checkID"`
+	Endpoint  webinterface.Endpoint `json:"endpoint"`
 }
 type Answer struct {
 	ID     int    `json:"id"`
@@ -89,6 +94,15 @@ func validIP(address string) bool {
 func (t Target) validate() error {
 	if !validIP(t.Address) || !validIP(t.Source) || t.Port < 1 || t.Port > 65535 || t.Interface == "" {
 		return errors.New("security-question recovery requires a usable device IPv4 address, HTTP port and local adapter address")
+	}
+	if t.Scheme != "" && t.Scheme != "http" && t.Scheme != "https" {
+		return errors.New("unsupported recovery web protocol")
+	}
+	if t.CertificateSHA256 != "" {
+		pin, err := hex.DecodeString(t.CertificateSHA256)
+		if err != nil || len(pin) != 32 || t.Scheme == "http" {
+			return errors.New("HTTPS trust requires the camera's SHA-256 certificate fingerprint")
+		}
 	}
 	return nil
 }

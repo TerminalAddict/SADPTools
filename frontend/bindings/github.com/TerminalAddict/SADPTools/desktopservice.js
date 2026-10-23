@@ -26,6 +26,9 @@ import * as recovery$0 from "./internal/recovery/models.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
 import * as update$0 from "./internal/update/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as webinterface$0 from "./internal/webinterface/models.js";
 
 /**
  * @returns {$CancellablePromise<void>}
@@ -49,6 +52,17 @@ export function CancelUpdate() {
 }
 
 /**
+ * @param {string} id
+ * @param {boolean} refresh
+ * @returns {$CancellablePromise<webinterface$0.Result>}
+ */
+export function CheckDeviceWeb(id, refresh) {
+    return $Call.ByID(748404297, id, refresh).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
+}
+
+/**
  * @returns {$CancellablePromise<void>}
  */
 export function CheckForUpdates() {
@@ -58,11 +72,12 @@ export function CheckForUpdates() {
 /**
  * @param {string} id
  * @param {string} adapter
+ * @param {string} certificateSHA256
  * @returns {$CancellablePromise<recovery$0.Status>}
  */
-export function CheckSecurityQuestions(id, adapter) {
-    return $Call.ByID(3193697086, id, adapter).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType0($result);
+export function CheckSecurityQuestions(id, adapter, certificateSHA256) {
+    return $Call.ByID(3193697086, id, adapter, certificateSHA256).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType1($result);
     }));
 }
 
@@ -73,7 +88,7 @@ export function CheckSecurityQuestions(id, adapter) {
  */
 export function ConfigureDevice(id, request) {
     return $Call.ByID(1765866625, id, request).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType1($result);
+        return $$createType2($result);
     }));
 }
 
@@ -98,7 +113,7 @@ export function ExportDevices(ids, format) {
  */
 export function GetSettings() {
     return $Call.ByID(682518218).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType2($result);
+        return $$createType3($result);
     }));
 }
 
@@ -114,7 +129,7 @@ export function InstallUpdate() {
  */
 export function Interfaces() {
     return $Call.ByID(456230649).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType4($result);
+        return $$createType5($result);
     }));
 }
 
@@ -134,7 +149,7 @@ export function OpenDevice(id) {
  */
 export function ResetWithSecurityQuestions(id, adapter, request) {
     return $Call.ByID(765388391, id, adapter, request).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType5($result);
+        return $$createType6($result);
     }));
 }
 
@@ -160,7 +175,7 @@ export function SaveSettings(settings) {
  */
 export function Snapshot() {
     return $Call.ByID(431882765).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType6($result);
+        return $$createType7($result);
     }));
 }
 
@@ -176,7 +191,7 @@ export function StartScan() {
  */
 export function UpdateStatus() {
     return $Call.ByID(1486237054).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType7($result);
+        return $$createType8($result);
     }));
 }
 
@@ -188,11 +203,12 @@ export function Version() {
 }
 
 // Private type creation functions
-const $$createType0 = recovery$0.Status.createFrom;
-const $$createType1 = configuration$0.Result.createFrom;
-const $$createType2 = app$0.Settings.createFrom;
-const $$createType3 = platform$0.Adapter.createFrom;
-const $$createType4 = $Create.Array($$createType3);
-const $$createType5 = recovery$0.Result.createFrom;
-const $$createType6 = app$0.Snapshot.createFrom;
-const $$createType7 = update$0.State.createFrom;
+const $$createType0 = webinterface$0.Result.createFrom;
+const $$createType1 = recovery$0.Status.createFrom;
+const $$createType2 = configuration$0.Result.createFrom;
+const $$createType3 = app$0.Settings.createFrom;
+const $$createType4 = platform$0.Adapter.createFrom;
+const $$createType5 = $Create.Array($$createType4);
+const $$createType6 = recovery$0.Result.createFrom;
+const $$createType7 = app$0.Snapshot.createFrom;
+const $$createType8 = update$0.State.createFrom;

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -17,9 +18,12 @@ import (
 const recoveryUsage = `Usage:
  sadptools recovery questions <IP> --interface NAME [--port 80] [--timeout 10s] [--json]
  sadptools recovery reset <IP> --interface NAME --secrets-stdin --confirm-reset [--port 80] [--timeout 10s] [--json]
-The camera's HTTP service must be reachable through the adapter, directly or
-through a router. Questions reads availability
-and the configured question text without submitting answers or changing passwords.
+The camera's web service must be reachable through the adapter, directly or
+through a router. HTTP/HTTPS is detected automatically, preferring HTTPS.
+For an untrusted HTTPS certificate, questions reports its SHA-256 fingerprint;
+verify it and pass --trust-certificate SHA256 to trust that exact certificate.
+Questions reads availability and the configured question text without submitting
+answers or changing passwords.
 Reset reads one JSON object from stdin: {"answers":[{"id":1,"answer":"..."},...],"password":"..."}
 Use the three IDs returned by questions. Never put real secrets in shell history.
 Reset rechecks the configured IDs, encrypts the answers/password, and sends once.
@@ -38,11 +42,12 @@ func runRecovery(ctx context.Context, args []string, in io.Reader, out, errOut i
 	f := flag.NewFlagSet("recovery", flag.ContinueOnError)
 	f.SetOutput(io.Discard)
 	adapter := f.String("interface", "", "local adapter")
-	port := f.Int("port", 80, "camera HTTP port")
+	port := f.Int("port", 80, "candidate camera web port")
 	timeout := f.Duration("timeout", 10*time.Second, "whole-operation timeout")
 	structured := f.Bool("json", false, "structured output")
 	secrets := f.Bool("secrets-stdin", false, "read answers and password from stdin")
 	confirm := f.Bool("confirm-reset", false, "explicitly submit the reset")
+	certificate := f.String("trust-certificate", "", "explicitly trust this HTTPS certificate SHA-256 fingerprint")
 	if err := f.Parse(args[2:]); errors.Is(err, flag.ErrHelp) {
 		fmt.Fprint(out, recoveryUsage)
 		return 0
@@ -51,6 +56,13 @@ func runRecovery(ctx context.Context, args []string, in io.Reader, out, errOut i
 		return 2
 	}
 	write := args[0] == "reset"
+	if *certificate != "" {
+		decoded, err := hex.DecodeString(*certificate)
+		if err != nil || len(decoded) != 32 {
+			fmt.Fprintln(errOut, "Certificate SHA-256 must contain exactly 64 hexadecimal characters.")
+			return 2
+		}
+	}
 	if (write && (!*secrets || !*confirm)) || (!write && (*secrets || *confirm)) {
 		fmt.Fprintln(errOut, "Reset requires --secrets-stdin and --confirm-reset; questions accepts neither.")
 		return 2
@@ -78,6 +90,7 @@ func runRecovery(ctx context.Context, args []string, in io.Reader, out, errOut i
 		fmt.Fprintln(errOut, err)
 		return 2
 	}
+	target.CertificateSHA256 = *certificate
 	ctx, cancel := context.WithTimeout(ctx, *timeout)
 	defer cancel()
 	if engine == nil {
@@ -91,6 +104,9 @@ func runRecovery(ctx context.Context, args []string, in io.Reader, out, errOut i
 			}
 		} else {
 			fmt.Fprintf(out, "%s: %s\n", status.State, printable(status.Message))
+			if status.State == "certificate_required" && status.Endpoint.CertificateSHA256 != "" {
+				fmt.Fprintln(out, "Certificate SHA-256:", status.Endpoint.CertificateSHA256)
+			}
 			for _, q := range status.Questions {
 				fmt.Fprintf(out, "%d: %s\n", q.ID, printable(q.Text))
 			}

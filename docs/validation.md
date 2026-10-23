@@ -170,3 +170,34 @@ See [branding sources and regeneration](branding.md).
 - Synthetic regression tests cover routed/direct source selection, route lookup failure, a route through an adapter not used for discovery, VPN adapters, explicit overrides, unavailable/invalid adapters, local address conflicts, HTTP success/unsupported/failure/timeout outcomes, routed CLI/controller submissions, and invalidation of a checked reset when its source address changes. The loopback route-helper test verifies that lookup sends no UDP datagrams. No failed HTTP request or reset is retried through another adapter.
 - `make check` passed: Go tests, vet and race checks, 12 frontend tests, five installer-input tests and 12 release-tool tests. `make frontend` regenerated bindings and built successfully. Linux CLI, Windows AMD64 desktop/offline installer (`make windows-installer`) and Linux desktop builds passed. Desktop-tag compilation/tests and vet passed. Installer archive (`7z t`) and SHA-256 sidecar verification passed.
 - No physical-camera requests, password changes or host network configuration changes were made while validating this fix. Windows runtime, the user's routed camera connection and physical password-reset/login checks remain outstanding. A graphical session was not retested for this backend fix. Artifacts remain local development builds, not a published release.
+
+## HTTP/HTTPS detection and scan feedback — 23 October 2026
+
+- Added a shared, Wails-independent web endpoint detector, HTTPS preference,
+  same-camera redirect/port handling, a clickable device IP, bounded probes and
+  cancellation, and current-address caching. Recovery keeps the selected
+  protocol/port and checks normal TLS trust or an explicitly accepted certificate
+  pin for every connection. No recovery write retries or HTTP downgrade occur.
+- `make check` passed: `go test ./...`, `go vet ./...`, `go test -race ./...`,
+  19 frontend tests, five installer-input tests and twelve release-tool tests.
+  New synthetic coverage exercises HTTP-only/HTTPS-only/custom-port services,
+  HTTPS preference, redirects, untrusted/changed certificates, recovery endpoint
+  binding, cancellation, stale selections, URL validation and per-scan counts.
+- `make frontend`, `make windows-installer`, `make linux-gui` and `make cli`
+  passed. Windows packaging builds the AMD64 desktop executable and the offline
+  installer; `7z t` passed for the resulting installer. Desktop-tag Go compilation
+  and vet also passed. Generated Wails bindings are included in source control.
+- The production Linux GUI was inspected under Xvfb using isolated preferences.
+  Read-only discovery found 18 real devices. Scanning showed elapsed progress,
+  live unique-device/new-device counts and retained inventory. A repeat scan
+  showed zero new devices, and cancellation showed the cancelled state. The
+  activity panel, table and diagnostics fit the normal window together.
+- Two physical cameras selected in the GUI were detected over HTTP. Clicking
+  the IP handed the detected HTTP origin to the native browser launcher (captured
+  with a test-only `xdg-open` stub). Read-only recovery retrieved three configured
+  question labels on DS-2CD2385FWD-I V5.5.61 using the detected connection. No
+  answers/passwords were entered and no challenge/reset was sent to equipment.
+- HTTPS, certificate acceptance and changed-certificate failures were verified
+  with synthetic loopback TLS servers, not a physical HTTPS camera. Physical
+  HTTPS/recovery writes and Windows runtime/browser/installer execution still
+  require testing. Local artifacts remain `0.2.0-dev`; no release was published.

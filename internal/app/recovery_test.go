@@ -12,16 +12,50 @@ import (
 	"github.com/TerminalAddict/SADPTools/internal/devices"
 	"github.com/TerminalAddict/SADPTools/internal/platform"
 	"github.com/TerminalAddict/SADPTools/internal/recovery"
+	"github.com/TerminalAddict/SADPTools/internal/webinterface"
 )
 
 type recoveryFixture struct {
 	checks, resets int
+	endpoint       webinterface.Endpoint
 	reset          func(context.Context, recovery.Target, recovery.Request) (recovery.Result, error)
 }
 
-func (f *recoveryFixture) Check(context.Context, recovery.Target) (recovery.Status, error) {
+func (f *recoveryFixture) Check(_ context.Context, target recovery.Target) (recovery.Status, error) {
 	f.checks++
-	return recovery.Status{State: "ready", Questions: []recovery.Question{{ID: 2, Text: "Synthetic A?"}, {ID: 7, Text: "Synthetic B?"}, {ID: 9, Text: "Synthetic C?"}}}, nil
+	endpoint := f.endpoint
+	if endpoint.URL == "" {
+		endpoint = webinterface.Endpoint{URL: "http://" + target.Address + "/", Scheme: "http", Port: 80}
+	}
+	return recovery.Status{State: "ready", Endpoint: endpoint, Questions: []recovery.Question{{ID: 2, Text: "Synthetic A?"}, {ID: 7, Text: "Synthetic B?"}, {ID: 9, Text: "Synthetic C?"}}}, nil
+}
+
+func TestRecoverySharesBrowserEndpointAndPinsOneSubmission(t *testing.T) {
+	c, id, f, r := questionController(t)
+	pin := strings.Repeat("ab", 32)
+	f.endpoint = webinterface.Endpoint{URL: "https://192.0.2.40:8443/", Scheme: "https", Port: 8443, CertificateSHA256: pin}
+	c.webDetector = webDetectFunc(func(context.Context, webinterface.Target) (webinterface.Result, error) {
+		t.Error("browser ignored recovery detection")
+		return webinterface.Result{}, errors.New("unexpected probe")
+	})
+	status, err := c.CheckSecurityQuestions(id, "", pin)
+	if err != nil || status.CheckID == "" {
+		t.Fatal(status, err)
+	}
+	url, err := c.DeviceURL(id)
+	if err != nil || url != f.endpoint.URL {
+		t.Fatal(url, err)
+	}
+	r.CheckID = status.CheckID
+	f.reset = func(_ context.Context, target recovery.Target, _ recovery.Request) (recovery.Result, error) {
+		if target.Scheme != "https" || target.Port != 8443 || target.CertificateSHA256 != pin {
+			t.Fatal("reset lost checked endpoint", target)
+		}
+		return recovery.Result{Sent: true, Outcome: "acknowledged"}, nil
+	}
+	if _, err := c.ResetWithSecurityQuestions(id, "", r); err != nil {
+		t.Fatal(err)
+	}
 }
 func (f *recoveryFixture) Reset(ctx context.Context, target recovery.Target, r recovery.Request) (recovery.Result, error) {
 	f.resets++
@@ -48,7 +82,7 @@ func TestQuestionCheckBindsOneSubmissionToDeviceAndConnection(t *testing.T) {
 		t.Run(kind, func(t *testing.T) {
 			c, id, f, r := questionController(t)
 			if kind != "unchecked" {
-				s, err := c.CheckSecurityQuestions(id, "")
+				s, err := c.CheckSecurityQuestions(id, "", "")
 				if err != nil || s.CheckID == "" {
 					t.Fatal(s, err)
 				}
@@ -90,7 +124,7 @@ func TestQuestionCheckBindsOneSubmissionToDeviceAndConnection(t *testing.T) {
 }
 func TestQuestionRecoveryCancelsAndBlocksOtherOperations(t *testing.T) {
 	c, id, f, r := questionController(t)
-	s, err := c.CheckSecurityQuestions(id, "")
+	s, err := c.CheckSecurityQuestions(id, "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -113,7 +147,7 @@ func TestQuestionRecoveryCancelsAndBlocksOtherOperations(t *testing.T) {
 	if err := c.StartScan(); !errors.Is(err, configuration.ErrBusy) {
 		t.Fatal(err)
 	}
-	if _, err := c.CheckSecurityQuestions(id, ""); !errors.Is(err, configuration.ErrBusy) {
+	if _, err := c.CheckSecurityQuestions(id, "", ""); !errors.Is(err, configuration.ErrBusy) {
 		t.Fatal(err)
 	}
 	if err := c.LaunchUpdate(func(Settings) error { t.Fatal("update launched during reset"); return nil }); err == nil {
@@ -124,7 +158,7 @@ func TestQuestionRecoveryCancelsAndBlocksOtherOperations(t *testing.T) {
 	if c.Snapshot().Configuring || f.resets != 1 {
 		t.Fatal("operation not joined")
 	}
-	if _, err := c.CheckSecurityQuestions(id, ""); err == nil {
+	if _, err := c.CheckSecurityQuestions(id, "", ""); err == nil {
 		t.Fatal("check after shutdown")
 	}
 }
@@ -134,7 +168,7 @@ func TestQuestionRecoveryOnRoutedCamera(t *testing.T) {
 	c.recoveryInterfaces = func() ([]platform.Adapter, error) {
 		return []platform.Adapter{{Name: "Ethernet Test", UnicastSuitable: true, Addresses: []string{"198.51.100.10/24"}}}, nil
 	}
-	status, err := c.CheckSecurityQuestions(id, "")
+	status, err := c.CheckSecurityQuestions(id, "", "")
 	if err != nil || status.State != "ready" || status.CheckID == "" || f.checks != 1 {
 		t.Fatal(status, err)
 	}

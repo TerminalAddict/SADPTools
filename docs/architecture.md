@@ -29,10 +29,24 @@ Configuration sends once, with explicit network values, XML-escaped credentials 
 single-submission encrypted reset client. Automatic selection uses the OS route
 to choose a local IPv4 source, including routed destinations and adapters not
 used for multicast discovery. An explicit adapter override is respected;
-unavailable route hints fall back to an observed adapter. HTTP connections bind
+unavailable route hints fall back to an observed adapter. HTTP/HTTPS connections bind
 that source and check actual API reachability, without a same-subnet requirement,
 redirects or proxies. The controller shares its operation/cancellation guard
 with SADP writes, discovery and updates, and binds a short-lived one-use check to the selected
 device, route and question IDs. Recovery secrets never enter inventory or
 snapshots. Desktop bindings and the standalone `recovery` CLI use the same
 engine. See [protocol and compatibility details](security-question-recovery.md).
+
+`internal/webinterface` owns bounded, credential-free HTTP/HTTPS endpoint
+detection independently of Wails. Device selection, browser opening and recovery
+use it; the controller caches results for one minute against the current IP and
+advertised port. Selection probes cancel obsolete work and reject stale replies.
+Recovery rechecks through its chosen source and binds the detected protocol,
+port and any explicitly accepted certificate to the one-use submission. See
+[web connections](web-connections.md).
+
+Scan snapshots include the start time, configured receive duration, unique
+devices seen, newly added inventory entries and completion outcome. The GUI
+renders elapsed listening-window progress locally while inventory callbacks
+update counts. The bar does not claim a percentage of network coverage or imply
+that previously seen devices are still reachable.

@@ -5,6 +5,8 @@ import * as Backend from "../bindings/github.com/TerminalAddict/SADPTools/deskto
 import { initConfiguration } from "./configuration.js";
 import { initUpdates } from "./updates.js";
 import { activation, model, visibleDevices } from "./view.js";
+import { createWebLookup, detectedURL } from "./web-view.js";
+import { scanPresentation } from "./scan-view.js";
 
 const $ = (id) => document.getElementById(id);
 let settings,
@@ -120,6 +122,9 @@ function render() {
             ? "Scan complete"
             : "Ready to discover";
   $("scan-dot").classList.toggle("scanning", snapshot.scanning);
+  if (!snapshot.scanning && snapshot.scanOutcome === "cancelled")
+    $("scan-status").textContent = "Scan cancelled";
+  renderScanActivity();
   $("export").disabled = list.length === 0;
   $("last-scan").textContent = snapshot.lastScan
     ? `Last scan ${date(snapshot.lastScan)}`
@@ -131,10 +136,14 @@ function render() {
 }
 function renderDetails() {
   const d = snapshot.devices.find((d) => d.id === selected);
+  webLookup.select(d, snapshot.lastScan, snapshot.configuring);
   $("detail-empty").hidden = !!d;
   $("detail-content").hidden = !d;
   $("detail-status").textContent = d ? activation(d.activated) : "No selection";
   if (!d) return;
+  const web = webLookup.get(),
+    endpoint = web.result?.endpoint;
+  const url = detectedURL(d, endpoint);
   $("detail-status").className =
     `badge-state badge-${activation(d.activated).toLowerCase()}`;
   $("detail-model").textContent = model(d) || "Unknown model";
@@ -165,14 +174,57 @@ function renderDetails() {
       dd = document.createElement("dd");
     dt.textContent = label;
     dd.textContent = dash(value);
+    if (label === "IPv4 address" && url) {
+      const link = document.createElement("a");
+      link.href = url;
+      link.textContent = d.ipv4;
+      link.title = `Open ${url}`;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        void action(() => Backend.OpenDevice(d.id));
+      });
+      dd.replaceChildren(
+        link,
+        document.createTextNode(` · ${endpoint.scheme.toUpperCase()}`),
+      );
+    }
     fragment.append(dt, dd);
   }
   $("detail-fields").replaceChildren(fragment);
-  const available = !!d.ipv4 && !!d.httpPort && d.ipv4 !== "0.0.0.0";
-  $("open-web").disabled = !available;
-  $("web-note").textContent = available
-    ? "Opens the advertised HTTP port in your browser. Device reachability depends on your IP configuration."
-    : "No usable HTTP address and port were advertised.";
+  $("open-web").disabled = !url || web.busy || snapshot.configuring;
+  $("open-web").textContent = web.busy
+    ? "Checking HTTP / HTTPS…"
+    : url
+      ? `Open ${endpoint.scheme.toUpperCase()} web interface ↗`
+      : "Open web interface ↗";
+  $("check-web").disabled = web.busy || snapshot.configuring;
+  $("web-note").textContent = web.busy
+    ? "Checking the camera’s web connection…"
+    : web.error || web.result?.message || "Checking web interface…";
+  if (url && endpoint.scheme === "https" && !endpoint.certificateTrusted)
+    $("web-note").textContent =
+      "HTTPS detected. Your browser may ask you to confirm this camera’s certificate.";
+}
+function renderScanActivity() {
+  const scan = scanPresentation(snapshot);
+  $("scan-activity").hidden = !scan.visible;
+  $("scan-spinner").hidden = !scan.active;
+  $("discover-spinner").hidden = !scan.active;
+  $("discover-label").textContent = scan.active
+    ? "Discovering…"
+    : "Discover devices";
+  if ($("scan-activity-label").textContent !== scan.label)
+    $("scan-activity-label").textContent = scan.label;
+  $("scan-counts").textContent = scan.counts;
+  $("scan-timing").textContent = scan.timing;
+  $("scan-progress-track").hidden = !scan.active;
+  $("scan-progress-track").setAttribute(
+    "aria-valuenow",
+    String(Math.round(scan.percent)),
+  );
+  $("scan-progress").style.width = `${scan.percent}%`;
 }
 function renderLogs() {
   const logs = snapshot.logs.filter(
@@ -271,6 +323,7 @@ $("automatic").onchange = () =>
   });
 $("debug-logs").onchange = renderLogs;
 $("open-web").onclick = () => action(() => Backend.OpenDevice(selected));
+$("check-web").onclick = () => webLookup.retry();
 $("export").onclick = () =>
   action(async () => {
     const path = await Backend.ExportDevices(
@@ -312,7 +365,8 @@ for (const link of document.querySelectorAll("#about-dialog a")) {
     try {
       await Browser.OpenURL(link.href);
     } catch (error) {
-      $("about-error").textContent = `Could not open your browser. ${errorText(error)}`;
+      $("about-error").textContent =
+        `Could not open your browser. ${errorText(error)}`;
       $("about-error").hidden = false;
     }
   };
@@ -359,6 +413,9 @@ async function init() {
     setInterval(() => {
       if (snapshot.scanning) queueRefresh();
     }, 1000);
+    setInterval(() => {
+      if (snapshot.scanning) renderScanActivity();
+    }, 200);
   } catch (error) {
     notice(
       `Could not connect to the desktop backend. Launch SADPTools as a desktop application. ${errorText(error)}`,
@@ -367,12 +424,17 @@ async function init() {
     $("automatic").disabled = true;
   }
 }
+const webLookup = createWebLookup(Backend.CheckDeviceWeb, renderDetails);
 const updateConfiguration = initConfiguration({
   getDevice: () => snapshot.devices.find((d) => d.id === selected),
   getSnapshot: () => snapshot,
   getSettings: () => settings,
   refresh,
   notice,
+  onWebEndpoint: (id, endpoint) => webLookup.adopt(id, endpoint),
 });
-const updates = initUpdates({ getSnapshot: () => snapshot, getSettings: () => settings });
+const updates = initUpdates({
+  getSnapshot: () => snapshot,
+  getSettings: () => settings,
+});
 void init();

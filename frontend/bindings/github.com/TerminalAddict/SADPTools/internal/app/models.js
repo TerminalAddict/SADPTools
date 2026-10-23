@@ -184,6 +184,41 @@ export class Snapshot {
              */
             this["logs"] = [];
         }
+        if (!("scanStarted" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["scanStarted"] = "";
+        }
+        if (!("scanSeconds" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["scanSeconds"] = 0;
+        }
+        if (!("scanSeen" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["scanSeen"] = 0;
+        }
+        if (!("scanNew" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["scanNew"] = 0;
+        }
+        if (!("scanOutcome" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["scanOutcome"] = "";
+        }
 
         Object.assign(this, $$source);
     }

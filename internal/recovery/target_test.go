@@ -91,8 +91,9 @@ func TestRecoveryRejectsInvalidTargetsAndUnavailableAdapters(t *testing.T) {
 		t.Fatal("invalid source accepted")
 	}
 	d.HTTPPort = nil
-	if _, err := ForDevice(d, "", "", all); err == nil {
-		t.Fatal("missing HTTP port accepted")
+	all[1].Addresses = []string{"192.0.2.10/24"}
+	if target, err := ForDevice(d, "", "", all); err != nil || target.Port != 80 {
+		t.Fatal("unknown port should allow web detection", target, err)
 	}
 }
 

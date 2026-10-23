@@ -14,6 +14,7 @@ import (
 	"github.com/TerminalAddict/SADPTools/internal/discovery"
 	"github.com/TerminalAddict/SADPTools/internal/platform"
 	"github.com/TerminalAddict/SADPTools/internal/recovery"
+	"github.com/TerminalAddict/SADPTools/internal/webinterface"
 )
 
 type Scanner interface {
@@ -33,6 +34,11 @@ type Snapshot struct {
 	LastError   string           `json:"lastError"`
 	Warnings    []string         `json:"warnings"`
 	Logs        []LogEntry       `json:"logs"`
+	ScanStarted string           `json:"scanStarted"`
+	ScanSeconds int              `json:"scanSeconds"`
+	ScanSeen    int              `json:"scanSeen"`
+	ScanNew     int              `json:"scanNew"`
+	ScanOutcome string           `json:"scanOutcome"`
 }
 
 type Controller struct {
@@ -44,6 +50,10 @@ type Controller struct {
 	questionRecovery   recovery.Engine
 	recoveryInterfaces func() ([]platform.Adapter, error)
 	recoveryCheck      *questionCheck
+	webDetector        webinterface.Detector
+	webResults         map[string]webRecord
+	webCancel          context.CancelFunc
+	webSequence        uint64
 	configuring        bool
 	operationCancel    context.CancelFunc
 	log                *slog.Logger
@@ -56,6 +66,11 @@ type Controller struct {
 	wg                 sync.WaitGroup
 	closed             bool
 	scanning           bool
+	scanStarted        string
+	scanSeconds        int
+	scanSeen           int
+	scanNew            int
+	scanOutcome        string
 	lastScan           string
 	lastError          string
 	warnings           []string
@@ -71,6 +86,8 @@ func New(path string, notify func()) *Controller {
 	c.writer = configuration.New(c.log)
 	c.questionRecovery = recovery.New()
 	c.recoveryInterfaces = platform.Interfaces
+	c.webDetector = webinterface.New()
+	c.webResults = make(map[string]webRecord)
 	s, err := loadSettings(path)
 	c.settings = s
 	if err != nil {
@@ -138,6 +155,7 @@ func (c *Controller) Interfaces() ([]platform.Adapter, error) {
 func (c *Controller) Snapshot() Snapshot {
 	c.mu.Lock()
 	s := Snapshot{Configuring: c.configuring, Scanning: c.scanning, LastScan: c.lastScan, LastError: c.lastError, Warnings: append([]string{}, c.warnings...)}
+	s.ScanStarted, s.ScanSeconds, s.ScanSeen, s.ScanNew, s.ScanOutcome = c.scanStarted, c.scanSeconds, c.scanSeen, c.scanNew, c.scanOutcome
 	c.mu.Unlock()
 	s.Devices = c.inventory.Snapshot()
 	c.logMu.Lock()
@@ -163,6 +181,9 @@ func (c *Controller) StartScan() error {
 	c.scanCancel = cancel
 	opts := discovery.Options{Interface: c.settings.Interface, Timeout: time.Duration(c.settings.TimeoutSeconds) * time.Second}
 	c.scanning = true
+	c.scanStarted = time.Now().Format(time.RFC3339Nano)
+	c.scanSeconds = c.settings.TimeoutSeconds
+	c.scanSeen, c.scanNew, c.scanOutcome = 0, 0, "running"
 	c.lastError = ""
 	c.warnings = []string{}
 	c.wg.Add(1)
@@ -171,10 +192,29 @@ func (c *Controller) StartScan() error {
 	go func() {
 		defer c.wg.Done()
 		defer cancel()
-		result, err := c.scanner.Scan(ctx, opts, func(d devices.Device) { c.inventory.Upsert(d, time.Now()); c.changed() })
+		seen := make(map[string]bool)
+		result, err := c.scanner.Scan(ctx, opts, func(d devices.Device) {
+			device, created := c.inventory.Upsert(d, time.Now())
+			c.mu.Lock()
+			if device.ID != "" && !seen[device.ID] {
+				seen[device.ID] = true
+				c.scanSeen++
+			}
+			if created {
+				c.scanNew++
+			}
+			c.mu.Unlock()
+			c.changed()
+		})
 		c.mu.Lock()
 		c.scanning = false
 		c.scanCancel = nil
+		c.scanOutcome = "completed"
+		if errors.Is(err, context.Canceled) {
+			c.scanOutcome = "cancelled"
+		} else if err != nil {
+			c.scanOutcome = "failed"
+		}
 		c.lastScan = time.Now().Format(time.RFC3339)
 		c.warnings = result.Warnings
 		if err != nil && !errors.Is(err, context.Canceled) {
@@ -219,14 +259,3 @@ func (c *Controller) automaticLoop() {
 	}
 }
 func (c *Controller) Close() { c.mu.Lock(); c.closed = true; c.cancel(); c.mu.Unlock(); c.wg.Wait() }
-func (c *Controller) DeviceURL(id string) (string, error) {
-	for _, d := range c.inventory.Snapshot() {
-		if d.ID == id {
-			if u := d.WebURL(); u != "" {
-				return u, nil
-			}
-			return "", errors.New("device has no usable advertised HTTP address and port")
-		}
-	}
-	return "", errors.New("device is no longer in the inventory")
-}

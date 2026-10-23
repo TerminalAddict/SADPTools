@@ -41,7 +41,14 @@
     </header>
     <main>
       <section class="toolbar" aria-label="Discovery controls">
-        <button id="discover" class="btn btn-primary">Discover devices</button
+        <button id="discover" class="btn btn-primary">
+          <span
+            id="discover-spinner"
+            class="spinner-border spinner-border-sm me-2"
+            aria-hidden="true"
+            hidden
+          ></span
+          ><span id="discover-label">Discover devices</span></button
         ><button id="cancel" class="btn btn-outline-secondary" hidden>
           Cancel scan
         </button>
@@ -85,6 +92,39 @@
           ><button id="export" class="btn btn-outline-secondary" disabled>
             Export
           </button>
+        </div>
+      </section>
+      <section
+        id="scan-activity"
+        class="scan-activity"
+        aria-label="Network discovery activity"
+        hidden
+      >
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span
+            id="scan-spinner"
+            class="spinner-border spinner-border-sm text-primary"
+            aria-hidden="true"
+          ></span>
+          <strong id="scan-activity-label" role="status"></strong>
+          <span id="scan-counts" class="text-body-secondary"></span>
+          <span
+            id="scan-timing"
+            class="ms-auto small text-body-secondary"
+          ></span>
+        </div>
+        <div
+          id="scan-progress-track"
+          class="progress mt-2"
+          role="progressbar"
+          aria-label="Discovery listening window"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        >
+          <div
+            id="scan-progress"
+            class="progress-bar progress-bar-striped progress-bar-animated"
+          ></div>
         </div>
       </section>
       <div id="notice" class="alert alert-danger" role="alert" hidden></div>
@@ -172,6 +212,9 @@
               Open web interface ↗
             </button>
             <p id="web-note" class="small text-body-secondary mt-2"></p>
+            <button id="check-web" class="btn btn-sm btn-link px-0">
+              Check web interface again
+            </button>
           </div>
           <div class="configuration">
             <h3>Device configuration</h3>
@@ -214,8 +257,7 @@
           ><span>Latest 500 entries · This session only</span>
         </div>
         <pre id="logs" tabindex="0" aria-label="Discovery log">
-No discovery activity yet.</pre
-        >
+No discovery activity yet.</pre>
       </details>
     </main>
     <footer class="app-footer">
@@ -531,6 +573,28 @@ No discovery activity yet.</pre
             <p id="security-questions-status" class="small" role="status">
               Checking camera…
             </p>
+            <div
+              id="recovery-certificate"
+              class="small border rounded p-2 mb-3"
+              hidden
+            >
+              <p class="mb-1">
+                Confirm this camera's HTTPS certificate for this recovery
+                session. Compare its SHA-256 fingerprint with the certificate
+                shown by your camera or browser:
+              </p>
+              <code
+                id="recovery-fingerprint"
+                class="d-block text-break mb-2"
+              ></code>
+              <button
+                id="trust-recovery-certificate"
+                type="button"
+                class="btn btn-sm btn-outline-primary"
+              >
+                Trust this certificate for this recovery session
+              </button>
+            </div>
             <div id="security-questions-list"></div>
             <button
               id="check-security-questions"

@@ -21,7 +21,8 @@ func ForAddress(address string, port int, adapter string, all []platform.Adapter
 // restricted to adapters recorded for this device, as offered by the GUI.
 func ForDevice(d devices.Device, requested, preferred string, all []platform.Adapter) (Target, error) {
 	if d.HTTPPort == nil {
-		return Target{}, errors.New("camera did not advertise an HTTP port; rediscover or use its web interface")
+		port := 80
+		d.HTTPPort = &port
 	}
 	source, _ := platform.IPv4RouteSource(d.IPv4, *d.HTTPPort)
 	return targetForDevice(d, requested, preferred, all, source)
@@ -29,7 +30,8 @@ func ForDevice(d devices.Device, requested, preferred string, all []platform.Ada
 
 func targetForDevice(d devices.Device, requested, preferred string, all []platform.Adapter, routeSource string) (Target, error) {
 	if d.HTTPPort == nil {
-		return Target{}, errors.New("camera did not advertise an HTTP port; rediscover or use its web interface")
+		port := 80
+		d.HTTPPort = &port
 	}
 	if err := validateAddress(d.IPv4, *d.HTTPPort, all); err != nil {
 		return Target{}, err
@@ -132,7 +134,7 @@ func targetOnAdapter(address string, port int, adapter string, all []platform.Ad
 		}
 		for _, p := range []netip.Prefix{routed, direct, first} {
 			if p.IsValid() {
-				return Target{address, port, a.Name, p.Addr().String()}, direct.IsValid(), nil
+				return Target{Address: address, Port: port, Interface: a.Name, Source: p.Addr().String()}, direct.IsValid(), nil
 			}
 		}
 	}
