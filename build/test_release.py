@@ -4,6 +4,7 @@ from pathlib import Path
 import shutil
 import tempfile
 import unittest
+import zipfile
 from unittest.mock import patch
 
 import release
@@ -54,7 +55,7 @@ class ReleaseTests(unittest.TestCase):
         self.names = release.asset_names(self.version)
         for name in self.names:
             (self.folder / name).write_bytes(b"synthetic release bytes " + name.encode())
-        manifest = {"version": self.version, "commit": self.commit,
+        manifest = {"version": self.version, "commit": self.commit, "standalone_desktop": True,
                     "sha256": {n: release.digest(self.folder / n) for n in self.names}}
         (self.folder / "build-manifest.json").write_text(json.dumps(manifest))
         (self.folder / "SHA256SUMS").write_text(release.checksum_text(self.folder, self.names | {"build-manifest.json"}))
@@ -64,6 +65,35 @@ class ReleaseTests(unittest.TestCase):
 
     def test_complete_bundle_is_accepted(self):
         self.assertEqual(self.verify()["commit"], self.commit)
+
+    def test_older_bundle_without_desktop_remains_verifiable(self):
+        (self.folder / f"SADPTools-{self.version}-standalone-windows-amd64.zip").unlink()
+        manifest_path = self.folder / "build-manifest.json"
+        manifest = json.loads(manifest_path.read_text())
+        manifest.pop("standalone_desktop")
+        names = release.asset_names(self.version, standalone_desktop=False)
+        manifest["sha256"] = {n: release.digest(self.folder / n) for n in names}
+        manifest_path.write_text(json.dumps(manifest))
+        (self.folder / "SHA256SUMS").write_text(release.checksum_text(self.folder, names | {"build-manifest.json"}))
+        self.assertEqual(self.verify()["commit"], self.commit)
+
+    def test_standalone_archive_contains_gui_and_licence_notices(self):
+        root = Path(self.temporary.name) / "synthetic-source"
+        root.mkdir()
+        (root / "LICENSES").mkdir()
+        for path in (root / "LICENSE", root / "THIRD_PARTY_NOTICES.md", root / "LICENSES/fixture.txt"):
+            path.write_text("Synthetic licence fixture")
+        binary = root / "fixture.exe"
+        binary.write_bytes(b"Synthetic desktop executable")
+        with patch("release.ROOT", root):
+            release.desktop_archive(self.folder, self.version, binary)
+        with zipfile.ZipFile(self.folder / f"SADPTools-{self.version}-standalone-windows-amd64.zip") as archive:
+            self.assertIsNone(archive.testzip())
+            self.assertEqual(archive.read("SADPTools-windows-amd64.exe"), binary.read_bytes())
+            self.assertEqual(set(archive.namelist()), {
+                "SADPTools-windows-amd64.exe", "LICENSE", "THIRD_PARTY_NOTICES.md",
+                "LICENSES/fixture.txt", "README.txt"})
+            self.assertIn("WebView2", archive.read("README.txt").decode())
 
     def test_damaged_asset_rejected(self):
         (self.folder / sorted(self.names)[0]).write_bytes(b"corrupt")

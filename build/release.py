@@ -52,10 +52,13 @@ def clean_commit():
     return run("git", "rev-parse", "HEAD", capture=True)
 
 
-def asset_names(version):
-    return {f"SADPTools-{version}-Setup-windows-amd64.exe",
-            f"sadptools-{version}-windows-amd64.zip",
-            f"sadptools-{version}-linux-amd64.tar.gz"}
+def asset_names(version, *, standalone_desktop=True):
+    names = {f"SADPTools-{version}-Setup-windows-amd64.exe",
+             f"sadptools-{version}-windows-amd64.zip",
+             f"sadptools-{version}-linux-amd64.tar.gz"}
+    if standalone_desktop:
+        names.add(f"SADPTools-{version}-standalone-windows-amd64.zip")
+    return names
 
 
 def checksum_text(folder, names):
@@ -63,13 +66,15 @@ def checksum_text(folder, names):
 
 
 def verify_bundle(folder, version, commit):
-    names = asset_names(version)
+    manifest = json.loads((folder / "build-manifest.json").read_text())
+    # Older releases predate the standalone desktop download. Keep their
+    # immutable bundles verifiable without changing or replacing public files.
+    names = asset_names(version, standalone_desktop=manifest.get("standalone_desktop", False))
     expected = names | {"build-manifest.json", "SHA256SUMS"}
     if {p.name for p in folder.iterdir()} != expected:
         raise ValueError("Release directory has missing or unexpected files")
     if any(not p.is_file() or p.is_symlink() for p in folder.iterdir()):
         raise ValueError("Release assets must be regular files")
-    manifest = json.loads((folder / "build-manifest.json").read_text())
     if manifest["version"] != version or manifest["commit"] != commit:
         raise ValueError("Release files were built from a different version or commit; rebuild")
     if set(manifest["sha256"]) != names:
@@ -126,6 +131,28 @@ def cli_archive(folder, version, target, binary):
                 archive.add(stage, arcname=name)
 
 
+def desktop_archive(folder, version, binary):
+    name = f"SADPTools-{version}-standalone-windows-amd64.zip"
+    with zipfile.ZipFile(folder / name, "w", zipfile.ZIP_DEFLATED) as archive:
+        archive.write(binary, "SADPTools-windows-amd64.exe")
+        for notice in ("LICENSE", "THIRD_PARTY_NOTICES.md"):
+            archive.write(ROOT / notice, notice)
+        for path in sorted((ROOT / "LICENSES").rglob("*")):
+            if path.is_file():
+                archive.write(path, str(path.relative_to(ROOT)))
+        archive.writestr(
+            "README.txt",
+            f"SADPTools desktop {version} (Windows AMD64)\n\n"
+            "Extract this ZIP and run SADPTools-windows-amd64.exe.\n"
+            "WebView2 must already be present. Use the offline Setup EXE if needed.\n"
+            "This ZIP contains the desktop application; the separate lowercase\n"
+            "sadptools archive contains command-line tools.\n\n"
+            "Saved sites and credentials live in the current user's SADPTools\n"
+            "configuration directory, outside this folder. Use encrypted site\n"
+            "backups to move protected credentials between PCs or accounts.\n\n"
+            f"Release notes: https://github.com/{REPO}/releases/tag/v{version}\n")
+
+
 def build(version, folder):
     commit = clean_commit()
     notes = notes_path(version)
@@ -166,8 +193,10 @@ def build(version, folder):
                      stage / f"SADPTools-{version}-Setup-windows-amd64.exe")
         cli_archive(stage, version, "linux", ROOT / "bin/sadptools")
         cli_archive(stage, version, "windows", windows_cli)
+        desktop_archive(stage, version, ROOT / "bin/SADPTools-windows-amd64.exe")
         manifest = {
             "version": version, "tag": f"v{version}", "commit": commit,
+            "standalone_desktop": True,
             "notes_sha256": digest(notes),
             "toolchain": {"go": run("go", "version", capture=True),
                           "node": run("node", "--version", capture=True),

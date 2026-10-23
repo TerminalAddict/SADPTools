@@ -47,7 +47,9 @@ Those commands can run without network access once inputs are cached. A full `ma
 
 Microsoft controls the installed Evergreen runtime's updates. An existing runtime is reused, not downgraded. The runtime can be shared by other applications, so SADPTools' uninstaller leaves it in place. Preferences and exports are preserved. Close the app before upgrading or uninstalling.
 
-The small raw application EXE remains available for development; it does not carry the runtime itself. End users should receive the Setup EXE.
+The standalone application EXE does not carry the runtime itself. Releases also
+provide a desktop ZIP with the EXE and licence notices for PCs where WebView2 is
+already present. Setup remains the recommended download and includes the runtime.
 
 In-app updates use the same installer with `/WAITPID=<PID>`. Setup waits up to
 30 seconds for that process to exit, stages the new executable beside the old

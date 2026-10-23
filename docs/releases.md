@@ -61,10 +61,15 @@ The ignored `bin/releases/v<VERSION>/` directory contains:
 | Download | Purpose |
 | --- | --- |
 | `SADPTools-<VERSION>-Setup-windows-amd64.exe` | Recommended Windows desktop download; includes the offline display runtime and notices |
+| `SADPTools-<VERSION>-standalone-windows-amd64.zip` | Standalone desktop app and licence notices; extract and run `SADPTools-windows-amd64.exe` on a PC with WebView2 already present |
 | `sadptools-<VERSION>-windows-amd64.zip` | Standalone Windows CLI, usage notes and licences |
 | `sadptools-<VERSION>-linux-amd64.tar.gz` | Static Linux CLI, usage notes and licences |
 | `build-manifest.json` | Source commit, version, toolchain details, pinned installer inputs and artifact hashes |
-| `SHA256SUMS` | SHA-256 checksums for all four files above |
+| `SHA256SUMS` | SHA-256 checksums for all five files above |
+
+The standalone desktop ZIP is included from `0.3.0-beta.1` onwards. Earlier
+immutable release bundles remain verifiable without adding or replacing files.
+The build manifest records whether the desktop archive belongs to that bundle.
 
 GitHub also provides the tagged source archives. Linux desktop users currently
 build from source with `make linux-gui`; the GTK/WebKit libraries differ by
@@ -74,7 +79,7 @@ distribution, so this beta does not ship a generic Linux desktop binary.
 installed-apps entry. Windows numeric versions use `MAJOR.MINOR.PATCH.REVISION`:
 development `0`, beta `N`, RC `20000+N`, stable `65535` (N is 1–19999).
 The displayed version retains the full `-beta.N` or `-rc.N` suffix. Unversioned
-development builds still use `0.2.0-dev`. Examples:
+direct builds default to the version in `Makefile`. Examples:
 
 ```sh
 make windows-installer VERSION=0.2.0-beta.1
