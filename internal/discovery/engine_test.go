@@ -111,8 +111,17 @@ func TestScanCorrelationDedupAndOffSubnet(t *testing.T) {
 		f.queue = append(f.queue, datagram{"malformed", a.Index}, datagram{reply("unrelated", "02:00:00:00:00:02"), a.Index}, datagram{reply(p.UUID, "02:00:00:00:00:03"), 99}, datagram{reply(p.UUID, "02:00:00:00:00:01"), a.Index}, datagram{reply("", "02:00:00:00:00:01"), a.Index})
 	}
 	count := 0
-	r, err := testEngine(f).Scan(context.Background(), Options{Timeout: 30 * time.Millisecond}, func(devices.Device) { count++ })
-	if err != nil {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	// End after the expected replies, with a generous failure bound. The first
+	// UUID generation on a Windows runner can exceed the old 30 ms scan window.
+	r, err := testEngine(f).Scan(ctx, Options{Timeout: 5 * time.Second}, func(devices.Device) {
+		count++
+		if count == 4 {
+			cancel()
+		}
+	})
+	if !errors.Is(err, context.Canceled) {
 		t.Fatal(err)
 	}
 	if len(r.Devices) != 1 || len(r.Devices[0].Interfaces) != 2 || r.Devices[0].IPv4 != "198.51.100.20" || count != 4 {
