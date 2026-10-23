@@ -22,18 +22,18 @@ type neighbourRow struct {
 }
 
 func neighbours() ([]Neighbour, error) {
-	var table uintptr
+	var table unsafe.Pointer
 	r, _, _ := iphelper.NewProc("GetIpNetTable2").Call(windows.AF_INET, uintptr(unsafe.Pointer(&table)))
-	if r != 0 || table == 0 {
+	if r != 0 || table == nil {
 		return nil, errors.New("Windows neighbour table unavailable")
 	}
-	defer iphelper.NewProc("FreeMibTable").Call(table)
-	n := *(*uint32)(unsafe.Pointer(table))
+	defer iphelper.NewProc("FreeMibTable").Call(uintptr(table))
+	n := *(*uint32)(table)
 	if n > 65536 {
 		return nil, errors.New("neighbour table exceeds bound")
 	}
 	out := []Neighbour{}
-	for _, row := range unsafe.Slice((*neighbourRow)(unsafe.Pointer(table+8)), int(n)) {
+	for _, row := range unsafe.Slice((*neighbourRow)(unsafe.Add(table, 8)), int(n)) {
 		if row.Length != 6 || row.State < 2 {
 			continue
 		}
