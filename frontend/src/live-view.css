@@ -1,22 +1,13 @@
+.live-view-window {
+  min-width: 0;
+}
 .camera-preview {
-  position: fixed;
-  inset: 5vh 3vw auto auto;
   margin: 0;
-  width: 800px;
-  max-width: 94vw;
-  height: 85vh;
-  max-height: 90vh;
-  min-width: 480px;
-  min-height: 380px;
+  width: 100%;
+  min-height: 100vh;
   padding: 1.1rem;
-  resize: both;
-  overflow: auto;
-  z-index: 1080;
   color: var(--bs-body-color);
   background: var(--bs-body-bg);
-  border: 1px solid var(--bs-border-color);
-  border-radius: 12px;
-  box-shadow: 0 12px 60px #0007;
 }
 .camera-preview h2 {
   font-size: 1.2rem;

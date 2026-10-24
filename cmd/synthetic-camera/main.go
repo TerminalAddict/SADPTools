@@ -22,8 +22,9 @@ import (
 
 func main() {
 	hevc := flag.Bool("hevc", false, "Serve the synthetic HEVC pattern")
+	auth := flag.Bool("auth", false, "Require the synthetic fixture / synthetic-password login")
 	flag.Parse()
-	c, e := testcamera.New(*hevc, false, "")
+	c, e := testcamera.New(*hevc, *auth, "")
 	if e != nil {
 		panic(e)
 	}
@@ -64,7 +65,7 @@ func main() {
 	if e = os.WriteFile(filepath.Join(dataDir, "settings.json"), b, 0600); e != nil {
 		panic(e)
 	}
-	fmt.Printf("Synthetic RTSP source: %s\nIsolated XDG_CONFIG_HOME=%s\nSite %s; record %s\nNo camera credentials required. Press Ctrl+C to stop.\n", c.URL, dir, site.ID, record.ID)
+	fmt.Printf("Synthetic RTSP source: %s\nIsolated XDG_CONFIG_HOME=%s\nSite %s; record %s\nUse fixture / synthetic-password only when -auth is selected. Press Ctrl+C to stop.\n", c.URL, dir, site.ID, record.ID)
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 	<-ctx.Done()

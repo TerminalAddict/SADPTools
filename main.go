@@ -14,6 +14,7 @@ import (
 	"github.com/TerminalAddict/SADPTools/internal/update"
 	"github.com/TerminalAddict/SADPTools/internal/version"
 	"github.com/wailsapp/wails/v3/pkg/application"
+	"github.com/wailsapp/wails/v3/pkg/events"
 )
 
 //go:embed all:frontend/dist
@@ -49,15 +50,16 @@ func main() {
 	}
 	previews := streaming.NewManager(nil)
 	defer previews.Close()
-	liveView := &LiveViewService{manager: previews, kit: kit}
+	liveView := &LiveViewService{manager: previews, kit: kit, app: desktop}
 	desktop.RegisterService(application.NewService(liveView))
 	desktop.HandleStream("camera-preview", liveView.handle)
-	desktop.RegisterService(application.NewService(&ToolkitService{manager: kit, app: desktop, loadError: kitError, previews: previews}))
-	desktop.Window.NewWithOptions(application.WebviewWindowOptions{
+	desktop.RegisterService(application.NewService(&ToolkitService{manager: kit, app: desktop, loadError: kitError, previews: liveView}))
+	mainWindow := desktop.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title: "SADPTools", Width: 1440, Height: 880, MinWidth: 960, MinHeight: 640,
 		BackgroundColour: application.NewRGB(17, 27, 40), URL: "/",
 		Linux: application.LinuxWindow{Icon: appIcon},
 	})
+	mainWindow.OnWindowEvent(events.Common.WindowClosing, func(*application.WindowEvent) { liveView.closeWindow() })
 	if err = desktop.Run(); err != nil {
 		log.Print(err)
 	}

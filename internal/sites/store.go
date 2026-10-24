@@ -17,13 +17,14 @@ import (
 const SchemaVersion = 2
 
 type Store struct {
-	idleTimer *time.Timer
-	closed    bool
-	mu        sync.Mutex
-	db        *sql.DB
-	path      string
-	key       []byte
-	used      time.Time
+	idleTimer  *time.Timer
+	closed     bool
+	mu         sync.Mutex
+	db         *sql.DB
+	path       string
+	key        []byte
+	used       time.Time
+	manualLock bool
 }
 
 func Open(path string) (*Store, error) {

@@ -188,7 +188,7 @@ export function initSwitches(kit) {
     const a = assets.find((a) => a.id === selected);
     dialog(
       "Approve read-only switch poll",
-      `<dl><dt>Site / switch</dt><dd>${esc(site().name)} · ${esc(a.name)}</dd><dt>Target</dt><dd>${esc(a.host)} : ${a.port} / UDP</dd><dt>Security</dt><dd>SNMPv${esc(a.version)}${a.version === "3" ? ` · ${esc(a.authProtocol)} / AES-128 privacy` : " · Unencrypted community"}</dd></dl><p>Only fixed system/interface, forwarding, VLAN, LLDP and supported PoE objects are read. No SNMP SET operations are sent. Unlock the vault first.</p>` +
+      `<dl><dt>Site / switch</dt><dd>${esc(site().name)} · ${esc(a.name)}</dd><dt>Target</dt><dd>${esc(a.host)} : ${a.port} / UDP</dd><dt>Security</dt><dd>SNMPv${esc(a.version)}${a.version === "3" ? ` · ${esc(a.authProtocol)} / AES-128 privacy` : " · Unencrypted community"}</dd></dl><p>Only fixed system/interface, forwarding, VLAN, LLDP and supported PoE objects are read. No SNMP SET operations are sent. Uses the switch's saved credentials.</p>` +
         check(
           "I am connected to the intended site and approve this switch target",
           "approved",

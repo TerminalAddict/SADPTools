@@ -1,4 +1,4 @@
-# Live View engine decision — 0.4.0-beta.1 test build
+# Live View engine decision — 0.4.0-beta.2 test build
 
 ## Decision and evidence
 
@@ -77,8 +77,9 @@ large NVR streams need device-specific validation. Audio is not selected.
 - `internal/toolkit/preview.go`: selected live/saved identity, explicit vault
   credential assignment, session credentials, ONVIF profile selection or
   operator-selected Hikvision/custom endpoint. No shared discovery/write lock.
-- `desktop_liveview.go`: Wails bindings and the single private media stream.
-- `frontend/src/live-view*.js`: panel, capability checks, bounded MSE append
+- `desktop_liveview.go`: native viewer window, window-owned bindings, ephemeral
+  login cache and the single private media stream.
+- `frontend/src/live-view*.js`: viewer, automatic startup, capability checks, bounded MSE append
   queue and JPEG object URLs. No camera credential retrieval or camera requests.
 
 ## Security and limits
@@ -108,9 +109,10 @@ The Wails channel uses origin-bound IPC, a random 256-bit single-use ticket and
 no TCP listening port. Unclaimed tickets expire in 20 seconds. Handshake timeout
 is five seconds; a missing renderer heartbeat stops the session within about
 eight seconds. Close/Stop cancels sockets and waits up to four seconds; a still
-stopping engine prevents a replacement stream. Vault-derived streams stop on
-automatic vault locking; the explicit Lock action stops every preview. Window
-destruction also cancels the Wails stream. Local processes with access to the
+stopping engine prevents a replacement stream. Active playback refreshes the
+vault idle deadline; status polling alone does not. The explicit Lock action
+stops every preview and clears the viewer login cache. Window destruction also
+cancels the Wails stream. Local processes with access to the
 user's memory or an already compromised renderer remain outside this boundary.
 
 One session/video track is allowed. RTSP uses interleaved TCP only. Connect and
@@ -127,6 +129,37 @@ is capped at 8 MiB/160 chunks; old buffered video is trimmed and excessive lag
 seeks forward. HTTP multipart JPEG is capped at 10 fps and snapshot refresh at
 1 fps. These are encoded-buffer bounds, not a total WebView process memory cap.
 No images, video, stream URLs or passwords are written to disk by Live View.
+
+## Native viewer and credential behaviour (beta.2)
+
+Live View has its own Wails window and frontend entry point. Opening the same
+camera focuses it; opening a different camera replaces the single session.
+Main-window selection and navigation do not affect playback. Closing the main
+window closes the viewer. Ownership is registered before its renderer starts.
+Binding calls and the media handshake check the actual Wails calling window;
+a stale closing window cannot stop a newer viewer.
+
+Startup is automatic. Assigned saved credentials are resolved in Go; without
+an assignment the first attempt is anonymous. An explicit authentication error
+opens a sign-in prompt. Submitting it starts playback, and the entered login
+remains only in the viewer's Go state for Pause/Resume and profile changes.
+Passwords are not returned to the renderer. Closing/replacing the viewer,
+explicit Lock and app shutdown release this cache. No password guessing or
+background retry loop was added.
+
+Windows automatically unwraps its existing current-user DPAPI key when a saved
+credential is requested. The encrypted database format is unchanged. Idle key
+eviction remains, with automatic re-opening on use. Explicit **Lock now** blocks
+automatic access for that app session until explicitly unlocked. This is an
+optional session control, not a separate Windows authentication boundary.
+Linux continues to require its master passphrase and prompts in the viewer
+when needed. The app never persists that passphrase.
+
+Linux Xvfb checks exercised authenticated automatic playback, main-page
+navigation during playback, pause/resume with the cached login and viewer
+close. Native main-window close exited successfully with no remaining viewer
+or RTSP connection. Windows DPAPI automatic access has a Windows-only regression test;
+cross-compilation here does not establish its runtime result.
 
 ## Builds, security scan and redistribution
 

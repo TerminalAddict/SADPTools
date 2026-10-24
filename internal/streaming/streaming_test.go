@@ -186,6 +186,28 @@ func TestHTTPImagesAuthBoundsRedirectAndTLS(t *testing.T) {
 
 type blockingEngine struct{ active, max atomic.Int32 }
 
+func TestManagerAuthenticationStatus(t *testing.T) {
+	// The viewer uses this code to ask for credentials, rather than treating
+	// network failures as a rejected password or retrying credentials itself.
+	for _, failure := range []error{ErrAuthentication, errors.New("synthetic offline camera")} {
+		m := NewManager(nil)
+		ticket, e := m.Prepare(func(context.Context, func(string, string), func([]Profile)) (Source, error) {
+			return Source{}, failure
+		}, nil, nil, "synthetic")
+		if e != nil {
+			t.Fatal(e)
+		}
+		if e = m.Consume(context.Background(), ticket.ID, func(Packet) error { return nil }); e != nil {
+			t.Fatal(e)
+		}
+		status := m.Status(ticket.ID)
+		m.Close()
+		if status.State != "error" || (status.ErrorCode == "authentication") != errors.Is(failure, ErrAuthentication) {
+			t.Fatalf("incorrect viewer error classification: %+v", status)
+		}
+	}
+}
+
 func (e *blockingEngine) Play(ctx context.Context, _ Source, _ Sink) error {
 	n := e.active.Add(1)
 	defer e.active.Add(-1)

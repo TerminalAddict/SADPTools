@@ -23,6 +23,9 @@ jobs:
       - run: go test ./...
       - run: go vet ./...
       - run: go test -race ./...
+      - name: Check native viewer ownership and credential reuse
+        if: runner.os == 'Windows'
+        run: go test -tags desktop -race .
       - run: npm --prefix frontend ci
       - run: npm --prefix frontend test
       - run: npm --prefix frontend run build

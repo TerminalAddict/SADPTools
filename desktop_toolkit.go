@@ -14,7 +14,6 @@ import (
 	"github.com/TerminalAddict/SADPTools/internal/provision"
 	"github.com/TerminalAddict/SADPTools/internal/reports"
 	"github.com/TerminalAddict/SADPTools/internal/sites"
-	"github.com/TerminalAddict/SADPTools/internal/streaming"
 	"github.com/TerminalAddict/SADPTools/internal/switches"
 	"github.com/TerminalAddict/SADPTools/internal/toolkit"
 	"github.com/TerminalAddict/SADPTools/internal/vault"
@@ -32,7 +31,7 @@ type ToolkitService struct {
 	manager   *toolkit.Manager
 	app       *application.App
 	loadError error
-	previews  *streaming.Manager
+	previews  *LiveViewService
 }
 
 func (s *ToolkitService) ready() error {
@@ -149,14 +148,23 @@ func (s *ToolkitService) UnlockVault(passphrase string) error {
 	if e := s.ready(); e != nil {
 		return e
 	}
-	return s.manager.Store.Unlock(passphrase)
+	if e := s.manager.Store.Unlock(passphrase); e != nil {
+		return e
+	}
+	if s.app != nil {
+		s.app.Event.Emit("vault:changed")
+	}
+	return nil
 }
 func (s *ToolkitService) LockVault() {
-	if s.previews != nil {
-		s.previews.Stop("")
-	}
 	if s.manager != nil {
 		s.manager.Store.Lock()
+	}
+	if s.previews != nil {
+		s.previews.lockCredentials()
+	}
+	if s.app != nil {
+		s.app.Event.Emit("vault:changed")
 	}
 }
 func (s *ToolkitService) SaveCredential(p sites.Profile, username, password, privacyPassword string) (sites.Profile, error) {

@@ -83,6 +83,7 @@ type VaultStatus struct {
 	Initialized bool   `json:"initialized"`
 	Unlocked    bool   `json:"unlocked"`
 	Mode        string `json:"mode"`
+	Automatic   bool   `json:"automatic"`
 }
 
 func ID() string {

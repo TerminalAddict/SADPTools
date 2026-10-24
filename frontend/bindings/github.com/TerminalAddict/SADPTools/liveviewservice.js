@@ -13,28 +13,39 @@ import * as streaming$0 from "./internal/streaming/models.js";
 // @ts-ignore: Unused imports
 import * as toolkit$0 from "./internal/toolkit/models.js";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as $models from "./models.js";
+
 /**
- * @param {string} site
- * @param {string} id
  * @param {string} raw
  * @param {boolean} onvif
  * @returns {$CancellablePromise<streaming$0.Certificate>}
  */
-export function Certificate(site, id, raw, onvif) {
-    return $Call.ByID(3615263741, site, id, raw, onvif).then(/** @type {($result: any) => any} */(($result) => {
+export function Certificate(raw, onvif) {
+    return $Call.ByID(3615263741, raw, onvif).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
 }
 
 /**
- * @param {string} site
- * @param {string} id
- * @returns {$CancellablePromise<toolkit$0.PreviewDevice>}
+ * @returns {$CancellablePromise<$models.PreviewWindow>}
  */
-export function Device(site, id) {
-    return $Call.ByID(3004335828, site, id).then(/** @type {($result: any) => any} */(($result) => {
+export function Load() {
+    return $Call.ByID(741099530).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
+}
+
+/**
+ * Open creates a native, independently movable window. Reopening the same
+ * camera focuses it; choosing Live View on another replaces the single stream.
+ * @param {string} site
+ * @param {string} id
+ * @returns {$CancellablePromise<void>}
+ */
+export function Open(site, id) {
+    return $Call.ByID(1984238458, site, id);
 }
 
 /**
@@ -43,10 +54,11 @@ export function Device(site, id) {
  * @param {string} password
  * @param {string} onvifUsername
  * @param {string} onvifPassword
+ * @param {boolean} replaceCredentials
  * @returns {$CancellablePromise<streaming$0.Ticket>}
  */
-export function Start(o, username, password, onvifUsername, onvifPassword) {
-    return $Call.ByID(2420596586, o, username, password, onvifUsername, onvifPassword).then(/** @type {($result: any) => any} */(($result) => {
+export function Start(o, username, password, onvifUsername, onvifPassword, replaceCredentials) {
+    return $Call.ByID(2420596586, o, username, password, onvifUsername, onvifPassword, replaceCredentials).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType2($result);
     }));
 }
@@ -71,6 +83,6 @@ export function Stop(id) {
 
 // Private type creation functions
 const $$createType0 = streaming$0.Certificate.createFrom;
-const $$createType1 = toolkit$0.PreviewDevice.createFrom;
+const $$createType1 = $models.PreviewWindow.createFrom;
 const $$createType2 = streaming$0.Ticket.createFrom;
 const $$createType3 = streaming$0.Status.createFrom;

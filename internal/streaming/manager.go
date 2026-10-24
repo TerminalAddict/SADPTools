@@ -20,6 +20,7 @@ type Status struct {
 	Fragments        uint64    `json:"fragments"`
 	Started          time.Time `json:"started"`
 	CredentialSource string    `json:"credentialSource"`
+	ErrorCode        string    `json:"errorCode"`
 }
 type Resolver func(context.Context, func(string, string), func([]Profile)) (Source, error)
 type Ticket struct {
@@ -240,7 +241,13 @@ func (m *Manager) Consume(parent context.Context, id string, send func(Packet) e
 		return nil
 	}
 	if e != nil {
-		s.state("error", e.Error())
+		s.mu.Lock()
+		s.status.State = "error"
+		s.status.Message = e.Error()
+		if errors.Is(e, ErrAuthentication) {
+			s.status.ErrorCode = "authentication"
+		}
+		s.mu.Unlock()
 	}
 	return nil
 }

@@ -39,11 +39,20 @@ func (s *Store) VaultStatus() VaultStatus {
 	if mode == "" {
 		mode = vault.PlatformMode
 	}
-	return VaultStatus{e == nil, len(s.key) == 32, mode}
+	return VaultStatus{Initialized: e == nil, Unlocked: len(s.key) == 32, Mode: mode, Automatic: vault.PlatformMode == "dpapi" && mode == "dpapi" && !s.manualLock}
 }
 func (s *Store) Unlock(passphrase string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	return s.unlock(passphrase)
+}
+
+// unlock is called with the store mutex held. Windows can unwrap its existing
+// key for the current logon without weakening the encrypted on-disk format.
+func (s *Store) unlock(passphrase string) error {
+	if s.closed {
+		return errors.New("credential storage is closed")
+	}
 	w, e := s.wrapped()
 	var key []byte
 	if errors.Is(e, sql.ErrNoRows) {
@@ -87,6 +96,7 @@ func (s *Store) Unlock(passphrase string) error {
 	}
 	clear(s.key)
 	s.key = key
+	s.manualLock = false
 	s.touch()
 	return nil
 }
@@ -95,17 +105,42 @@ func (s *Store) Lock() {
 	defer s.mu.Unlock()
 	clear(s.key)
 	s.key = nil
+	s.manualLock = true
 	if s.idleTimer != nil {
 		s.idleTimer.Stop()
 	}
 }
 func (s *Store) needKey() error {
+	if s.closed {
+		return errors.New("credential storage is closed")
+	}
 	s.expire()
+	if len(s.key) != 32 && vault.PlatformMode == "dpapi" && !s.manualLock {
+		w, e := s.wrapped()
+		if errors.Is(e, sql.ErrNoRows) || e == nil && w.Mode == "dpapi" {
+			if e = s.unlock(""); e != nil {
+				return e
+			}
+		}
+	}
 	if len(s.key) != 32 {
 		return errors.New("unlock the credential vault first")
 	}
 	s.touch()
 	return nil
+}
+
+// CredentialSessionActive keeps an already unlocked key in use during an
+// operator-started preview. Status polling does not extend its lifetime, and
+// this method never unlocks an explicitly locked vault.
+func (s *Store) CredentialSessionActive() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.closed || s.manualLock || len(s.key) != 32 {
+		return false
+	}
+	s.touch()
+	return true
 }
 func (s *Store) profiles(site string) ([]Profile, error) {
 	rows, e := s.db.Query(`SELECT id,site_id,label,username FROM profiles WHERE site_id=? ORDER BY label`, site)

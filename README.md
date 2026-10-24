@@ -189,17 +189,28 @@ See [architecture](docs/architecture.md), [reference implementation research](do
 
 MIT. Protocol templates and XML mappings are adapted from Cameron Newman's MIT-licensed [hikvision-tooling](https://github.com/cameronnewman/hikvision-tooling). Its `internal` packages cannot be imported from this module, so the relevant source was adapted with attribution, not invoked as an external executable. See [third-party notices](THIRD_PARTY_NOTICES.md) and [preserved upstream licence](LICENSES/hikvision-tooling-MIT.txt).
 
-## Live View (0.4.0-beta.1 test candidate)
+## Live View (0.4.0-beta.2 test candidate)
 
-Choose **Live View** on a discovered device or saved site record. Start with Sub
-stream, select assigned vault credentials or enter session credentials, and
-press Play. ONVIF profiles, an explicitly selected Hikvision channel/port,
+Choose **Live View** on a discovered device or saved site record. A separate
+desktop window opens and starts the sub stream automatically. You can keep
+using discovery and Sites while it plays. If credentials are needed, signing
+in starts playback immediately. ONVIF profiles, a selected Hikvision channel/port,
 custom RTSP/RTSPS, HTTP MJPEG and snapshot refresh are available. Playback is
 video-only; no camera settings are changed and nothing is recorded.
 
 H.264 is the primary preview format. H.265 depends on the installed WebView
 codec support and is rejected with guidance when unavailable. Pause/Stop closes
-the camera connection; session passwords must be re-entered for the next play.
+the camera connection; session credentials stay in Go memory until the viewer
+closes or you explicitly lock saved passwords. Resume does not require another
+login. Reopening the same camera focuses its viewer; opening another replaces
+the single live stream. Closing the main app also closes the viewer.
+
+The credential vault encrypts saved passwords. Windows makes these available
+automatically through your signed-in account; no routine unlock step is needed.
+**Lock now** is optional and remains effective until explicitly unlocked or the
+app restarts. Linux still requires the master passphrase, requested directly
+in the viewer when needed. Active playback keeps its saved credentials in use.
+
 Windows binaries compile, but Windows playback and real cameras still require
 operator testing. See the [engine decision](docs/LIVE_VIEW_ENGINE_DECISION.md)
 and [test instructions](docs/LIVE_VIEW_TEST_MATRIX.md).

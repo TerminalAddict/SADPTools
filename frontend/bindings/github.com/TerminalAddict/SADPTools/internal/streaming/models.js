@@ -236,6 +236,13 @@ export class Status {
              */
             this["credentialSource"] = "";
         }
+        if (!("errorCode" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["errorCode"] = "";
+        }
 
         Object.assign(this, $$source);
     }

@@ -161,7 +161,7 @@ func (m *Manager) PreparePreview(player *streaming.Manager, o PreviewOptions, se
 			return streaming.Ticket{}, e
 		}
 		credentialSource = "Encrypted vault · device/site assignment"
-		alive = func() bool { return m.Store.VaultStatus().Unlocked }
+		alive = m.Store.CredentialSessionActive
 	}
 	if !o.SeparateONVIF {
 		onvifSecret = secret
@@ -183,6 +183,9 @@ func (m *Manager) PreparePreview(player *streaming.Manager, o PreviewOptions, se
 			defer cancel()
 			catalog, e := client.MediaProfiles(resolveCtx, onvifSecret, o.ClockOffset)
 			if e != nil {
+				if errors.Is(e, onvif.ErrAuthentication) {
+					return streaming.Source{}, streaming.ErrAuthentication
+				}
 				return streaming.Source{}, e
 			}
 			choices := []streaming.Profile{}
@@ -199,6 +202,9 @@ func (m *Manager) PreparePreview(player *streaming.Manager, o PreviewOptions, se
 			}
 			raw, e = client.StreamURI(resolveCtx, catalog, selected, mode == "onvif-snapshot", onvifSecret)
 			if e != nil {
+				if errors.Is(e, onvif.ErrAuthentication) {
+					return streaming.Source{}, streaming.ErrAuthentication
+				}
 				return streaming.Source{}, e
 			}
 			if mode == "onvif-snapshot" {

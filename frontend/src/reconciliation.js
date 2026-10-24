@@ -160,7 +160,7 @@ export function initReconciliation(kit) {
               )
               .join(""),
         ) +
-        `<p class="small">Unlock the vault first to use a profile. Configure ONVIF user permissions on the camera if it uses a separate ONVIF account.</p>`,
+        `<p class="small">If saved passwords are locked, unlock them in Sites to use a profile. Configure ONVIF user permissions on the camera if it uses a separate ONVIF account.</p>`,
       async (v) => {
         if (untrusted && !v.trust)
           throw Error(

@@ -1,6 +1,7 @@
 import * as Desktop from "../bindings/github.com/TerminalAddict/SADPTools/desktopservice.js";
 import { mappingTable } from "./switches.js";
 import * as API from "../bindings/github.com/TerminalAddict/SADPTools/toolkitservice.js";
+import { Events } from "@wailsio/runtime";
 import {
   $,
   esc,
@@ -37,6 +38,7 @@ export function initSites({ getSnapshot, showError, onSiteChanged }) {
     }
   };
   const active = () => view?.site;
+  Events.On("vault:changed", () => void perform(refresh));
   async function refresh() {
     sites = await API.ListSites();
     if (!preferencesLoaded) {
@@ -329,25 +331,19 @@ export function initSites({ getSnapshot, showError, onSiteChanged }) {
   }
   async function unlock() {
     vault = await API.VaultStatus();
-    const info =
-      vault.mode === "dpapi"
-        ? "Unlock using the current Windows account. The vault key is protected by Windows."
-        : vault.initialized
-          ? "Enter your master passphrase. It is never saved."
-          : "Create a master passphrase of at least 12 characters. Keep it safe; it cannot be recovered.";
+    if (vault.mode === "dpapi") {
+      await API.UnlockVault("");
+      await refresh();
+      return;
+    }
+    const info = vault.initialized
+      ? "Enter your master passphrase. It is never saved."
+      : "Create a master passphrase of at least 12 characters. Keep it safe; it cannot be recovered.";
     dialog(
-      "Unlock credential vault",
+      "Unlock saved passwords",
       `<p>${esc(info)}</p>` +
-        (vault.mode === "dpapi"
-          ? ""
-          : field(
-              "Master passphrase",
-              "passphrase",
-              "",
-              "password",
-              "required",
-            )) +
-        (!vault.initialized && vault.mode !== "dpapi"
+        field("Master passphrase", "passphrase", "", "password", "required") +
+        (!vault.initialized
           ? field(
               "Repeat master passphrase",
               "repeat",
@@ -366,7 +362,7 @@ export function initSites({ getSnapshot, showError, onSiteChanged }) {
         await API.UnlockVault(v.passphrase || "");
         await refresh();
       },
-      vault.initialized ? "Unlock" : "Create vault",
+      vault.initialized ? "Unlock" : "Protect saved passwords",
     );
   }
   async function reveal(p) {
@@ -389,7 +385,7 @@ export function initSites({ getSnapshot, showError, onSiteChanged }) {
   function backup() {
     dialog(
       "Encrypted site backup",
-      `<p>Includes saved inventory and credentials. Choose a separate passphrase to restore on another computer. Unlock the vault first if this site contains credentials.</p>` +
+      `<p>Includes saved inventory and credentials. Choose a separate passphrase to restore on another computer. ${vault.unlocked || vault.automatic ? "" : "Unlock saved passwords first if this site contains credentials."}</p>` +
         field(
           "Backup passphrase",
           "passphrase",
@@ -414,7 +410,7 @@ export function initSites({ getSnapshot, showError, onSiteChanged }) {
   function restore() {
     dialog(
       "Restore encrypted site",
-      `<p>Imports a new site; existing sites are preserved. Unlock/create your destination vault before restoring credentials.</p>` +
+      `<p>Imports a new site; existing sites are preserved. ${vault.unlocked || vault.automatic ? "" : "Unlock or create password protection before restoring credentials."}</p>` +
         field("Backup passphrase", "passphrase", "", "password", "required"),
       async (v) => {
         const site = await API.RestoreSite(v.passphrase);
@@ -586,12 +582,12 @@ export function initSites({ getSnapshot, showError, onSiteChanged }) {
   function render() {
     if (!$("sites-page")) return;
     $("sites-page").innerHTML =
-      `<aside class="site-sidebar"><div class="d-flex gap-2"><h2 class="me-auto">Sites</h2><button id="new-site" class="btn btn-sm btn-primary">New</button></div><input id="site-filter" class="form-control my-2" placeholder="Find a site" aria-label="Find a site"><div id="site-list">${sites.map((s) => `<button class="site-choice ${s.id === selected ? "active" : ""}" data-site="${esc(s.id)}">${esc(s.name)}${s.archived ? " · Archived" : ""}<small>${esc(s.customer)}</small></button>`).join("") || '<p class="text-body-secondary">Create a site to save an inventory.</p>'}</div><button id="restore-site" class="btn btn-sm btn-outline-secondary mt-3">Restore encrypted backup</button><hr><p class="small">Vault: <strong>${vault.unlocked ? "Unlocked" : "Locked"}</strong></p><button id="vault-action" class="btn btn-sm btn-outline-secondary">${vault.unlocked ? "Lock now" : "Unlock vault"}</button></aside><section class="site-content">${view ? `<div class="tool-heading"><div><h2>${esc(view.site.name)}</h2><p>${esc(view.site.customer)} · ${view.devices.filter((r) => !r.removed).length} saved devices · Last visited ${esc(date(view.site.lastVisited))}</p><p class="small">Networks: ${esc(view.site.networks?.join(", ") || "Not configured")} · Last scan ${esc(date(view.site.lastScan))}</p></div><button id="edit-site" class="btn btn-sm btn-outline-secondary">Edit site</button></div><div class="tool-actions"><button id="site-save-all" class="btn btn-primary">Save all discovered</button><button id="site-rescan" class="btn btn-outline-primary">Rescan site</button><button id="site-credentials" class="btn btn-outline-secondary">Credentials</button><button id="site-export" class="btn btn-outline-secondary">Export</button><button id="site-backup" class="btn btn-outline-secondary">Backup</button><button id="site-history" class="btn btn-outline-secondary">History</button><button id="site-merge" class="btn btn-outline-secondary">Merge selected</button><button id="site-delete" class="btn btn-outline-danger">Delete site</button></div><div class="tool-actions"><input id="saved-search" class="form-control" placeholder="Search IP, MAC, serial, model, name or notes" value="${esc(query)}"><label class="text-nowrap"><input id="all-sites-search" type="checkbox" ${allSearch ? "checked" : ""}> Across sites</label><select id="site-sort" class="form-select w-auto">${["ipv4", "model", "mac", "serial", "firmware", "name"].map((k) => option(k, `Sort: ${k}`, sort)).join("")}</select><button id="site-direction" class="btn btn-outline-secondary">${direction === 1 ? "↑" : "↓"}</button></div><div id="site-records"></div><div id="site-pagination" class="tool-actions"></div><div id="site-runs" class="mt-3"><h3>Saved scans and reports</h3>${view.runs.map((r) => `<button class="btn btn-sm btn-outline-secondary me-2 mb-2" data-run="${esc(r.id)}">${esc(r.kind)} · ${esc(date(r.at))} · ${esc(r.outcome)}</button>`).join("") || "No saved scans yet."}</div>` : '<div class="tool-empty"><h2>Persistent site inventories</h2><p>Select or create a site. Live discovery stays separate until you explicitly save observations.</p></div>'}</section>`;
+      `<aside class="site-sidebar"><div class="d-flex gap-2"><h2 class="me-auto">Sites</h2><button id="new-site" class="btn btn-sm btn-primary">New</button></div><input id="site-filter" class="form-control my-2" placeholder="Find a site" aria-label="Find a site"><div id="site-list">${sites.map((s) => `<button class="site-choice ${s.id === selected ? "active" : ""}" data-site="${esc(s.id)}">${esc(s.name)}${s.archived ? " · Archived" : ""}<small>${esc(s.customer)}</small></button>`).join("") || '<p class="text-body-secondary">Create a site to save an inventory.</p>'}</div><button id="restore-site" class="btn btn-sm btn-outline-secondary mt-3">Restore encrypted backup</button><hr><p class="small">Saved passwords: <strong>${vault.automatic ? "Protected by Windows" : vault.unlocked ? "Available" : "Locked"}</strong></p><button id="vault-action" class="btn btn-sm btn-outline-secondary">${vault.unlocked || vault.automatic ? "Lock now" : "Unlock saved passwords"}</button></aside><section class="site-content">${view ? `<div class="tool-heading"><div><h2>${esc(view.site.name)}</h2><p>${esc(view.site.customer)} · ${view.devices.filter((r) => !r.removed).length} saved devices · Last visited ${esc(date(view.site.lastVisited))}</p><p class="small">Networks: ${esc(view.site.networks?.join(", ") || "Not configured")} · Last scan ${esc(date(view.site.lastScan))}</p></div><button id="edit-site" class="btn btn-sm btn-outline-secondary">Edit site</button></div><div class="tool-actions"><button id="site-save-all" class="btn btn-primary">Save all discovered</button><button id="site-rescan" class="btn btn-outline-primary">Rescan site</button><button id="site-credentials" class="btn btn-outline-secondary">Credentials</button><button id="site-export" class="btn btn-outline-secondary">Export</button><button id="site-backup" class="btn btn-outline-secondary">Backup</button><button id="site-history" class="btn btn-outline-secondary">History</button><button id="site-merge" class="btn btn-outline-secondary">Merge selected</button><button id="site-delete" class="btn btn-outline-danger">Delete site</button></div><div class="tool-actions"><input id="saved-search" class="form-control" placeholder="Search IP, MAC, serial, model, name or notes" value="${esc(query)}"><label class="text-nowrap"><input id="all-sites-search" type="checkbox" ${allSearch ? "checked" : ""}> Across sites</label><select id="site-sort" class="form-select w-auto">${["ipv4", "model", "mac", "serial", "firmware", "name"].map((k) => option(k, `Sort: ${k}`, sort)).join("")}</select><button id="site-direction" class="btn btn-outline-secondary">${direction === 1 ? "↑" : "↓"}</button></div><div id="site-records"></div><div id="site-pagination" class="tool-actions"></div><div id="site-runs" class="mt-3"><h3>Saved scans and reports</h3>${view.runs.map((r) => `<button class="btn btn-sm btn-outline-secondary me-2 mb-2" data-run="${esc(r.id)}">${esc(r.kind)} · ${esc(date(r.at))} · ${esc(r.outcome)}</button>`).join("") || "No saved scans yet."}</div>` : '<div class="tool-empty"><h2>Persistent site inventories</h2><p>Select or create a site. Live discovery stays separate until you explicitly save observations.</p></div>'}</section>`;
     $("new-site").onclick = () => perform(() => siteForm());
     $("restore-site").onclick = restore;
     $("vault-action").onclick = () =>
       perform(async () => {
-        if (vault.unlocked) {
+        if (vault.unlocked || vault.automatic) {
           await API.LockVault();
           await refresh();
         } else await unlock();
@@ -665,7 +661,7 @@ export function initSites({ getSnapshot, showError, onSiteChanged }) {
   function credentials() {
     const d = dialog(
       "Reusable credentials",
-      `<p>Vault is ${vault.unlocked ? "unlocked" : "locked"}. Profiles can be assigned as the site default or to individual devices.</p><div>${view.profiles.map((p) => `<div class="credential-row" data-profile="${esc(p.id)}"><strong>${esc(p.label)}</strong> · ${esc(p.username)}<div><button type="button" class="btn btn-sm btn-outline-secondary edit-profile">Replace</button> <button type="button" class="btn btn-sm btn-outline-secondary reveal-profile">Reveal</button> <button type="button" class="btn btn-sm btn-outline-secondary copy-profile">Copy password</button> <button type="button" class="btn btn-sm btn-outline-danger delete-profile">Remove</button></div></div>`).join("") || "No credentials saved."}</div>`,
+      `<p>Saved passwords are ${vault.automatic ? "protected by your Windows account and available automatically" : vault.unlocked ? "available" : "locked"}. Profiles can be assigned as the site default or to individual devices.</p><div>${view.profiles.map((p) => `<div class="credential-row" data-profile="${esc(p.id)}"><strong>${esc(p.label)}</strong> · ${esc(p.username)}<div><button type="button" class="btn btn-sm btn-outline-secondary edit-profile">Replace</button> <button type="button" class="btn btn-sm btn-outline-secondary reveal-profile">Reveal</button> <button type="button" class="btn btn-sm btn-outline-secondary copy-profile">Copy password</button> <button type="button" class="btn btn-sm btn-outline-danger delete-profile">Remove</button></div></div>`).join("") || "No credentials saved."}</div>`,
       async () => {},
       "Close",
     );

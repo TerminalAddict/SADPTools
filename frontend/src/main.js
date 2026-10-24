@@ -167,7 +167,6 @@ function render() {
 }
 function renderDetails() {
   const d = snapshot.devices.find((d) => d.id === selected);
-  liveView.selectionChanged(selected, d?.ipv4);
   webLookup.select(d, snapshot.lastScan, snapshot.configuring);
   $("detail-empty").hidden = !!d;
   $("detail-content").hidden = !d;

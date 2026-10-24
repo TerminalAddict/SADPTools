@@ -742,6 +742,13 @@ export class VaultStatus {
              */
             this["mode"] = "";
         }
+        if (!("automatic" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["automatic"] = false;
+        }
 
         Object.assign(this, $$source);
     }
