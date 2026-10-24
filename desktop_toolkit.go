@@ -14,6 +14,7 @@ import (
 	"github.com/TerminalAddict/SADPTools/internal/provision"
 	"github.com/TerminalAddict/SADPTools/internal/reports"
 	"github.com/TerminalAddict/SADPTools/internal/sites"
+	"github.com/TerminalAddict/SADPTools/internal/streaming"
 	"github.com/TerminalAddict/SADPTools/internal/switches"
 	"github.com/TerminalAddict/SADPTools/internal/toolkit"
 	"github.com/TerminalAddict/SADPTools/internal/vault"
@@ -31,6 +32,7 @@ type ToolkitService struct {
 	manager   *toolkit.Manager
 	app       *application.App
 	loadError error
+	previews  *streaming.Manager
 }
 
 func (s *ToolkitService) ready() error {
@@ -150,6 +152,9 @@ func (s *ToolkitService) UnlockVault(passphrase string) error {
 	return s.manager.Store.Unlock(passphrase)
 }
 func (s *ToolkitService) LockVault() {
+	if s.previews != nil {
+		s.previews.Stop("")
+	}
 	if s.manager != nil {
 		s.manager.Store.Lock()
 	}

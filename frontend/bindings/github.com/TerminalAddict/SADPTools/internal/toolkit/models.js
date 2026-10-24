@@ -6,6 +6,10 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as devices$0 from "../devices/models.js";
+
 export class Job {
     /**
      * Creates a new Job instance.
@@ -104,6 +108,203 @@ export class Job {
     }
 }
 
+export class PreviewCredential {
+    /**
+     * Creates a new PreviewCredential instance.
+     * @param {Partial<PreviewCredential>} [$$source = {}] - The source object to create the PreviewCredential.
+     */
+    constructor($$source = {}) {
+        if (!("siteID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["siteID"] = "";
+        }
+        if (!("recordID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["recordID"] = "";
+        }
+        if (!("label" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["label"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new PreviewCredential instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {PreviewCredential}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new PreviewCredential(/** @type {Partial<PreviewCredential>} */($$parsedSource));
+    }
+}
+
+export class PreviewDevice {
+    /**
+     * Creates a new PreviewDevice instance.
+     * @param {Partial<PreviewDevice>} [$$source = {}] - The source object to create the PreviewDevice.
+     */
+    constructor($$source = {}) {
+        if (!("device" in $$source)) {
+            /**
+             * @member
+             * @type {devices$0.Device}
+             */
+            this["device"] = (new devices$0.Device());
+        }
+        if (!("credentials" in $$source)) {
+            /**
+             * @member
+             * @type {PreviewCredential[]}
+             */
+            this["credentials"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new PreviewDevice instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {PreviewDevice}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType0;
+        const $$createField1_0 = $$createType2;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("device" in $$parsedSource) {
+            $$parsedSource["device"] = $$createField0_0($$parsedSource["device"]);
+        }
+        if ("credentials" in $$parsedSource) {
+            $$parsedSource["credentials"] = $$createField1_0($$parsedSource["credentials"]);
+        }
+        return new PreviewDevice(/** @type {Partial<PreviewDevice>} */($$parsedSource));
+    }
+}
+
+export class PreviewOptions {
+    /**
+     * Creates a new PreviewOptions instance.
+     * @param {Partial<PreviewOptions>} [$$source = {}] - The source object to create the PreviewOptions.
+     */
+    constructor($$source = {}) {
+        if (!("siteID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["siteID"] = "";
+        }
+        if (!("deviceID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["deviceID"] = "";
+        }
+        if (!("method" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["method"] = "";
+        }
+        if (!("profile" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["profile"] = "";
+        }
+        if (!("channel" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["channel"] = 0;
+        }
+        if (!("port" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["port"] = 0;
+        }
+        if (!("url" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["url"] = "";
+        }
+        if (!("streamPin" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["streamPin"] = "";
+        }
+        if (!("onvifPin" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["onvifPin"] = "";
+        }
+        if (!("clockOffset" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["clockOffset"] = 0;
+        }
+        if (!("credentialSite" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["credentialSite"] = "";
+        }
+        if (!("credentialRecord" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["credentialRecord"] = "";
+        }
+        if (!("separateONVIF" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["separateONVIF"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new PreviewOptions instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {PreviewOptions}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new PreviewOptions(/** @type {Partial<PreviewOptions>} */($$parsedSource));
+    }
+}
+
 export class SiteScope {
     /**
      * Creates a new SiteScope instance.
@@ -183,9 +384,9 @@ export class SiteScope {
      * @returns {SiteScope}
      */
     static createFrom($$source = {}) {
-        const $$createField3_0 = $$createType0;
-        const $$createField4_0 = $$createType0;
-        const $$createField5_0 = $$createType0;
+        const $$createField3_0 = $$createType3;
+        const $$createField4_0 = $$createType3;
+        const $$createField5_0 = $$createType3;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("addresses" in $$parsedSource) {
             $$parsedSource["addresses"] = $$createField3_0($$parsedSource["addresses"]);
@@ -201,4 +402,7 @@ export class SiteScope {
 }
 
 // Private type creation functions
-const $$createType0 = $Create.Array($Create.Any);
+const $$createType0 = devices$0.Device.createFrom;
+const $$createType1 = PreviewCredential.createFrom;
+const $$createType2 = $Create.Array($$createType1);
+const $$createType3 = $Create.Array($Create.Any);

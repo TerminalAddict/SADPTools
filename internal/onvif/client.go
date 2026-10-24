@@ -84,22 +84,31 @@ func (c *Client) Read(ctx context.Context, operation string, secret vault.Secret
 	if !readOperations[operation] {
 		return nil, errors.New("only implemented read-only ONVIF operations are allowed")
 	}
+	return c.soap(ctx, c.target.URL, deviceNS, operation, "", secret, 0)
+}
+
+// soap is private: callers construct only implemented read-only operations.
+func (c *Client) soap(ctx context.Context, endpoint, namespace, operation, parameters string, secret vault.Secret, offset time.Duration) ([]byte, error) {
 	security := ""
 	if secret.Username != "" {
 		nonce := make([]byte, 20)
 		rand.Read(nonce)
-		security = usernameToken(secret, time.Now(), nonce)
+		security = usernameToken(secret, time.Now().Add(offset), nonce)
 		clear(nonce)
 	}
-	body := []byte(`<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:tds="` + deviceNS + `"><s:Header>` + security + `</s:Header><s:Body><tds:` + operation + `/></s:Body></s:Envelope>`)
+	payload := "<tds:" + operation + "/>"
+	if parameters != "" {
+		payload = "<tds:" + operation + ">" + parameters + "</tds:" + operation + ">"
+	}
+	body := []byte(`<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:tds="` + namespace + `"><s:Header>` + security + `</s:Header><s:Body>` + payload + `</s:Body></s:Envelope>`)
 	defer clear(body)
 	do := func(auth string) (*http.Response, error) {
-		req, e := http.NewRequestWithContext(ctx, http.MethodPost, c.target.URL, bytes.NewReader(body))
+		req, e := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(body))
 		if e != nil {
 			return nil, errors.New("could not prepare ONVIF request")
 		}
 		req.GetBody = nil
-		req.Header.Set("Content-Type", `application/soap+xml; charset=utf-8; action="`+deviceNS+`/`+operation+`"`)
+		req.Header.Set("Content-Type", `application/soap+xml; charset=utf-8; action="`+namespace+`/`+operation+`"`)
 		req.Header.Set("Cache-Control", "no-store")
 		if auth != "" {
 			req.Header.Set("Authorization", auth)
@@ -116,7 +125,7 @@ func (c *Client) Read(ctx context.Context, operation string, secret vault.Secret
 		if err != nil {
 			return nil, ErrAuthentication
 		}
-		parsed, _ := url.Parse(c.target.URL)
+		parsed, _ := url.Parse(endpoint)
 		credential, err := digest.Digest(challenge, digest.Options{Method: http.MethodPost, URI: parsed.RequestURI(), GetBody: func() (io.ReadCloser, error) { return io.NopCloser(bytes.NewReader(body)), nil }, Count: 1, Username: secret.Username, Password: secret.Password})
 		if err != nil {
 			return nil, ErrAuthentication
@@ -143,7 +152,13 @@ func (c *Client) Read(ctx context.Context, operation string, secret vault.Secret
 	var envelope struct {
 		XMLName xml.Name
 		Body    struct {
-			Fault *struct{} `xml:"Fault"`
+			Fault *struct {
+				Code struct {
+					Value   string
+					Subcode struct{ Value string }
+				}
+				Reason struct{ Text string }
+			} `xml:"Fault"`
 		} `xml:"Body"`
 	}
 	if e = decode(data, &envelope); e != nil {
@@ -155,6 +170,12 @@ func (c *Client) Read(ctx context.Context, operation string, secret vault.Secret
 		return nil, errors.New("invalid ONVIF SOAP envelope")
 	}
 	if envelope.Body.Fault != nil {
+		fault := envelope.Body.Fault
+		code := fault.Code.Value + " " + fault.Code.Subcode.Value
+		if strings.Contains(code, "NotAuthorized") || strings.Contains(code, "FailedAuthentication") || strings.Contains(code, "InvalidSecurity") {
+			clear(data)
+			return nil, ErrAuthentication
+		}
 		clear(data)
 		return nil, ErrUnsupported
 	}

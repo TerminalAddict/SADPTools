@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/TerminalAddict/SADPTools/internal/app"
+	"github.com/TerminalAddict/SADPTools/internal/streaming"
 	"github.com/TerminalAddict/SADPTools/internal/toolkit"
 	"github.com/TerminalAddict/SADPTools/internal/update"
 	"github.com/TerminalAddict/SADPTools/internal/version"
@@ -46,7 +47,12 @@ func main() {
 	if kit != nil {
 		defer kit.Close()
 	}
-	desktop.RegisterService(application.NewService(&ToolkitService{manager: kit, app: desktop, loadError: kitError}))
+	previews := streaming.NewManager(nil)
+	defer previews.Close()
+	liveView := &LiveViewService{manager: previews, kit: kit}
+	desktop.RegisterService(application.NewService(liveView))
+	desktop.HandleStream("camera-preview", liveView.handle)
+	desktop.RegisterService(application.NewService(&ToolkitService{manager: kit, app: desktop, loadError: kitError, previews: previews}))
 	desktop.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title: "SADPTools", Width: 1440, Height: 880, MinWidth: 960, MinHeight: 640,
 		BackgroundColour: application.NewRGB(17, 27, 40), URL: "/",

@@ -516,7 +516,7 @@ export function initSites({ getSnapshot, showError, onSiteChanged }) {
       ],
       shown.map(
         (r) =>
-          `<tr data-id="${esc(r.id)}"><td><input type="checkbox" class="form-check-input site-pick" aria-label="Select ${esc(r.device.ipv4)}" ${selectedRecords.has(r.id) ? "checked" : ""}></td><td>${esc(r.device.ipv4)}${r.removed ? '<br><span class="badge text-bg-secondary">Intentionally removed</span>' : ""}${allSearch ? `<br><small>${esc(sites.find((s) => s.id === r.siteID)?.name)}</small>` : ""}</td><td>${esc(r.device.model)}<br><small>${esc(r.device.name)}</small></td><td>${esc(r.device.mac)}<br><small>${esc(r.device.serial)}</small></td><td>${esc(r.device.firmware)}</td><td>${esc(allSearch ? "Open site for credentials" : credentialSource(r))}</td><td>${esc(r.location)}<br><small>${esc(r.notes)}</small></td><td><button class="btn btn-sm btn-outline-secondary edit-record">Details</button> <button class="btn btn-sm btn-outline-secondary record-history">History</button></td></tr>`,
+          `<tr data-id="${esc(r.id)}"><td><input type="checkbox" class="form-check-input site-pick" aria-label="Select ${esc(r.device.ipv4)}" ${selectedRecords.has(r.id) ? "checked" : ""}></td><td>${esc(r.device.ipv4)}${r.removed ? '<br><span class="badge text-bg-secondary">Intentionally removed</span>' : ""}${allSearch ? `<br><small>${esc(sites.find((s) => s.id === r.siteID)?.name)}</small>` : ""}</td><td>${esc(r.device.model)}<br><small>${esc(r.device.name)}</small></td><td>${esc(r.device.mac)}<br><small>${esc(r.device.serial)}</small></td><td>${esc(r.device.firmware)}</td><td>${esc(allSearch ? "Open site for credentials" : credentialSource(r))}</td><td>${esc(r.location)}<br><small>${esc(r.notes)}</small></td><td><button class="btn btn-sm btn-outline-primary preview-record">Live View</button> <button class="btn btn-sm btn-outline-secondary edit-record">Details</button> <button class="btn btn-sm btn-outline-secondary record-history">History</button></td></tr>`,
       ),
     );
     $("site-pagination").innerHTML =
@@ -535,6 +535,13 @@ export function initSites({ getSnapshot, showError, onSiteChanged }) {
         e.target.checked
           ? selectedRecords.add(r.id)
           : selectedRecords.delete(r.id);
+      const preview = () =>
+        document.dispatchEvent(
+          new CustomEvent("camera:preview", {
+            detail: { siteID: r.siteID, deviceID: r.id },
+          }),
+        );
+      tr.querySelector(".preview-record").onclick = preview;
       tr.querySelector(".edit-record").onclick = () =>
         perform(async () => {
           if (r.siteID !== selected) await choose(r.siteID);
@@ -547,6 +554,7 @@ export function initSites({ getSnapshot, showError, onSiteChanged }) {
         });
       tr.oncontextmenu = (e) =>
         contextMenu(e, [
+          ["Live View", preview],
           ["Copy IP", () => perform(() => API.CopyText(r.device.ipv4))],
           [
             "Read ONVIF information",

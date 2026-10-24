@@ -98,7 +98,7 @@ For activation, network changes and recovery commands, see [the device-managemen
 
 ## Build and run the desktop
 
-Toolchain used: Go 1.26.8, Node 24.21.0, npm 11.16.0, Wails **v3.0.0-beta.34**. Dependencies and npm runtime versions are pinned. Install the matching Wails CLI in your user's Go bin directory:
+Toolchain used: Go 1.26.10, Node 24.21.0, npm 11.16.0, Wails **v3.0.0-beta.34**. Dependencies and npm runtime versions are pinned. Install the matching Wails CLI in your user's Go bin directory:
 
 ```sh
 make tools
@@ -188,3 +188,18 @@ See [architecture](docs/architecture.md), [reference implementation research](do
 ## Licence and attribution
 
 MIT. Protocol templates and XML mappings are adapted from Cameron Newman's MIT-licensed [hikvision-tooling](https://github.com/cameronnewman/hikvision-tooling). Its `internal` packages cannot be imported from this module, so the relevant source was adapted with attribution, not invoked as an external executable. See [third-party notices](THIRD_PARTY_NOTICES.md) and [preserved upstream licence](LICENSES/hikvision-tooling-MIT.txt).
+
+## Live View (0.4.0-beta.1 test candidate)
+
+Choose **Live View** on a discovered device or saved site record. Start with Sub
+stream, select assigned vault credentials or enter session credentials, and
+press Play. ONVIF profiles, an explicitly selected Hikvision channel/port,
+custom RTSP/RTSPS, HTTP MJPEG and snapshot refresh are available. Playback is
+video-only; no camera settings are changed and nothing is recorded.
+
+H.264 is the primary preview format. H.265 depends on the installed WebView
+codec support and is rejected with guidance when unavailable. Pause/Stop closes
+the camera connection; session passwords must be re-entered for the next play.
+Windows binaries compile, but Windows playback and real cameras still require
+operator testing. See the [engine decision](docs/LIVE_VIEW_ENGINE_DECISION.md)
+and [test instructions](docs/LIVE_VIEW_TEST_MATRIX.md).

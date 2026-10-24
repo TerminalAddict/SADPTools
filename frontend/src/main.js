@@ -1,6 +1,7 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./style.css";
 import "./toolkit.css";
+import { initLiveView } from "./live-view.js";
 import { initToolkit } from "./toolkit.js";
 import { contextMenu } from "./toolkit-ui.js";
 import { Browser, Events } from "@wailsio/runtime";
@@ -79,6 +80,14 @@ function render() {
     row.append(pickCell);
     row.oncontextmenu = (e) =>
       contextMenu(e, [
+        [
+          "Live View",
+          () => {
+            selected = d.id;
+            render();
+            void liveView.open("", d.id);
+          },
+        ],
         ["Add to site", () => toolkit.addLive([d.id])],
         ["Save selected to site", () => toolkit.addLive([...multiSelected])],
       ]);
@@ -158,6 +167,7 @@ function render() {
 }
 function renderDetails() {
   const d = snapshot.devices.find((d) => d.id === selected);
+  liveView.selectionChanged(selected, d?.ipv4);
   webLookup.select(d, snapshot.lastScan, snapshot.configuring);
   $("detail-empty").hidden = !!d;
   $("detail-content").hidden = !d;
@@ -360,6 +370,7 @@ $("automatic").onchange = () =>
     }
   });
 $("debug-logs").onchange = renderLogs;
+$("preview-camera").onclick = () => liveView.open("", selected);
 $("open-web").onclick = () => action(() => Backend.OpenDevice(selected));
 $("check-web").onclick = () => webLookup.retry();
 $("export").onclick = () =>
@@ -477,6 +488,7 @@ $("live-select-all").onchange = (e) => {
     else multiSelected.delete(d.id);
   render();
 };
+const liveView = initLiveView();
 const toolkit = initToolkit({
   getSnapshot: () => snapshot,
   getSelected: () =>

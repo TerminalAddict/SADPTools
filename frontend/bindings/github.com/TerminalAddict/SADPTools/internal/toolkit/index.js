@@ -4,5 +4,8 @@
 
 export {
     Job,
+    PreviewCredential,
+    PreviewDevice,
+    PreviewOptions,
     SiteScope
 } from "./models.js";

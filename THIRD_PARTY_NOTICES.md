@@ -6,6 +6,12 @@ The application uses Wails v3 (MIT), Bootstrap 5 (MIT), Go's x/net, x/sys and x/
 
 Wails generated the initial desktop scaffold and Windows manifest/resource configuration. The original **Signal Lens** mark, wordmarks, installer artwork and interface are SADPTools assets, covered by the project's MIT licence. Their editable source and generation instructions are described in [the branding guide](docs/branding.md). Exported artwork uses system DejaVu Sans; no font files are redistributed with the application.
 
+## Live View
+
+Live View uses **bluenviron/gortsplib v5.6.7** (MIT) for RTSP/RTP, **bluenviron/mediacommon v2.9.6** (MIT) for H.264/H.265 parsing and fragmented MP4, **abema/go-mp4 v1.7.3** (MIT), Pion RTP/RTCP and their pinned transitive dependencies. Their full licence texts are included in `LICENSES/dependencies.txt`. The session manager, constrained camera client, ONVIF media resolver and Wails player integration are implemented in this repository.
+
+go2rtc and LibVLC were researched but are not redistributed or launched. FFmpeg generated the clearly labelled synthetic test patterns; it is neither bundled nor required to run SADPTools. Video decoding uses the existing operating system WebView component. Codec availability, especially HEVC, depends on that component; no additional native codec package is redistributed by this version.
+
 ## Author profile
 
 The About screen's biography is adapted from [Paul Willard's website](https://www.paulwillard.nz/), accessed 22 October 2026. The unmodified portrait in `frontend/src/assets/paul-willard.webp` comes from [the author profile image](https://www.paulwillard.nz/assets/images/optimized/paul-lw-220.webp) on that site and is bundled locally for offline display.
