@@ -53,9 +53,9 @@ Development builds do not install updates and skip the startup check, avoiding
 an accidental replacement of newer development code with an older public beta.
 
 Windows AMD64 supports download/install. Linux can check and open release notes;
-its desktop is still built from source because this project has no portable
-Linux desktop release package. The updater does not substitute the Linux CLI
-archive for a desktop upgrade. macOS installation is also unsupported.
+install updates using the DEB, RPM or manual installer matching the original
+installation method. The updater does not install Linux packages or substitute
+the Linux CLI archive for a desktop upgrade. macOS installation is also unsupported.
 
 ## Network, integrity and lifecycle
 
