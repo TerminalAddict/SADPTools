@@ -30,7 +30,7 @@ Linux AMD64 packages include the desktop app, CLI and a **SADPTools** icon in th
 GNOME/KDE application menu. Install the `.deb` with `sudo apt install ./<file>.deb`
 or the Fedora `.rpm` with `sudo dnf install ./<file>.rpm`; the package manager
 handles the declared desktop libraries. For a manual per-user installation,
-extract `SADPTools-<VERSION>-linux-amd64.tar.gz` and run `./install.sh` without
+extract `SADPTools-<VERSION>-manual-linux-amd64.tar.gz` and run `./install.sh` without
 sudo. The script also supports all-users installation and uninstalling.
 
 These packages use GTK4/WebKitGTK 6.0, targeting Ubuntu 24.04+, Debian 13+ and

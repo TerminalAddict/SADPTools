@@ -33,7 +33,7 @@ bytes. Local signing requirements may be enforced by your system administrator.
 **Manual installation:**
 
 ```sh
-tar -xzf SADPTools-<VERSION>-linux-amd64.tar.gz
+tar -xzf SADPTools-<VERSION>-manual-linux-amd64.tar.gz
 cd SADPTools-<VERSION>-linux-amd64
 ./install.sh
 ```
@@ -152,7 +152,7 @@ published assets and tags are not modified. Beta/RC versions use the native
 Local validation on Sparx for this packaging change:
 
 - `make check` passed: Go tests, vet, race detector, 21 frontend tests, 5 Windows
-  installer tests, 17 release tests and 11 Linux packaging/installer tests.
+  installer tests, 18 release tests and 11 Linux packaging/installer tests.
 - `make linux-packages` produced all three installers. SHA-256 verification,
   DEB payload/metadata/licence inspection and RPM digest/metadata checks passed.
 - ShellCheck and `desktop-file-validate` passed. A real GIO launcher test covered

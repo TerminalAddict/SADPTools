@@ -43,7 +43,7 @@ def run(*args, **kwargs):
 def asset_names(version):
     return {f"SADPTools-{version}-linux-amd64.deb",
             f"SADPTools-{version}-linux-x86_64.rpm",
-            f"SADPTools-{version}-linux-amd64.tar.gz"}
+            f"SADPTools-{version}-manual-linux-amd64.tar.gz"}
 
 
 def digest(path):
@@ -162,7 +162,7 @@ def manual_archive(output, payload, version, work):
         info.uname = info.gname = "root"
         info.mode = 0o755 if info.isdir() or info.name.endswith(("/install.sh", "/bin/SADPTools", "/bin/sadptools")) else 0o644
         return info
-    with tarfile.open(output / f"{name}.tar.gz", "w:gz") as archive:
+    with tarfile.open(output / f"SADPTools-{version}-manual-linux-amd64.tar.gz", "w:gz") as archive:
         archive.add(stage, arcname=name, filter=attributes)
 
 

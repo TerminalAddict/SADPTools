@@ -78,7 +78,7 @@ The ignored `bin/releases/v<VERSION>/` directory contains:
 | `sadptools-<VERSION>-linux-amd64.tar.gz` | Static Linux CLI, usage notes and licences |
 | `SADPTools-<VERSION>-linux-amd64.deb` | Linux desktop/CLI with application menu/icon; install using APT |
 | `SADPTools-<VERSION>-linux-x86_64.rpm` | Linux desktop/CLI with application menu/icon; install using Fedora DNF |
-| `SADPTools-<VERSION>-linux-amd64.tar.gz` | Linux desktop/CLI with `install.sh`; per-user or all-users installation and removal |
+| `SADPTools-<VERSION>-manual-linux-amd64.tar.gz` | Linux desktop/CLI with `install.sh`; per-user or all-users installation and removal |
 | `build-manifest.json` | Source commit, version, toolchain details, pinned installer inputs and artifact hashes |
 | `SHA256SUMS` | SHA-256 checksums for every installer/archive and the build manifest |
 

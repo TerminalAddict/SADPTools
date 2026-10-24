@@ -66,6 +66,10 @@ class ReleaseTests(unittest.TestCase):
     def test_complete_bundle_is_accepted(self):
         self.assertEqual(self.verify()["commit"], self.commit)
 
+    def test_release_names_are_distinct_on_case_insensitive_filesystems(self):
+        names = release.asset_names(self.version, linux_installers=True)
+        self.assertEqual(len(names), len({name.casefold() for name in names}))
+
     def test_publish_accepts_main_and_a_detached_worktree_at_the_same_commit(self):
         with patch("release.run", return_value="main"):
             release.verify_publish_branch(self.commit)
