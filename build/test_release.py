@@ -66,6 +66,33 @@ class ReleaseTests(unittest.TestCase):
     def test_complete_bundle_is_accepted(self):
         self.assertEqual(self.verify()["commit"], self.commit)
 
+    def test_publish_accepts_main_and_a_detached_worktree_at_the_same_commit(self):
+        with patch("release.run", return_value="main"):
+            release.verify_publish_branch(self.commit)
+        with patch("release.run", side_effect=["", self.commit]):
+            release.verify_publish_branch(self.commit)
+
+    def test_publish_rejects_other_branches_and_stale_detached_worktrees(self):
+        with patch("release.run", return_value="feature"), self.assertRaisesRegex(ValueError, "current commit"):
+            release.verify_publish_branch(self.commit)
+        with patch("release.run", side_effect=["", "b" * 40]), self.assertRaisesRegex(ValueError, "current commit"):
+            release.verify_publish_branch(self.commit)
+
+    def test_linux_installers_participate_in_release_checksum_verification(self):
+        manifest_path = self.folder / "build-manifest.json"
+        manifest = json.loads(manifest_path.read_text())
+        names = release.asset_names(self.version, linux_installers=True)
+        for name in names - self.names:
+            (self.folder / name).write_bytes(b"synthetic Linux installer")
+        manifest["linux_installers"] = True
+        manifest["sha256"] = {n: release.digest(self.folder / n) for n in names}
+        manifest_path.write_text(json.dumps(manifest))
+        (self.folder / "SHA256SUMS").write_text(release.checksum_text(self.folder, names | {"build-manifest.json"}))
+        self.assertTrue(self.verify()["linux_installers"])
+        (self.folder / f"SADPTools-{self.version}-linux-amd64.deb").write_bytes(b"corrupt")
+        with self.assertRaisesRegex(ValueError, "checksum mismatch"):
+            self.verify()
+
     def test_older_bundle_without_desktop_remains_verifiable(self):
         (self.folder / f"SADPTools-{self.version}-standalone-windows-amd64.zip").unlink()
         manifest_path = self.folder / "build-manifest.json"

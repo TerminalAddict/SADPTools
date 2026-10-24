@@ -24,6 +24,21 @@ See the [code signing policy](docs/code-signing.md) for the SignPath Foundation
 application and signing requirements. Current builds remain unsigned while
 approval is pending; signing will apply to a new, verified release.
 
+## Install on Linux
+
+Linux AMD64 packages include the desktop app, CLI and a **SADPTools** icon in the
+GNOME/KDE application menu. Install the `.deb` with `sudo apt install ./<file>.deb`
+or the Fedora `.rpm` with `sudo dnf install ./<file>.rpm`; the package manager
+handles the declared desktop libraries. For a manual per-user installation,
+extract `SADPTools-<VERSION>-linux-amd64.tar.gz` and run `./install.sh` without
+sudo. The script also supports all-users installation and uninstalling.
+
+These packages use GTK4/WebKitGTK 6.0, targeting Ubuntu 24.04+, Debian 13+ and
+current Fedora. See [Linux installation and packaging](docs/linux-packaging.md)
+for dependencies, upgrades, removal and testing limits. Build local installers
+with `make linux-packages`; they appear in `bin/linux/` and are included in
+releases starting with **0.3.0-beta.2**.
+
 ## What works
 
 The **0.3.0-beta.1** test build adds the complete technician toolkit roadmap. See [the implementation guide and hardware checklist](docs/toolkit-implementation.md).
@@ -103,6 +118,7 @@ For Linux:
 ```sh
 make linux-gui
 ./bin/SADPTools-linux-amd64
+make linux-packages          # DEB, RPM and manual installer archive in bin/linux/
 ```
 
 Launch from a graphical Linux desktop session. Building needs GTK4 and WebKitGTK 6.0 development libraries; the binary needs their runtime libraries. Current Ubuntu/Debian setup, if missing:
@@ -125,8 +141,8 @@ make dev            # Wails desktop development, on a graphical Linux host
 ```
 
 To prepare and publish a tagged beta using `gh`, see the [release process](docs/releases.md).
-`make release-build VERSION=0.3.0-beta.1` builds and verifies the downloads from a
-clean commit. `make release-publish VERSION=0.3.0-beta.1` pushes the commit/tag,
+`make release-build VERSION=0.3.0-beta.2` builds and verifies the downloads from a
+clean commit. `make release-publish VERSION=0.3.0-beta.2` pushes the commit/tag,
 verifies uploaded files and publishes the GitHub pre-release.
 
 For headless Go validation, use `go test ./...` and `go vet ./...`. The root desktop entry uses `//go:build desktop` to avoid requiring GUI development libraries for ordinary engine checks. With desktop dependencies installed, also run `go test -tags desktop ./...` and `go vet -tags desktop ./...`. Desktop builds include `desktop,production`.

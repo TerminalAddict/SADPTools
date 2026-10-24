@@ -2,7 +2,7 @@ version: '3'
 vars:
   GOOS: '{{.GOOS | default OS}}'
   TARGET_ARCH: '{{.GOARCH | default ARCH}}'
-  APP_VERSION: '{{.SADPTOOLS_VERSION | default "0.3.0-beta.1"}}'
+  APP_VERSION: '{{.SADPTOOLS_VERSION | default "0.3.0-beta.2"}}'
 includes:
   common: ./build/Taskfile.yml
   windows: ./build/windows/Taskfile.yml
@@ -17,13 +17,13 @@ tasks:
     cmds:
       - 'bin/SADPTools-{{.GOOS}}-{{.TARGET_ARCH}}{{if eq .GOOS "windows"}}.exe{{end}}'
   package:
-    desc: Build the Windows AMD64 offline installer
+    desc: Build Windows setup or Linux DEB, RPM and manual installers (AMD64)
     preconditions:
-      - sh: '[ "{{.GOOS}}" = "windows" ] && [ "{{.TARGET_ARCH}}" = "amd64" ]'
-        msg: Installer packaging currently supports GOOS=windows GOARCH=amd64.
+      - sh: '{ [ "{{.GOOS}}" = "windows" ] || [ "{{.GOOS}}" = "linux" ]; } && [ "{{.TARGET_ARCH}}" = "amd64" ]'
+        msg: Installer packaging supports Windows or Linux AMD64.
     cmds:
       - task: build
-      - task: windows:package
+      - task: '{{.GOOS}}:package'
   dev:
     cmds:
       - wails3 dev -config build/config.yml

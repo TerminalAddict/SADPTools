@@ -1,9 +1,13 @@
 [Desktop Entry]
+Version=1.0
 Type=Application
 Name=SADPTools
-Comment=Discover and manage local network cameras
+GenericName=Network Camera Utility
+Comment=Discover, configure and audit network cameras
 Exec=SADPTools
 Icon=io.github.terminaladdict.sadptools
 Terminal=false
-Categories=Network;Utility;
+Categories=Network;
+Keywords=CCTV;Camera;Hikvision;SADP;ONVIF;Network;
 StartupNotify=true
+StartupWMClass=io.github.terminaladdict.sadptools

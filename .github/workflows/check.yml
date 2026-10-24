@@ -1,4 +1,4 @@
-name: Checks and Windows build
+name: Checks and desktop builds
 on:
   push:
   pull_request:
@@ -52,3 +52,43 @@ jobs:
           path: |
             bin/SADPTools-Setup-windows-amd64.exe
             bin/SADPTools-Setup-windows-amd64.exe.sha256
+  linux-artifacts:
+    # Keep the native GUI ABI baseline stable as ubuntu-latest moves forward.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build and inspection dependencies on the disposable runner
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config dpkg-dev libgtk-4-dev libwebkitgtk-6.0-dev desktop-file-utils rpm shellcheck
+      - run: shellcheck build/linux/install.sh build/linux/refresh-desktop.sh
+      - run: python3 -m unittest discover -s build/linux -p 'test_*.py'
+      - run: make tools linux-packages
+      - name: Check the native packages
+        run: |
+          cd bin/linux
+          sha256sum -c SHA256SUMS
+          rpm --checksig --nosignature ./*.rpm
+          rpm -qp --requires ./*.rpm
+          dpkg-deb --info ./*.deb
+          sudo apt-get install -y ./*.deb
+          desktop-file-validate /usr/share/applications/io.github.terminaladdict.sadptools.desktop
+          test -f /usr/share/icons/hicolor/scalable/apps/io.github.terminaladdict.sadptools.svg
+          /usr/bin/sadptools --version
+          sudo apt-get remove -y sadptools
+          test ! -e /usr/bin/SADPTools
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SADPTools-Linux-installers
+          path: bin/linux/*

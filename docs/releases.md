@@ -35,10 +35,17 @@ make release-publish VERSION=0.2.0-beta.1
 
 Publishing requires `gh auth login` for an account with repository write access
 and Git push access to `origin`. The script targets `TerminalAddict/SADPTools`,
-requires `main`, verifies source/notes/checksums, and refuses mismatched tags.
+requires `main` (or a detached worktree at its exact current commit), verifies
+source/notes/checksums, and refuses mismatched tags.
 The publish command is an explicit instruction to push and publish; it does not
 prompt again. A future protected `main` branch may require pushing through a PR
 before running it.
+
+If the working directory contains unrelated local files, commit the intended
+release changes and create a clean checkout with
+`git worktree add --detach .cache/release-worktree main`. Run the build and
+publish commands inside that worktree. The build still rejects any dirty files
+there, and publication rejects a detached commit if `main` has since moved.
 
 ## Build inputs and downloads
 
@@ -56,6 +63,11 @@ installer, and builds Windows/Linux AMD64 CLIs. It checks the embedded Go versio
 string and executes the Linux CLI's `--version`. Generated bindings must match
 the committed bindings or the clean-checkout check fails.
 
+From `0.3.0-beta.2`, bundles also build the Linux desktop and its DEB, RPM and manual
+installers. The build host needs GTK4/WebKitGTK development libraries and
+`dpkg-shlibdeps`; see [Linux packaging](linux-packaging.md). Wails' pinned
+embedded nFPM builds both native formats without installing RPM tooling.
+
 The ignored `bin/releases/v<VERSION>/` directory contains:
 
 | Download | Purpose |
@@ -64,16 +76,22 @@ The ignored `bin/releases/v<VERSION>/` directory contains:
 | `SADPTools-<VERSION>-standalone-windows-amd64.zip` | Standalone desktop app and licence notices; extract and run `SADPTools-windows-amd64.exe` on a PC with WebView2 already present |
 | `sadptools-<VERSION>-windows-amd64.zip` | Standalone Windows CLI, usage notes and licences |
 | `sadptools-<VERSION>-linux-amd64.tar.gz` | Static Linux CLI, usage notes and licences |
+| `SADPTools-<VERSION>-linux-amd64.deb` | Linux desktop/CLI with application menu/icon; install using APT |
+| `SADPTools-<VERSION>-linux-x86_64.rpm` | Linux desktop/CLI with application menu/icon; install using Fedora DNF |
+| `SADPTools-<VERSION>-linux-amd64.tar.gz` | Linux desktop/CLI with `install.sh`; per-user or all-users installation and removal |
 | `build-manifest.json` | Source commit, version, toolchain details, pinned installer inputs and artifact hashes |
-| `SHA256SUMS` | SHA-256 checksums for all five files above |
+| `SHA256SUMS` | SHA-256 checksums for every installer/archive and the build manifest |
 
 The standalone desktop ZIP is included from `0.3.0-beta.1` onwards. Earlier
 immutable release bundles remain verifiable without adding or replacing files.
 The build manifest records whether the desktop archive belongs to that bundle.
 
-GitHub also provides the tagged source archives. Linux desktop users currently
-build from source with `make linux-gui`; the GTK/WebKit libraries differ by
-distribution, so this beta does not ship a generic Linux desktop binary.
+GitHub also provides the tagged source archives. The new Linux installers are
+recorded with `linux_installers: true` in the build manifest. Old immutable
+bundles (including `v0.3.0-beta.1`) remain verifiable without adding files. These
+packages use distribution-managed GTK4/WebKitGTK libraries; they are not static
+GUI binaries. See the runtime requirements and validation scope in the Linux
+packaging guide.
 
 `VERSION` stamps the Go app/CLI, Windows resources, installer properties and
 installed-apps entry. Windows numeric versions use `MAJOR.MINOR.PATCH.REVISION`:

@@ -1,11 +1,11 @@
 WAILS_VERSION := v3.0.0-beta.34
 WAILS := $(shell go env GOPATH)/bin/wails3
 export PATH := $(dir $(WAILS)):$(PATH)
-VERSION ?= 0.3.0-beta.1
+VERSION ?= 0.3.0-beta.2
 export SADPTOOLS_VERSION := $(VERSION)
 VERSION_FLAGS := -X github.com/TerminalAddict/SADPTools/internal/version.Value=$(VERSION)
 
-.PHONY: tools cli frontend bindings windows windows-installer installer linux-gui check dev branding release-build release-publish
+.PHONY: tools cli frontend bindings windows windows-installer installer linux-gui linux-packages check dev branding release-build release-publish
 
 tools:
 	CGO_ENABLED=0 go install github.com/wailsapp/wails/v3/cmd/wails3@$(WAILS_VERSION)
@@ -32,6 +32,9 @@ windows:
 linux-gui:
 	$(WAILS) build GOOS=linux GOARCH=amd64
 
+linux-packages:
+	$(WAILS) package GOOS=linux GOARCH=amd64
+
 installer: windows-installer
 
 windows-installer:
@@ -44,6 +47,7 @@ check:
 	npm --prefix frontend test
 	python3 -m unittest discover -s build/windows -p 'test_*.py'
 	python3 -m unittest discover -s build -p 'test_*.py'
+	python3 -m unittest discover -s build/linux -p 'test_*.py'
 
 release-build:
 	python3 build/release.py build '$(VERSION)'

@@ -17,6 +17,7 @@ import tempfile
 import zipfile
 
 from release_version import windows_version
+from linux.package import asset_names as linux_asset_names
 
 ROOT = Path(__file__).resolve().parents[1]
 REPO = "TerminalAddict/SADPTools"
@@ -52,12 +53,25 @@ def clean_commit():
     return run("git", "rev-parse", "HEAD", capture=True)
 
 
-def asset_names(version, *, standalone_desktop=True):
+def verify_publish_branch(commit):
+    branch = run("git", "branch", "--show-current", capture=True)
+    # A detached worktree allows a clean release without moving or including
+    # unrelated local work. It must identify main's exact current commit.
+    if branch == "main":
+        return
+    if branch == "" and run("git", "rev-parse", "refs/heads/main", capture=True) == commit:
+        return
+    raise ValueError("Publish from main or a clean detached worktree at main's current commit")
+
+
+def asset_names(version, *, standalone_desktop=True, linux_installers=False):
     names = {f"SADPTools-{version}-Setup-windows-amd64.exe",
              f"sadptools-{version}-windows-amd64.zip",
              f"sadptools-{version}-linux-amd64.tar.gz"}
     if standalone_desktop:
         names.add(f"SADPTools-{version}-standalone-windows-amd64.zip")
+    if linux_installers:
+        names.update(linux_asset_names(version))
     return names
 
 
@@ -69,7 +83,8 @@ def verify_bundle(folder, version, commit):
     manifest = json.loads((folder / "build-manifest.json").read_text())
     # Older releases predate the standalone desktop download. Keep their
     # immutable bundles verifiable without changing or replacing public files.
-    names = asset_names(version, standalone_desktop=manifest.get("standalone_desktop", False))
+    names = asset_names(version, standalone_desktop=manifest.get("standalone_desktop", False),
+                        linux_installers=manifest.get("linux_installers", False))
     expected = names | {"build-manifest.json", "SHA256SUMS"}
     if {p.name for p in folder.iterdir()} != expected:
         raise ValueError("Release directory has missing or unexpected files")
@@ -160,7 +175,7 @@ def build(version, folder):
         raise ValueError("The release builder currently runs on Linux AMD64 (Sparx)")
     if folder.exists():
         raise ValueError(f"{folder} already exists; preserve published builds or remove an unpublished build explicitly")
-    for tool in ("go", "npm", "node", "make", "7z"):
+    for tool in ("go", "npm", "node", "make", "7z", "dpkg-shlibdeps"):
         if not shutil.which(tool):
             raise ValueError(f"Missing build tool: {tool}; see docs/releases.md")
     wails = Path(run("go", "env", "GOPATH", capture=True)) / "bin/wails3"
@@ -172,7 +187,7 @@ def build(version, folder):
     run("make", "check", env=env)
     run("make", "windows-installer", f"VERSION={version}", env=env)
     run("7z", "t", ROOT / "bin/SADPTools-Setup-windows-amd64.exe")
-    run("make", "cli", f"VERSION={version}", env=dict(env, GOOS="linux", GOARCH="amd64"))
+    run("make", "linux-packages", f"VERSION={version}", env=env)
     if run(ROOT / "bin/sadptools", "--version", capture=True) != f"sadptools {version}":
         raise ValueError("Linux CLI does not report the release version")
     # NSIS resolves File inputs case-insensitively even on Linux. Keep the CLI
@@ -182,7 +197,8 @@ def build(version, folder):
     run("go", "build", "-trimpath", "-buildvcs=false", "-ldflags", f"-s -w -X {VERSION_SYMBOL}={version}",
         "-o", windows_cli, "./cmd/sadptools",
         env=dict(env, GOOS="windows", GOARCH="amd64", CGO_ENABLED="0"))
-    for binary in (ROOT / "bin/sadptools", windows_cli, ROOT / "bin/SADPTools-windows-amd64.exe"):
+    for binary in (ROOT / "bin/sadptools", windows_cli, ROOT / "bin/SADPTools-windows-amd64.exe",
+                   ROOT / "bin/SADPTools-linux-amd64"):
         verify_binary_version(binary, version)
     if clean_commit() != commit:
         raise ValueError("Source changed during the release build; rebuild from a clean commit")
@@ -194,9 +210,13 @@ def build(version, folder):
         cli_archive(stage, version, "linux", ROOT / "bin/sadptools")
         cli_archive(stage, version, "windows", windows_cli)
         desktop_archive(stage, version, ROOT / "bin/SADPTools-windows-amd64.exe")
+        for name in linux_asset_names(version):
+            shutil.copy2(ROOT / "bin/linux" / name, stage / name)
+        names = asset_names(version, linux_installers=True)
         manifest = {
             "version": version, "tag": f"v{version}", "commit": commit,
             "standalone_desktop": True,
+            "linux_installers": True,
             "notes_sha256": digest(notes),
             "toolchain": {"go": run("go", "version", capture=True),
                           "node": run("node", "--version", capture=True),
@@ -204,10 +224,10 @@ def build(version, folder):
                           "wails": "v3.0.0-beta.34",
                           "python": platform.python_version(),
                           "installer": json.loads((ROOT / "build/windows/installer-inputs.json").read_text())},
-            "sha256": {name: digest(stage / name) for name in sorted(asset_names(version))},
+            "sha256": {name: digest(stage / name) for name in sorted(names)},
         }
         (stage / "build-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
-        (stage / "SHA256SUMS").write_text(checksum_text(stage, asset_names(version) | {"build-manifest.json"}))
+        (stage / "SHA256SUMS").write_text(checksum_text(stage, names | {"build-manifest.json"}))
         verify_bundle(stage, version, commit)
         stage.rename(folder)
     print(f"Release files verified: {folder}\nPublish with: make release-publish VERSION={version}")
@@ -219,8 +239,7 @@ def publish(version, folder):
     manifest = verify_bundle(folder, version, commit)
     if manifest["notes_sha256"] != digest(notes):
         raise ValueError("Release notes changed since the build")
-    if run("git", "branch", "--show-current", capture=True) != "main":
-        raise ValueError("Publish from main after merging the release changes")
+    verify_publish_branch(commit)
     remote = run("git", "remote", "get-url", "--push", "origin", capture=True)
     if remote not in (f"git@github.com:{REPO}.git", f"https://github.com/{REPO}.git", f"https://github.com/{REPO}"):
         raise ValueError("Origin must point to the SADPTools GitHub repository")
