@@ -100,7 +100,7 @@ export function initScanner(kit) {
       .join("\n\n");
     const d = dialog(
       `IP ${h.ip}`,
-      `<p><strong>${esc(h.status)}</strong> · ${h.known ? "Known assignment/evidence" : "No saved assignment"}${h.responding ? " · Responding" : ""}</p><p>${esc(h.reserved)} ${h.conflict ? "Contradictory MAC evidence — review ownership." : ""}</p><p>MAC evidence: ${esc(h.macs?.join(", ") || "Unknown")}<br>Device matches: ${esc(h.matches?.join(", ") || "None")}<br>Hostname: ${esc(h.hostname || "Not queried")}</p><pre class="tool-readable">${esc(ev || "Not yet probed")}</pre><p class="small">No response is inconclusive. Verify again before assigning an address.</p><div class="tool-actions"><button type="button" data-host-action="copy" class="btn btn-outline-secondary">Copy IP</button><button type="button" data-host-action="ping" class="btn btn-outline-secondary">Ping again</button><button type="button" data-host-action="web" class="btn btn-outline-secondary">Open web interface</button><button type="button" data-host-action="ports" class="btn btn-outline-secondary">Inspect services</button><button type="button" data-host-action="dns" class="btn btn-outline-secondary">Resolve hostname</button><button type="button" data-host-action="reserve" class="btn btn-outline-secondary">Reserve IP</button><button type="button" data-host-action="associate" class="btn btn-outline-secondary">Associate saved device</button><button type="button" data-host-action="assign" class="btn btn-outline-secondary">Plan assignment</button></div>`,
+      `<p><strong>${esc(h.status)}</strong> · ${h.known ? "Known assignment/evidence" : "No saved assignment"}${h.responding ? " · Responding" : ""}</p><p>${esc(h.reserved)} ${h.conflict ? "Contradictory MAC evidence — review ownership." : ""}</p><p>MAC evidence: ${esc(h.macs?.join(", ") || "Unknown")}<br>Device matches: ${esc(h.matches?.join(", ") || "None")}<br>Hostname: ${esc(h.hostname || "Not queried")}</p><pre class="tool-readable">${esc(ev || "Not yet probed")}</pre><p class="small">No response is inconclusive. Verify again before assigning an address.</p><div class="tool-actions"><button type="button" data-host-action="add-camera" class="btn btn-primary">Add camera by IP</button><button type="button" data-host-action="copy" class="btn btn-outline-secondary">Copy IP</button><button type="button" data-host-action="ping" class="btn btn-outline-secondary">Ping again</button><button type="button" data-host-action="web" class="btn btn-outline-secondary">Open web interface</button><button type="button" data-host-action="ports" class="btn btn-outline-secondary">Inspect services</button><button type="button" data-host-action="dns" class="btn btn-outline-secondary">Resolve hostname</button><button type="button" data-host-action="reserve" class="btn btn-outline-secondary">Reserve IP</button><button type="button" data-host-action="associate" class="btn btn-outline-secondary">Associate saved device</button><button type="button" data-host-action="assign" class="btn btn-outline-secondary">Plan assignment</button></div>`,
       async () => {},
       "Close",
     );
@@ -110,6 +110,11 @@ export function initScanner(kit) {
         perform(async () => {
           const site = kit.sites.active()?.id || "";
           switch (b.dataset.hostAction) {
+            case "add-camera":
+              d.close();
+              d.remove();
+              await kit.sites.addByIP(h.ip);
+              break;
             case "copy":
               await API.CopyText(h.ip);
               break;
@@ -299,7 +304,7 @@ export function initScanner(kit) {
       initialized = true;
     }
     $("scanner-page").innerHTML =
-      `<div class="tool-heading"><div><h2>IP scanner</h2><p>Investigate a defined IPv4 range. No response is not a guarantee that an IP is free.</p></div></div><div class="ip-controls"><label>Network adapter<select id="ip-adapter" class="form-select">${adapters
+      `<div class="tool-heading"><div><h2>IP scanner</h2><p>Investigate a defined IPv4 range. No response is not a guarantee that an IP is free.</p></div><button id="ip-add-camera" class="btn btn-outline-primary">Add camera by IP</button></div><div class="ip-controls"><label>Network adapter<select id="ip-adapter" class="form-select">${adapters
         .filter((a) => a.unicastSuitable)
         .map((a) =>
           option(
@@ -311,6 +316,7 @@ export function initScanner(kit) {
         .join(
           "",
         )}</select></label><label>CIDR<input id="ip-cidr" class="form-control" value="${esc(options.cidr)}"></label><label>Start IP<input id="ip-start" class="form-control" value="${esc(options.start)}"></label><label>End IP<input id="ip-end" class="form-control" value="${esc(options.end)}"></label><button id="ip-calculate" class="btn btn-outline-secondary">Calculate scope</button></div><p id="ip-scope" class="small text-body-secondary"></p><details class="mb-3"><summary>Probe settings</summary><div class="ip-controls mt-2"><label><input id="ip-icmp" type="checkbox" ${options.icmp ? "checked" : ""}> ICMP echo</label><label>TCP ports (empty = off)<input id="ip-ports" class="form-control" value="${esc(options.tcpPorts.join(","))}"></label><label>Timeout ms<input id="ip-timeout" class="form-control" type="number" min="100" max="3000" value="${options.timeoutMS}"></label><label>Workers<input id="ip-workers" class="form-control" type="number" min="1" max="64" value="${options.workers}"></label><label>Hosts / second<input id="ip-rate" class="form-control" type="number" min="1" max="200" value="${options.rate}"></label></div></details><div class="tool-actions"><button id="ip-start-scan" class="btn btn-primary">Start scan</button><button id="ip-stop" class="btn btn-outline-secondary">Stop / Cancel</button><button id="ip-rescan" class="btn btn-outline-secondary">Rescan</button><button id="ip-reset" class="btn btn-outline-secondary">Reset</button><button id="ip-save" class="btn btn-outline-secondary">Save scan to site</button><button id="ip-export" class="btn btn-outline-secondary">Export</button><select id="ip-mode" class="form-select w-auto">${option("grid", "Grid", mode) + option("table", "Table", mode)}</select><select id="ip-filter" class="form-select w-auto">${["", "responding", "no-response", "known", "conflict", "reserved", "unscanned"].map((x) => option(x, x || "All addresses", filter)).join("")}</select><select id="ip-sort" class="form-select w-auto">${["ip", "status", "hostname"].map((x) => option(x, `Sort: ${x}`, sort)).join("")}</select><button id="ip-direction" class="btn btn-outline-secondary">${descending ? "↓" : "↑"}</button></div><div class="d-flex gap-3 small"><span id="ip-count"></span><span id="ip-duration"></span></div><div class="progress my-2" style="height:6px"><div id="ip-progress" class="progress-bar"></div></div><p id="ip-warnings" class="small text-warning"></p><div class="ip-legend">${["responding", "known", "no-response", "reserved", "unscanned", "conflict"].map((s) => `<span class="ip-${s}">${s}</span>`).join("")}</div><div id="ip-results"></div><div class="tool-actions mt-3"><button id="ip-prev" class="btn btn-sm btn-outline-secondary">Previous</button><span id="ip-page-label"></span><button id="ip-next" class="btn btn-sm btn-outline-secondary">Next</button></div>`;
+    $("ip-add-camera").onclick = () => perform(() => kit.sites.addByIP());
     $("ip-adapter").onchange = () => {
       options.interface = $("ip-adapter").value;
       $("ip-cidr").value =

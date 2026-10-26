@@ -8,6 +8,9 @@ import { Create as $Create } from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
+import * as cameraip$0 from "../cameraip/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
 import * as devices$0 from "../devices/models.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -67,6 +70,161 @@ export class AdvancedView {
             $$parsedSource["checks"] = $$createField2_0($$parsedSource["checks"]);
         }
         return new AdvancedView(/** @type {Partial<AdvancedView>} */($$parsedSource));
+    }
+}
+
+export class CameraIPCheck {
+    /**
+     * Creates a new CameraIPCheck instance.
+     * @param {Partial<CameraIPCheck>} [$$source = {}] - The source object to create the CameraIPCheck.
+     */
+    constructor($$source = {}) {
+        if (!("token" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["token"] = "";
+        }
+        if (!("siteID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["siteID"] = "";
+        }
+        if (!("credentialID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["credentialID"] = "";
+        }
+        if (!("result" in $$source)) {
+            /**
+             * @member
+             * @type {cameraip$0.Result}
+             */
+            this["result"] = (new cameraip$0.Result());
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new CameraIPCheck instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {CameraIPCheck}
+     */
+    static createFrom($$source = {}) {
+        const $$createField3_0 = $$createType5;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("result" in $$parsedSource) {
+            $$parsedSource["result"] = $$createField3_0($$parsedSource["result"]);
+        }
+        return new CameraIPCheck(/** @type {Partial<CameraIPCheck>} */($$parsedSource));
+    }
+}
+
+export class CameraIPRequest {
+    /**
+     * Creates a new CameraIPRequest instance.
+     * @param {Partial<CameraIPRequest>} [$$source = {}] - The source object to create the CameraIPRequest.
+     */
+    constructor($$source = {}) {
+        if (!("siteID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["siteID"] = "";
+        }
+        if (!("credentialID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["credentialID"] = "";
+        }
+        if (!("target" in $$source)) {
+            /**
+             * @member
+             * @type {cameraip$0.Options}
+             */
+            this["target"] = (new cameraip$0.Options());
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new CameraIPRequest instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {CameraIPRequest}
+     */
+    static createFrom($$source = {}) {
+        const $$createField2_0 = $$createType6;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("target" in $$parsedSource) {
+            $$parsedSource["target"] = $$createField2_0($$parsedSource["target"]);
+        }
+        return new CameraIPRequest(/** @type {Partial<CameraIPRequest>} */($$parsedSource));
+    }
+}
+
+export class CameraIPSave {
+    /**
+     * Creates a new CameraIPSave instance.
+     * @param {Partial<CameraIPSave>} [$$source = {}] - The source object to create the CameraIPSave.
+     */
+    constructor($$source = {}) {
+        if (!("token" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["token"] = "";
+        }
+        if (!("siteID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["siteID"] = "";
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("location" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["location"] = "";
+        }
+        if (!("allowUnverified" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["allowUnverified"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new CameraIPSave instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {CameraIPSave}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new CameraIPSave(/** @type {Partial<CameraIPSave>} */($$parsedSource));
     }
 }
 
@@ -331,8 +489,8 @@ export class PreviewDevice {
      * @returns {PreviewDevice}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType5;
-        const $$createField1_0 = $$createType7;
+        const $$createField0_0 = $$createType7;
+        const $$createField1_0 = $$createType9;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("device" in $$parsedSource) {
             $$parsedSource["device"] = $$createField0_0($$parsedSource["device"]);
@@ -744,9 +902,9 @@ export class WalkTest {
      * @returns {WalkTest}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType9;
-        const $$createField7_0 = $$createType10;
-        const $$createField8_0 = $$createType12;
+        const $$createField0_0 = $$createType11;
+        const $$createField7_0 = $$createType12;
+        const $$createField8_0 = $$createType14;
         const $$createField14_0 = $$createType4;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("assessments" in $$parsedSource) {
@@ -771,11 +929,13 @@ const $$createType1 = $Create.Array($$createType0);
 const $$createType2 = sites$0.Asset.createFrom;
 const $$createType3 = $Create.Array($$createType2);
 const $$createType4 = $Create.Array($Create.Any);
-const $$createType5 = devices$0.Device.createFrom;
-const $$createType6 = PreviewCredential.createFrom;
-const $$createType7 = $Create.Array($$createType6);
-const $$createType8 = EventAssessment.createFrom;
+const $$createType5 = cameraip$0.Result.createFrom;
+const $$createType6 = cameraip$0.Options.createFrom;
+const $$createType7 = devices$0.Device.createFrom;
+const $$createType8 = PreviewCredential.createFrom;
 const $$createType9 = $Create.Array($$createType8);
-const $$createType10 = onvif$0.EventCapabilities.createFrom;
-const $$createType11 = onvif$0.CameraEvent.createFrom;
-const $$createType12 = $Create.Array($$createType11);
+const $$createType10 = EventAssessment.createFrom;
+const $$createType11 = $Create.Array($$createType10);
+const $$createType12 = onvif$0.EventCapabilities.createFrom;
+const $$createType13 = onvif$0.CameraEvent.createFrom;
+const $$createType14 = $Create.Array($$createType13);

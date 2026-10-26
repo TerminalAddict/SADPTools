@@ -16,6 +16,45 @@ import * as devices$0 from "../devices/models.js";
 // @ts-ignore: Unused imports
 import * as ipscan$0 from "../ipscan/models.js";
 
+export class AddedCamera {
+    /**
+     * Creates a new AddedCamera instance.
+     * @param {Partial<AddedCamera>} [$$source = {}] - The source object to create the AddedCamera.
+     */
+    constructor($$source = {}) {
+        if (!("record" in $$source)) {
+            /**
+             * @member
+             * @type {Record}
+             */
+            this["record"] = (new Record());
+        }
+        if (!("existing" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["existing"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new AddedCamera instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {AddedCamera}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType0;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("record" in $$parsedSource) {
+            $$parsedSource["record"] = $$createField0_0($$parsedSource["record"]);
+        }
+        return new AddedCamera(/** @type {Partial<AddedCamera>} */($$parsedSource));
+    }
+}
+
 export class Asset {
     /**
      * Creates a new Asset instance.
@@ -351,7 +390,7 @@ export class Preferences {
      * @returns {Preferences}
      */
     static createFrom($$source = {}) {
-        const $$createField1_0 = $$createType0;
+        const $$createField1_0 = $$createType1;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("scanner" in $$parsedSource) {
             $$parsedSource["scanner"] = $$createField1_0($$parsedSource["scanner"]);
@@ -481,9 +520,9 @@ export class Proposal {
      * @returns {Proposal}
      */
     static createFrom($$source = {}) {
-        const $$createField4_0 = $$createType1;
-        const $$createField5_0 = $$createType1;
-        const $$createField6_0 = $$createType3;
+        const $$createField4_0 = $$createType2;
+        const $$createField5_0 = $$createType2;
+        const $$createField6_0 = $$createType4;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("before" in $$parsedSource) {
             $$parsedSource["before"] = $$createField4_0($$parsedSource["before"]);
@@ -598,9 +637,9 @@ export class Record {
      * @returns {Record}
      */
     static createFrom($$source = {}) {
-        const $$createField2_0 = $$createType1;
-        const $$createField5_0 = $$createType4;
-        const $$createField6_0 = $$createType4;
+        const $$createField2_0 = $$createType2;
+        const $$createField5_0 = $$createType5;
+        const $$createField6_0 = $$createType5;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("device" in $$parsedSource) {
             $$parsedSource["device"] = $$createField2_0($$parsedSource["device"]);
@@ -757,7 +796,7 @@ export class SaveResult {
      * @returns {SaveResult}
      */
     static createFrom($$source = {}) {
-        const $$createField2_0 = $$createType4;
+        const $$createField2_0 = $$createType5;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("review" in $$parsedSource) {
             $$parsedSource["review"] = $$createField2_0($$parsedSource["review"]);
@@ -880,9 +919,9 @@ export class Site {
      * @returns {Site}
      */
     static createFrom($$source = {}) {
-        const $$createField5_0 = $$createType4;
-        const $$createField6_0 = $$createType4;
-        const $$createField8_0 = $$createType4;
+        const $$createField5_0 = $$createType5;
+        const $$createField6_0 = $$createType5;
+        const $$createField8_0 = $$createType5;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("tags" in $$parsedSource) {
             $$parsedSource["tags"] = $$createField5_0($$parsedSource["tags"]);
@@ -997,7 +1036,7 @@ export class View {
      * @returns {View}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType5;
+        const $$createField0_0 = $$createType6;
         const $$createField1_0 = $$createType7;
         const $$createField2_0 = $$createType9;
         const $$createField3_0 = $$createType11;
@@ -1023,14 +1062,14 @@ export class View {
 }
 
 // Private type creation functions
-const $$createType0 = ipscan$0.Options.createFrom;
-const $$createType1 = devices$0.Device.createFrom;
-const $$createType2 = Difference.createFrom;
-const $$createType3 = $Create.Array($$createType2);
-const $$createType4 = $Create.Array($Create.Any);
-const $$createType5 = Site.createFrom;
-const $$createType6 = Record.createFrom;
-const $$createType7 = $Create.Array($$createType6);
+const $$createType0 = Record.createFrom;
+const $$createType1 = ipscan$0.Options.createFrom;
+const $$createType2 = devices$0.Device.createFrom;
+const $$createType3 = Difference.createFrom;
+const $$createType4 = $Create.Array($$createType3);
+const $$createType5 = $Create.Array($Create.Any);
+const $$createType6 = Site.createFrom;
+const $$createType7 = $Create.Array($$createType0);
 const $$createType8 = Profile.createFrom;
 const $$createType9 = $Create.Array($$createType8);
 const $$createType10 = Reservation.createFrom;

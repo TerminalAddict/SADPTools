@@ -4,6 +4,9 @@
 
 export {
     AdvancedView,
+    CameraIPCheck,
+    CameraIPRequest,
+    CameraIPSave,
     DeviceRead,
     EventAssessment,
     Job,

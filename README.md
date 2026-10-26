@@ -215,6 +215,17 @@ Windows binaries compile, but Windows playback and real cameras still require
 operator testing. See the [engine decision](docs/LIVE_VIEW_ENGINE_DECISION.md)
 and [test instructions](docs/LIVE_VIEW_TEST_MATRIX.md).
 
+## Cameras on routed networks
+
+Version **0.5.0-beta.2** adds **Sites → Add camera by IP** and the same
+button in **IP scanner**. Enter a known IPv4 address, check its services/identity,
+then save it to a site and optionally open Live View. It uses the system route
+without requiring multicast or an adapter selection. Custom ports, ONVIF/ISAPI
+sign-in, HTTPS certificate approval and cancellation are supported.
+
+See [Add a camera by IP](docs/add-camera-by-ip.md) for instructions, duplicate
+handling, routed range scans and validation limits.
+
 ## v0.5 commissioning tools
 
 Version **0.5.0-beta.1** adds NVR channel mapping, live stream diagnostics, focus/

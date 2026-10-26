@@ -6,9 +6,11 @@ import (
 	"errors"
 	"github.com/TerminalAddict/SADPTools/internal/app"
 	"github.com/TerminalAddict/SADPTools/internal/audit"
+	"github.com/TerminalAddict/SADPTools/internal/cameraip"
 	"github.com/TerminalAddict/SADPTools/internal/ipscan"
 	"github.com/TerminalAddict/SADPTools/internal/provision"
 	"github.com/TerminalAddict/SADPTools/internal/sites"
+	"github.com/TerminalAddict/SADPTools/internal/vault"
 	"sync"
 	"time"
 )
@@ -27,19 +29,21 @@ type Job struct {
 	Cancelled bool   `json:"cancelled"`
 }
 type Manager struct {
-	walk       WalkTest
-	audit      audit.Report
-	planUsed   bool
-	plan       provision.Plan
-	ipResult   ipscan.Result
-	Store      *sites.Store
-	Controller *app.Controller
-	mu         sync.Mutex
-	job        Job
-	cancel     context.CancelFunc
-	wg         sync.WaitGroup
-	closed     bool
-	notify     func()
+	cameraIP      *pendingCameraIP
+	cameraIPProbe func(context.Context, cameraip.Options, vault.Secret, func(string)) (cameraip.Result, error)
+	walk          WalkTest
+	audit         audit.Report
+	planUsed      bool
+	plan          provision.Plan
+	ipResult      ipscan.Result
+	Store         *sites.Store
+	Controller    *app.Controller
+	mu            sync.Mutex
+	job           Job
+	cancel        context.CancelFunc
+	wg            sync.WaitGroup
+	closed        bool
+	notify        func()
 }
 
 func New(path string, c *app.Controller, notify func()) (*Manager, error) {
@@ -88,7 +92,7 @@ func (m *Manager) start(kind, site string, fn func(context.Context) error) error
 		m.mu.Lock()
 		m.job.Running = false
 		m.job.Completed = time.Now().UTC().Format(time.RFC3339)
-		m.job.Cancelled = errors.Is(ctx.Err(), context.Canceled)
+		m.job.Cancelled = errors.Is(ctx.Err(), context.Canceled) || errors.Is(err, context.Canceled)
 		if err != nil && !m.job.Cancelled {
 			m.job.Error = err.Error()
 		}
