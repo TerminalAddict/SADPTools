@@ -111,6 +111,129 @@ export class Info {
     }
 }
 
+/**
+ * Metrics describe observed RTP packets/access units and delivered media bytes.
+ * They are never labelled as decoded frames or camera encoder targets.
+ */
+export class Metrics {
+    /**
+     * Creates a new Metrics instance.
+     * @param {Partial<Metrics>} [$$source = {}] - The source object to create the Metrics.
+     */
+    constructor($$source = {}) {
+        if (!("source" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["source"] = "";
+        }
+        if (!("elapsedSeconds" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["elapsedSeconds"] = 0;
+        }
+        if (!("rtpPackets" in $$source)) {
+            /**
+             * @member
+             * @type {number | null}
+             */
+            this["rtpPackets"] = null;
+        }
+        if (!("rtpBytes" in $$source)) {
+            /**
+             * @member
+             * @type {number | null}
+             */
+            this["rtpBytes"] = null;
+        }
+        if (!("accessUnits" in $$source)) {
+            /**
+             * @member
+             * @type {number | null}
+             */
+            this["accessUnits"] = null;
+        }
+        if (!("lostPackets" in $$source)) {
+            /**
+             * @member
+             * @type {number | null}
+             */
+            this["lostPackets"] = null;
+        }
+        if (!("decodeErrors" in $$source)) {
+            /**
+             * @member
+             * @type {number | null}
+             */
+            this["decodeErrors"] = null;
+        }
+        if (!("rtpMbps" in $$source)) {
+            /**
+             * @member
+             * @type {number | null}
+             */
+            this["rtpMbps"] = null;
+        }
+        if (!("encodedFPS" in $$source)) {
+            /**
+             * @member
+             * @type {number | null}
+             */
+            this["encodedFPS"] = null;
+        }
+        if (!("deliveredMbps" in $$source)) {
+            /**
+             * @member
+             * @type {number | null}
+             */
+            this["deliveredMbps"] = null;
+        }
+        if (!("firstMediaMS" in $$source)) {
+            /**
+             * @member
+             * @type {number | null}
+             */
+            this["firstMediaMS"] = null;
+        }
+        if (!("firstPlayingMS" in $$source)) {
+            /**
+             * @member
+             * @type {number | null}
+             */
+            this["firstPlayingMS"] = null;
+        }
+        if (!("nominalFPS" in $$source)) {
+            /**
+             * @member
+             * @type {number | null}
+             */
+            this["nominalFPS"] = null;
+        }
+        if (!("decodedDrops" in $$source)) {
+            /**
+             * @member
+             * @type {number | null}
+             */
+            this["decodedDrops"] = null;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new Metrics instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {Metrics}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new Metrics(/** @type {Partial<Metrics>} */($$parsedSource));
+    }
+}
+
 export class Profile {
     /**
      * Creates a new Profile instance.
@@ -173,6 +296,20 @@ export class Status {
      * @param {Partial<Status>} [$$source = {}] - The source object to create the Status.
      */
     constructor($$source = {}) {
+        if (!("metrics" in $$source)) {
+            /**
+             * @member
+             * @type {Metrics}
+             */
+            this["metrics"] = (new Metrics());
+        }
+        if (!("timeline" in $$source)) {
+            /**
+             * @member
+             * @type {Transition[]}
+             */
+            this["timeline"] = [];
+        }
         if (!("id" in $$source)) {
             /**
              * @member
@@ -253,14 +390,22 @@ export class Status {
      * @returns {Status}
      */
     static createFrom($$source = {}) {
-        const $$createField3_0 = $$createType0;
-        const $$createField4_0 = $$createType2;
+        const $$createField0_0 = $$createType0;
+        const $$createField1_0 = $$createType2;
+        const $$createField5_0 = $$createType3;
+        const $$createField6_0 = $$createType5;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("metrics" in $$parsedSource) {
+            $$parsedSource["metrics"] = $$createField0_0($$parsedSource["metrics"]);
+        }
+        if ("timeline" in $$parsedSource) {
+            $$parsedSource["timeline"] = $$createField1_0($$parsedSource["timeline"]);
+        }
         if ("info" in $$parsedSource) {
-            $$parsedSource["info"] = $$createField3_0($$parsedSource["info"]);
+            $$parsedSource["info"] = $$createField5_0($$parsedSource["info"]);
         }
         if ("profiles" in $$parsedSource) {
-            $$parsedSource["profiles"] = $$createField4_0($$parsedSource["profiles"]);
+            $$parsedSource["profiles"] = $$createField6_0($$parsedSource["profiles"]);
         }
         return new Status(/** @type {Partial<Status>} */($$parsedSource));
     }
@@ -294,7 +439,59 @@ export class Ticket {
     }
 }
 
+export class Transition {
+    /**
+     * Creates a new Transition instance.
+     * @param {Partial<Transition>} [$$source = {}] - The source object to create the Transition.
+     */
+    constructor($$source = {}) {
+        if (!("state" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["state"] = "";
+        }
+        if (!("message" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["message"] = "";
+        }
+        if (!("at" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["at"] = "0001-01-01T00:00:00.000Z";
+        }
+        if (!("elapsedMS" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["elapsedMS"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new Transition instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {Transition}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new Transition(/** @type {Partial<Transition>} */($$parsedSource));
+    }
+}
+
 // Private type creation functions
-const $$createType0 = Info.createFrom;
-const $$createType1 = Profile.createFrom;
+const $$createType0 = Metrics.createFrom;
+const $$createType1 = Transition.createFrom;
 const $$createType2 = $Create.Array($$createType1);
+const $$createType3 = Info.createFrom;
+const $$createType4 = Profile.createFrom;
+const $$createType5 = $Create.Array($$createType4);

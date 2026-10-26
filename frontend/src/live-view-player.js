@@ -12,18 +12,23 @@ export class CameraPlayer {
       );
     const frame = () => {
       if (this.closed) return;
-      this.onFrame();
+      this.onFrame(true);
       this.frameID = video.requestVideoFrameCallback?.(frame);
     };
     if (video.requestVideoFrameCallback)
       this.frameID = video.requestVideoFrameCallback(frame);
-    else
-      video.ontimeupdate = () => {
-        if (!video.paused && video.currentTime !== this.lastTime) {
-          this.lastTime = video.currentTime;
-          onFrame();
-        }
-      };
+    // Some WebKit builds expose frame callbacks without invoking them. Advancing
+    // playback is still liveness evidence, but is not a measured frame count.
+    video.ontimeupdate = () => {
+      if (
+        !this.closed &&
+        !video.paused &&
+        video.currentTime !== this.lastTime
+      ) {
+        this.lastTime = video.currentTime;
+        this.onFrame(false);
+      }
+    };
   }
   information(info) {
     if (this.closed) return;
@@ -83,7 +88,7 @@ export class CameraPlayer {
         new Blob([bytes], { type: "image/jpeg" }),
       );
       this.image.onload = () => {
-        if (!this.closed) this.onFrame();
+        if (!this.closed) this.onFrame(true);
       };
       this.image.onerror = () =>
         this.fail("Camera returned an invalid JPEG image.");

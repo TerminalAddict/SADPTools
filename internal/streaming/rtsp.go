@@ -65,7 +65,7 @@ func playRTSP(ctx context.Context, s Source, sink Sink) error {
 				delete(r.Header, "Location")
 			}
 		},
-		OnTransportSwitch: func(error) {}, OnDecodeError: func(error) {}, OnPacketsLost: func(uint64) {},
+		OnTransportSwitch: func(error) {}, OnDecodeError: func(error) { observe(sink, 0, 0, 0, 1) }, OnPacketsLost: func(n uint64) { observe(sink, 0, 0, n, 0) },
 	}
 	if err = c.Start(); err != nil {
 		return connectionError(ctx, err)
@@ -81,7 +81,7 @@ func playRTSP(ctx context.Context, s Source, sink Sink) error {
 		return connectionError(ctx, err)
 	}
 	if len(desc.Medias) > 16 || desc.BaseURL == nil {
-		return ErrMedia
+		return ErrSDP
 	}
 	// Even though RTP stays on our one TCP connection, reject untrusted SDP
 	// control URLs before generating a SETUP request with credentials.
@@ -154,6 +154,7 @@ func playRTSP(ctx context.Context, s Source, sink Sink) error {
 		if ctx.Err() != nil {
 			return
 		}
+		observe(sink, uint64(p.MarshalSize()), 0, 0, 0)
 		pts, ok := c.PacketPTS(media, p)
 		if !ok {
 			return
@@ -166,6 +167,7 @@ func playRTSP(ctx context.Context, s Source, sink Sink) error {
 			fail(ErrMedia)
 			return
 		}
+		observe(sink, 0, 1, 0, 0)
 		if e = mux.accessUnit(au, pts); e != nil {
 			fail(e)
 			return
@@ -193,7 +195,7 @@ func playRTSP(ctx context.Context, s Source, sink Sink) error {
 		case <-watchdog.C:
 			last := packetTime.Load()
 			if last == 0 && time.Since(started) > 12*time.Second {
-				return errors.New("no decodable keyframe arrived within 12 seconds; select another stream or check camera encoding")
+				return ErrNoVideo
 			}
 			if last != 0 && time.Since(time.Unix(0, last)) > 6*time.Second {
 				return errors.New("video stalled; check the network and use Retry")
@@ -214,6 +216,8 @@ func connectionError(ctx context.Context, err error) error {
 		switch status.Code {
 		case 401, 403:
 			return ErrAuthentication
+		case 461:
+			return ErrTransport
 		case 404:
 			return errors.New("camera stream was not found; check the profile, channel and RTSP path")
 		}
@@ -224,7 +228,7 @@ func connectionError(ctx context.Context, err error) error {
 	}
 	var network net.Error
 	if errors.As(err, &network) && network.Timeout() {
-		return errors.New("camera connection timed out; check the RTSP port, routing and firewall")
+		return ErrTimeout
 	}
-	return errors.New("camera connection closed or was refused; check credentials, stream address and network, then Retry")
+	return ErrConnection
 }

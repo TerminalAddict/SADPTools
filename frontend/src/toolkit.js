@@ -5,6 +5,7 @@ import { initAudit } from "./audit.js";
 import { initProvision } from "./provision.js";
 import { initScanner } from "./scanner.js";
 import { initReconciliation } from "./reconciliation.js";
+import { initAdvanced } from "./advanced.js";
 import { initSites } from "./sites.js";
 export function initToolkit({ getSnapshot, getSelected }) {
   let current = "live",
@@ -65,6 +66,7 @@ export function initToolkit({ getSnapshot, getSelected }) {
       if (job.completed && job.completed !== lastCompletion) {
         lastCompletion = job.completed;
         if (current === "sites") await sites.refresh();
+        if (current === "advanced") await kit.advanced.completed();
         if (
           job.runID &&
           ["Site discovery", "ONVIF information"].includes(job.kind)
@@ -91,6 +93,7 @@ export function initToolkit({ getSnapshot, getSelected }) {
   kit.provision = initProvision(kit);
   kit.audit = initAudit(kit);
   kit.switches = initSwitches(kit);
+  kit.advanced = initAdvanced(kit);
   kit.openRun = async (site, run) => {
     if (run.kind === "audit") return kit.audit.openSaved(site, run);
     message(

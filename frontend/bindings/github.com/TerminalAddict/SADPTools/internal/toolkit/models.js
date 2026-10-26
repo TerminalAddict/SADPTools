@@ -9,6 +9,157 @@ import { Create as $Create } from "@wailsio/runtime";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
 import * as devices$0 from "../devices/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as onvif$0 from "../onvif/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as sites$0 from "../sites/models.js";
+
+export class AdvancedView {
+    /**
+     * Creates a new AdvancedView instance.
+     * @param {Partial<AdvancedView>} [$$source = {}] - The source object to create the AdvancedView.
+     */
+    constructor($$source = {}) {
+        if (!("documents" in $$source)) {
+            /**
+             * @member
+             * @type {sites$0.Document[]}
+             */
+            this["documents"] = [];
+        }
+        if (!("assets" in $$source)) {
+            /**
+             * @member
+             * @type {sites$0.Asset[]}
+             */
+            this["assets"] = [];
+        }
+        if (!("checks" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["checks"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new AdvancedView instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {AdvancedView}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType1;
+        const $$createField1_0 = $$createType3;
+        const $$createField2_0 = $$createType4;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("documents" in $$parsedSource) {
+            $$parsedSource["documents"] = $$createField0_0($$parsedSource["documents"]);
+        }
+        if ("assets" in $$parsedSource) {
+            $$parsedSource["assets"] = $$createField1_0($$parsedSource["assets"]);
+        }
+        if ("checks" in $$parsedSource) {
+            $$parsedSource["checks"] = $$createField2_0($$parsedSource["checks"]);
+        }
+        return new AdvancedView(/** @type {Partial<AdvancedView>} */($$parsedSource));
+    }
+}
+
+export class DeviceRead {
+    /**
+     * Creates a new DeviceRead instance.
+     * @param {Partial<DeviceRead>} [$$source = {}] - The source object to create the DeviceRead.
+     */
+    constructor($$source = {}) {
+        if (!("siteID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["siteID"] = "";
+        }
+        if (!("deviceID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["deviceID"] = "";
+        }
+        if (!("pin" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["pin"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new DeviceRead instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {DeviceRead}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new DeviceRead(/** @type {Partial<DeviceRead>} */($$parsedSource));
+    }
+}
+
+export class EventAssessment {
+    /**
+     * Creates a new EventAssessment instance.
+     * @param {Partial<EventAssessment>} [$$source = {}] - The source object to create the EventAssessment.
+     */
+    constructor($$source = {}) {
+        if (!("eventID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["eventID"] = "";
+        }
+        if (!("result" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["result"] = "";
+        }
+        if (!("notes" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["notes"] = "";
+        }
+        if (!("snapshotID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["snapshotID"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new EventAssessment instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {EventAssessment}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new EventAssessment(/** @type {Partial<EventAssessment>} */($$parsedSource));
+    }
+}
 
 export class Job {
     /**
@@ -180,8 +331,8 @@ export class PreviewDevice {
      * @returns {PreviewDevice}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType0;
-        const $$createField1_0 = $$createType2;
+        const $$createField0_0 = $$createType5;
+        const $$createField1_0 = $$createType7;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("device" in $$parsedSource) {
             $$parsedSource["device"] = $$createField0_0($$parsedSource["device"]);
@@ -199,6 +350,13 @@ export class PreviewOptions {
      * @param {Partial<PreviewOptions>} [$$source = {}] - The source object to create the PreviewOptions.
      */
     constructor($$source = {}) {
+        if (!("streamID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["streamID"] = "";
+        }
         if (!("siteID" in $$source)) {
             /**
              * @member
@@ -305,6 +463,70 @@ export class PreviewOptions {
     }
 }
 
+export class ReportOptions {
+    /**
+     * Creates a new ReportOptions instance.
+     * @param {Partial<ReportOptions>} [$$source = {}] - The source object to create the ReportOptions.
+     */
+    constructor($$source = {}) {
+        if (!("siteID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["siteID"] = "";
+        }
+        if (!("checklistID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["checklistID"] = "";
+        }
+        if (!("documentIDs" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["documentIDs"] = [];
+        }
+        if (!("imageIDs" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["imageIDs"] = [];
+        }
+        if (!("redact" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["redact"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ReportOptions instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ReportOptions}
+     */
+    static createFrom($$source = {}) {
+        const $$createField2_0 = $$createType4;
+        const $$createField3_0 = $$createType4;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("documentIDs" in $$parsedSource) {
+            $$parsedSource["documentIDs"] = $$createField2_0($$parsedSource["documentIDs"]);
+        }
+        if ("imageIDs" in $$parsedSource) {
+            $$parsedSource["imageIDs"] = $$createField3_0($$parsedSource["imageIDs"]);
+        }
+        return new ReportOptions(/** @type {Partial<ReportOptions>} */($$parsedSource));
+    }
+}
+
 export class SiteScope {
     /**
      * Creates a new SiteScope instance.
@@ -384,9 +606,9 @@ export class SiteScope {
      * @returns {SiteScope}
      */
     static createFrom($$source = {}) {
-        const $$createField3_0 = $$createType3;
-        const $$createField4_0 = $$createType3;
-        const $$createField5_0 = $$createType3;
+        const $$createField3_0 = $$createType4;
+        const $$createField4_0 = $$createType4;
+        const $$createField5_0 = $$createType4;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("addresses" in $$parsedSource) {
             $$parsedSource["addresses"] = $$createField3_0($$parsedSource["addresses"]);
@@ -401,8 +623,159 @@ export class SiteScope {
     }
 }
 
+export class WalkTest {
+    /**
+     * Creates a new WalkTest instance.
+     * @param {Partial<WalkTest>} [$$source = {}] - The source object to create the WalkTest.
+     */
+    constructor($$source = {}) {
+        if (!("assessments" in $$source)) {
+            /**
+             * @member
+             * @type {EventAssessment[]}
+             */
+            this["assessments"] = [];
+        }
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("siteID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["siteID"] = "";
+        }
+        if (!("deviceID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["deviceID"] = "";
+        }
+        if (!("started" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["started"] = "";
+        }
+        if (!("completed" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["completed"] = "";
+        }
+        if (!("running" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["running"] = false;
+        }
+        if (!("capabilities" in $$source)) {
+            /**
+             * @member
+             * @type {onvif$0.EventCapabilities}
+             */
+            this["capabilities"] = (new onvif$0.EventCapabilities());
+        }
+        if (!("events" in $$source)) {
+            /**
+             * @member
+             * @type {onvif$0.CameraEvent[]}
+             */
+            this["events"] = [];
+        }
+        if (!("total" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["total"] = 0;
+        }
+        if (!("result" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["result"] = "";
+        }
+        if (!("notes" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["notes"] = "";
+        }
+        if (!("error" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["error"] = "";
+        }
+        if (!("cleanup" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["cleanup"] = "";
+        }
+        if (!("evidenceIDs" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["evidenceIDs"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new WalkTest instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {WalkTest}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType9;
+        const $$createField7_0 = $$createType10;
+        const $$createField8_0 = $$createType12;
+        const $$createField14_0 = $$createType4;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("assessments" in $$parsedSource) {
+            $$parsedSource["assessments"] = $$createField0_0($$parsedSource["assessments"]);
+        }
+        if ("capabilities" in $$parsedSource) {
+            $$parsedSource["capabilities"] = $$createField7_0($$parsedSource["capabilities"]);
+        }
+        if ("events" in $$parsedSource) {
+            $$parsedSource["events"] = $$createField8_0($$parsedSource["events"]);
+        }
+        if ("evidenceIDs" in $$parsedSource) {
+            $$parsedSource["evidenceIDs"] = $$createField14_0($$parsedSource["evidenceIDs"]);
+        }
+        return new WalkTest(/** @type {Partial<WalkTest>} */($$parsedSource));
+    }
+}
+
 // Private type creation functions
-const $$createType0 = devices$0.Device.createFrom;
-const $$createType1 = PreviewCredential.createFrom;
-const $$createType2 = $Create.Array($$createType1);
-const $$createType3 = $Create.Array($Create.Any);
+const $$createType0 = sites$0.Document.createFrom;
+const $$createType1 = $Create.Array($$createType0);
+const $$createType2 = sites$0.Asset.createFrom;
+const $$createType3 = $Create.Array($$createType2);
+const $$createType4 = $Create.Array($Create.Any);
+const $$createType5 = devices$0.Device.createFrom;
+const $$createType6 = PreviewCredential.createFrom;
+const $$createType7 = $Create.Array($$createType6);
+const $$createType8 = EventAssessment.createFrom;
+const $$createType9 = $Create.Array($$createType8);
+const $$createType10 = onvif$0.EventCapabilities.createFrom;
+const $$createType11 = onvif$0.CameraEvent.createFrom;
+const $$createType12 = $Create.Array($$createType11);

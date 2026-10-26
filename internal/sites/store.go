@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-const SchemaVersion = 2
+const SchemaVersion = 3
 
 type Store struct {
 	idleTimer  *time.Timer
@@ -83,7 +83,11 @@ CREATE INDEX IF NOT EXISTS events_site ON events(site_id,at);
 CREATE TABLE IF NOT EXISTS runs(id TEXT PRIMARY KEY,site_id TEXT NOT NULL REFERENCES sites(id) ON DELETE CASCADE,kind TEXT NOT NULL,scope TEXT NOT NULL,at TEXT NOT NULL,outcome TEXT NOT NULL,data TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS switch_assets(id TEXT PRIMARY KEY,site_id TEXT NOT NULL REFERENCES sites(id) ON DELETE CASCADE,data TEXT NOT NULL);
 CREATE INDEX IF NOT EXISTS switch_assets_site ON switch_assets(site_id);
-PRAGMA user_version=2;`)
+CREATE TABLE IF NOT EXISTS site_documents(id TEXT PRIMARY KEY,site_id TEXT NOT NULL REFERENCES sites(id) ON DELETE CASCADE,kind TEXT NOT NULL,updated TEXT NOT NULL,data TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS site_documents_scope ON site_documents(site_id,kind,updated);
+CREATE TABLE IF NOT EXISTS site_assets(id TEXT PRIMARY KEY,site_id TEXT NOT NULL REFERENCES sites(id) ON DELETE CASCADE,metadata TEXT NOT NULL,payload BLOB NOT NULL);
+CREATE INDEX IF NOT EXISTS site_assets_scope ON site_assets(site_id);
+PRAGMA user_version=3;`)
 		if e != nil {
 			tx.Rollback()
 			return fail(e)

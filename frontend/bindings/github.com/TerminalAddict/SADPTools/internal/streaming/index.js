@@ -5,7 +5,9 @@
 export {
     Certificate,
     Info,
+    Metrics,
     Profile,
     Status,
-    Ticket
+    Ticket,
+    Transition
 } from "./models.js";

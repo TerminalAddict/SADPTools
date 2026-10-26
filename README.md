@@ -214,3 +214,29 @@ in the viewer when needed. Active playback keeps its saved credentials in use.
 Windows binaries compile, but Windows playback and real cameras still require
 operator testing. See the [engine decision](docs/LIVE_VIEW_ENGINE_DECISION.md)
 and [test instructions](docs/LIVE_VIEW_TEST_MATRIX.md).
+
+## v0.5 commissioning tools
+
+Version **0.5.0-beta.1** adds NVR channel mapping, live stream diagnostics, focus/
+alignment evidence, guarded ONVIF PTZ/presets, event walk-tests, encrypted settings
+backups/diffs and restore previews, a storage calculator, offline site plans,
+PDF/HTML handover reports and trusted SSH remote discovery. Open **Commissioning**
+for saved-site workflows; stream/focus/PTZ tools are in the separate Live View
+window. The storage calculator also works without a site.
+
+Read the [v0.5 user guide](docs/ADVANCED_FEATURES.md) and
+[validation / physical test checklist](docs/ADVANCED_FEATURES_VALIDATION.md).
+Configuration restore remains disabled pending approved model/firmware hardware
+validation. Unsupported capabilities and unknown metrics are labelled; no real
+NVR/camera/Windows runtime test is implied by synthetic fixtures or compilation.
+
+Remote hosts use the same headless CLI: `sadptools capabilities --json` probes
+version/schema, and `sadptools discover --report --timeout 10s` emits the bounded
+versioned envelope. Existing `discover --json` output remains compatible. SSH
+requires a trusted host key and an explicit discovery action.
+
+Build a local test candidate with `make check`, `make frontend`,
+`make windows-installer` and `make linux-packages`. Windows Setup includes the
+offline WebView2 runtime; the standalone executable uses the runtime already
+present on the PC. No privileged package install is required for the headless
+Go checks or Windows cross-build.

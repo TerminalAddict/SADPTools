@@ -11,34 +11,40 @@ import (
 )
 
 type Status struct {
-	ID               string    `json:"id"`
-	State            string    `json:"state"`
-	Message          string    `json:"message"`
-	Info             Info      `json:"info"`
-	Profiles         []Profile `json:"profiles"`
-	Bytes            uint64    `json:"bytes"`
-	Fragments        uint64    `json:"fragments"`
-	Started          time.Time `json:"started"`
-	CredentialSource string    `json:"credentialSource"`
-	ErrorCode        string    `json:"errorCode"`
+	Metrics          Metrics      `json:"metrics"`
+	Timeline         []Transition `json:"timeline"`
+	ID               string       `json:"id"`
+	State            string       `json:"state"`
+	Message          string       `json:"message"`
+	Info             Info         `json:"info"`
+	Profiles         []Profile    `json:"profiles"`
+	Bytes            uint64       `json:"bytes"`
+	Fragments        uint64       `json:"fragments"`
+	Started          time.Time    `json:"started"`
+	CredentialSource string       `json:"credentialSource"`
+	ErrorCode        string       `json:"errorCode"`
 }
 type Resolver func(context.Context, func(string, string), func([]Profile)) (Source, error)
 type Ticket struct {
 	ID string `json:"id"`
 }
 type Session struct {
-	mu       sync.Mutex
-	status   Status
-	ctx      context.Context
-	cancel   context.CancelFunc
-	resolve  Resolver
-	dispose  func()
-	alive    func() bool
-	claimed  bool
-	deadline *time.Timer
-	lastBeat time.Time
-	done     chan struct{}
-	started  bool
+	created, ended, firstPacket                     time.Time
+	firstMediaMS, firstPlayingMS                    *float64
+	rtpAvailable                                    bool
+	packets, packetBytes, units, lost, decodeErrors uint64
+	mu                                              sync.Mutex
+	status                                          Status
+	ctx                                             context.Context
+	cancel                                          context.CancelFunc
+	resolve                                         Resolver
+	dispose                                         func()
+	alive                                           func() bool
+	claimed                                         bool
+	deadline                                        *time.Timer
+	lastBeat                                        time.Time
+	done                                            chan struct{}
+	started                                         bool
 }
 type Manager struct {
 	lifecycle sync.Mutex
@@ -86,7 +92,8 @@ func (m *Manager) Prepare(resolve Resolver, dispose func(), alive func() bool, c
 	}
 	id := hex.EncodeToString(b)
 	ctx, cancel := context.WithCancel(context.Background())
-	s := &Session{ctx: ctx, cancel: cancel, resolve: resolve, dispose: dispose, alive: alive, done: make(chan struct{}), status: Status{ID: id, State: "ready", Message: "Waiting for the player", CredentialSource: credentialSource, Profiles: []Profile{}}}
+	s := &Session{created: time.Now(), ctx: ctx, cancel: cancel, resolve: resolve, dispose: dispose, alive: alive, done: make(chan struct{}), status: Status{ID: id, State: "ready", Message: "Waiting for the player", CredentialSource: credentialSource, Profiles: []Profile{}}}
+	s.stateLocked("ready", "Waiting for the player")
 	m.active = s
 	s.deadline = time.AfterFunc(20*time.Second, func() { m.Stop(id) })
 	return Ticket{id}, nil
@@ -104,6 +111,8 @@ func (m *Manager) Status(id string) Status {
 		return Status{State: "stopped", Profiles: []Profile{}}
 	}
 	out := s.status
+	out.Metrics = s.metricsLocked()
+	out.Timeline = append([]Transition{}, s.status.Timeline...)
 	out.Profiles = append([]Profile{}, out.Profiles...)
 	return out
 }
@@ -119,8 +128,7 @@ func (m *Manager) Heartbeat(id string, playing bool) {
 	if s.status.ID == id {
 		s.lastBeat = time.Now()
 		if playing && s.status.Info.MIME != "" && (s.status.State == "buffering" || s.status.State == "playing") {
-			s.status.State = "playing"
-			s.status.Message = "Playing video"
+			s.stateLocked("playing", "Playing video")
 		}
 	}
 }
@@ -143,8 +151,7 @@ func (m *Manager) Stop(id string) {
 		s.resolve = nil
 		close(s.done)
 	}
-	s.status.State = "stopped"
-	s.status.Message = "Preview stopped"
+	s.stateLocked("stopped", "Preview stopped")
 	s.mu.Unlock()
 	m.mu.Unlock()
 	select {
@@ -234,27 +241,22 @@ func (m *Manager) Consume(parent context.Context, id string, send func(Packet) e
 	if s.ctx.Err() != nil {
 		s.mu.Lock()
 		if s.status.State != "stopped" {
-			s.status.State = "stopped"
-			s.status.Message = "Preview stopped"
+			s.stateLocked("stopped", "Preview stopped")
 		}
 		s.mu.Unlock()
 		return nil
 	}
 	if e != nil {
 		s.mu.Lock()
-		s.status.State = "error"
-		s.status.Message = e.Error()
-		if errors.Is(e, ErrAuthentication) {
-			s.status.ErrorCode = "authentication"
-		}
+		s.stateLocked("error", e.Error())
+		s.status.ErrorCode = errorCode(e)
 		s.mu.Unlock()
 	}
 	return nil
 }
 func (s *Session) state(state, message string) {
 	s.mu.Lock()
-	s.status.State = state
-	s.status.Message = message
+	s.stateLocked(state, message)
 	s.mu.Unlock()
 }
 func (s *Session) profiles(p []Profile) {
@@ -275,8 +277,7 @@ func (s *sessionSink) Information(info Info) error {
 		return nil
 	}
 	s.session.status.Info = info
-	s.session.status.State = "buffering"
-	s.session.status.Message = "Receiving video; waiting for the player"
+	s.session.stateLocked("buffering", "Receiving video; waiting for the player")
 	s.session.mu.Unlock()
 	b, _ := json.Marshal(info)
 	return s.send(Packet{Kind: 0, Data: b})
@@ -289,6 +290,9 @@ func (s *sessionSink) Write(p Packet) error {
 		return e
 	}
 	s.session.mu.Lock()
+	if s.session.firstMediaMS == nil {
+		s.session.firstMediaMS = ptr(float64(time.Since(s.session.created).Microseconds()) / 1000)
+	}
 	s.session.status.Bytes += uint64(len(p.Data))
 	s.session.status.Fragments++
 	s.session.mu.Unlock()

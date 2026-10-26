@@ -39,6 +39,7 @@ type Target struct {
 	CertificateSHA256 string
 }
 type Client struct {
+	offset time.Duration
 	target Target
 	http   *http.Client
 }
@@ -87,8 +88,18 @@ func (c *Client) Read(ctx context.Context, operation string, secret vault.Secret
 	return c.soap(ctx, c.target.URL, deviceNS, operation, "", secret, 0)
 }
 
-// soap is private: callers construct only implemented read-only operations.
+// soap retains the read-only path. Explicit control clients use soapRequest
+// with write=true so network failures never imply that a write did not happen.
 func (c *Client) soap(ctx context.Context, endpoint, namespace, operation, parameters string, secret vault.Secret, offset time.Duration) ([]byte, error) {
+	return c.soapRequest(ctx, endpoint, namespace, operation, parameters, namespace+"/"+operation, "", secret, offset, false)
+}
+
+var ErrOutcomeUnconfirmed = errors.New("ONVIF write outcome unconfirmed — verify before retry")
+
+func (c *Client) soapRequest(ctx context.Context, endpoint, namespace, operation, parameters, action, headers string, secret vault.Secret, offset time.Duration, write bool) ([]byte, error) {
+	if offset == 0 {
+		offset = c.offset
+	}
 	security := ""
 	if secret.Username != "" {
 		nonce := make([]byte, 20)
@@ -100,7 +111,7 @@ func (c *Client) soap(ctx context.Context, endpoint, namespace, operation, param
 	if parameters != "" {
 		payload = "<tds:" + operation + ">" + parameters + "</tds:" + operation + ">"
 	}
-	body := []byte(`<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:tds="` + namespace + `"><s:Header>` + security + `</s:Header><s:Body>` + payload + `</s:Body></s:Envelope>`)
+	body := []byte(`<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:tds="` + namespace + `"><s:Header>` + security + headers + `</s:Header><s:Body>` + payload + `</s:Body></s:Envelope>`)
 	defer clear(body)
 	do := func(auth string) (*http.Response, error) {
 		req, e := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(body))
@@ -108,7 +119,7 @@ func (c *Client) soap(ctx context.Context, endpoint, namespace, operation, param
 			return nil, errors.New("could not prepare ONVIF request")
 		}
 		req.GetBody = nil
-		req.Header.Set("Content-Type", `application/soap+xml; charset=utf-8; action="`+namespace+`/`+operation+`"`)
+		req.Header.Set("Content-Type", `application/soap+xml; charset=utf-8; action="`+action+`"`)
 		req.Header.Set("Cache-Control", "no-store")
 		if auth != "" {
 			req.Header.Set("Authorization", auth)
@@ -117,6 +128,9 @@ func (c *Client) soap(ctx context.Context, endpoint, namespace, operation, param
 	}
 	response, e := do("")
 	if e != nil {
+		if write {
+			return nil, ErrOutcomeUnconfirmed
+		}
 		return nil, safeConnectionError(ctx, e)
 	}
 	if response.StatusCode == http.StatusUnauthorized && secret.Username != "" {
@@ -130,10 +144,13 @@ func (c *Client) soap(ctx context.Context, endpoint, namespace, operation, param
 		if err != nil {
 			return nil, ErrAuthentication
 		}
-		// One standards-based challenge response for a read operation; never retry
-		// a network failure, and never use this client to perform device writes.
+		// A 401 is a rejected unauthenticated request; answer its challenge once.
+		// No network failure or uncertain write is retried.
 		response, e = do(credential.String())
 		if e != nil {
+			if write {
+				return nil, ErrOutcomeUnconfirmed
+			}
 			return nil, safeConnectionError(ctx, e)
 		}
 	}
@@ -142,11 +159,17 @@ func (c *Client) soap(ctx context.Context, endpoint, namespace, operation, param
 		return nil, ErrAuthentication
 	}
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
+		if write && response.StatusCode != 404 && response.StatusCode != 405 && response.StatusCode != 501 {
+			return nil, ErrOutcomeUnconfirmed
+		}
 		return nil, ErrUnsupported
 	}
 	data, e := io.ReadAll(io.LimitReader(response.Body, (1<<20)+1))
 	if e != nil || len(data) > 1<<20 {
 		clear(data)
+		if write {
+			return nil, ErrOutcomeUnconfirmed
+		}
 		return nil, errors.New("incomplete or oversized ONVIF response")
 	}
 	var envelope struct {
@@ -163,10 +186,16 @@ func (c *Client) soap(ctx context.Context, endpoint, namespace, operation, param
 	}
 	if e = decode(data, &envelope); e != nil {
 		clear(data)
+		if write {
+			return nil, ErrOutcomeUnconfirmed
+		}
 		return nil, e
 	}
 	if envelope.XMLName.Local != "Envelope" || envelope.XMLName.Space != "http://www.w3.org/2003/05/soap-envelope" {
 		clear(data)
+		if write {
+			return nil, ErrOutcomeUnconfirmed
+		}
 		return nil, errors.New("invalid ONVIF SOAP envelope")
 	}
 	if envelope.Body.Fault != nil {
@@ -463,4 +492,13 @@ func servicePort(raw string) int {
 		return 443
 	}
 	return 80
+}
+
+// SetClockOffset applies an explicitly approved session correction to WS-Security timestamps.
+func (c *Client) SetClockOffset(seconds int) error {
+	if seconds < -300 || seconds > 300 {
+		return errors.New("clock correction must be within five minutes")
+	}
+	c.offset = time.Duration(seconds) * time.Second
+	return nil
 }

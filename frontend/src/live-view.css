@@ -68,3 +68,49 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+.camera-stage {
+  position: relative;
+  touch-action: none;
+}
+.camera-stage .viewer-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 3;
+}
+.viewer-tools > details {
+  border-top: 1px solid var(--bs-border-color);
+  padding: 0.65rem 0;
+}
+.viewer-tools input[type="range"] {
+  max-width: 180px;
+  vertical-align: middle;
+}
+.viewer-tools #vt-trend {
+  width: min(500px, 100%);
+  height: 70px;
+}
+.viewer-tools #vt-compare-image {
+  max-width: 100%;
+  height: auto;
+}
+.viewer-tools #vt-summary {
+  line-height: 1.7;
+}
+.viewer-tools .camera-controls label {
+  font-size: 0.8rem;
+}
+.viewer-tools #vt-angle {
+  max-width: 100px;
+}
+
+.viewer-tools .comparison-scroll {
+  max-height: 65vh;
+  overflow: auto;
+}
+.viewer-tools #vt-compare-image {
+  width: 100%;
+  max-width: none;
+}

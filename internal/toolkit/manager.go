@@ -27,6 +27,7 @@ type Job struct {
 	Cancelled bool   `json:"cancelled"`
 }
 type Manager struct {
+	walk       WalkTest
 	audit      audit.Report
 	planUsed   bool
 	plan       provision.Plan

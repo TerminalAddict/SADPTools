@@ -6,6 +6,178 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
+export class CameraEvent {
+    /**
+     * Creates a new CameraEvent instance.
+     * @param {Partial<CameraEvent>} [$$source = {}] - The source object to create the CameraEvent.
+     */
+    constructor($$source = {}) {
+        if (!("eventID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["eventID"] = "";
+        }
+        if (!("type" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["type"] = "";
+        }
+        if (!("topic" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["topic"] = "";
+        }
+        if (!("state" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["state"] = "";
+        }
+        if (!("channel" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["channel"] = "";
+        }
+        if (!("deviceTime" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["deviceTime"] = "";
+        }
+        if (!("received" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["received"] = "";
+        }
+        if (!("clockOffsetSeconds" in $$source)) {
+            /**
+             * @member
+             * @type {number | null}
+             */
+            this["clockOffsetSeconds"] = null;
+        }
+        if (!("clockWarning" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["clockWarning"] = false;
+        }
+        if (!("mapping" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["mapping"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new CameraEvent instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {CameraEvent}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new CameraEvent(/** @type {Partial<CameraEvent>} */($$parsedSource));
+    }
+}
+
+export class ControlCapabilities {
+    /**
+     * Creates a new ControlCapabilities instance.
+     * @param {Partial<ControlCapabilities>} [$$source = {}] - The source object to create the ControlCapabilities.
+     */
+    constructor($$source = {}) {
+        if (!("profileID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["profileID"] = "";
+        }
+        if (!("panTilt" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["panTilt"] = false;
+        }
+        if (!("opticalZoom" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["opticalZoom"] = false;
+        }
+        if (!("presets" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["presets"] = false;
+        }
+        if (!("relativeFocus" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["relativeFocus"] = false;
+        }
+        if (!("autoFocus" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["autoFocus"] = false;
+        }
+        if (!("iris" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["iris"] = false;
+        }
+        if (!("reasons" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["reasons"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ControlCapabilities instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ControlCapabilities}
+     */
+    static createFrom($$source = {}) {
+        const $$createField7_0 = $$createType0;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("reasons" in $$parsedSource) {
+            $$parsedSource["reasons"] = $$createField7_0($$parsedSource["reasons"]);
+        }
+        return new ControlCapabilities(/** @type {Partial<ControlCapabilities>} */($$parsedSource));
+    }
+}
+
 export class Endpoint {
     /**
      * Creates a new Endpoint instance.
@@ -61,3 +233,87 @@ export class Endpoint {
         return new Endpoint(/** @type {Partial<Endpoint>} */($$parsedSource));
     }
 }
+
+export class EventCapabilities {
+    /**
+     * Creates a new EventCapabilities instance.
+     * @param {Partial<EventCapabilities>} [$$source = {}] - The source object to create the EventCapabilities.
+     */
+    constructor($$source = {}) {
+        if (!("supported" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["supported"] = false;
+        }
+        if (!("topics" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["topics"] = [];
+        }
+        if (!("reason" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["reason"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new EventCapabilities instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {EventCapabilities}
+     */
+    static createFrom($$source = {}) {
+        const $$createField1_0 = $$createType0;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("topics" in $$parsedSource) {
+            $$parsedSource["topics"] = $$createField1_0($$parsedSource["topics"]);
+        }
+        return new EventCapabilities(/** @type {Partial<EventCapabilities>} */($$parsedSource));
+    }
+}
+
+export class Preset {
+    /**
+     * Creates a new Preset instance.
+     * @param {Partial<Preset>} [$$source = {}] - The source object to create the Preset.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new Preset instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {Preset}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new Preset(/** @type {Partial<Preset>} */($$parsedSource));
+    }
+}
+
+// Private type creation functions
+const $$createType0 = $Create.Array($Create.Any);

@@ -11,6 +11,9 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 import * as audit$0 from "./internal/audit/models.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
+import * as configbackup$0 from "./internal/configbackup/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
 import * as ipscan$0 from "./internal/ipscan/models.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -18,6 +21,9 @@ import * as onvif$0 from "./internal/onvif/models.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
 import * as provision$0 from "./internal/provision/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as retention$0 from "./internal/retention/models.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
 import * as sites$0 from "./internal/sites/models.js";
@@ -43,11 +49,21 @@ export function AcceptSiteChange(site, run, record, identity, fields) {
 }
 
 /**
+ * @param {string} site
+ * @returns {$CancellablePromise<toolkit$0.AdvancedView>}
+ */
+export function Advanced(site) {
+    return $Call.ByID(2033906489, site).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType1($result);
+    }));
+}
+
+/**
  * @returns {$CancellablePromise<audit$0.Report>}
  */
 export function AuditStatus() {
     return $Call.ByID(2979247280).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType1($result);
+        return $$createType2($result);
     }));
 }
 
@@ -61,10 +77,44 @@ export function BackupSite(site, passphrase) {
 }
 
 /**
+ * @param {retention$0.Scenario} scenario
+ * @returns {$CancellablePromise<retention$0.Result>}
+ */
+export function CalculateRetention(scenario) {
+    return $Call.ByID(3867381753, scenario).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType3($result);
+    }));
+}
+
+/**
  * @returns {$CancellablePromise<void>}
  */
 export function CancelJob() {
     return $Call.ByID(4193391784);
+}
+
+/**
+ * @param {string} site
+ * @param {string} left
+ * @param {string} right
+ * @returns {$CancellablePromise<configbackup$0.Change[]>}
+ */
+export function CompareConfiguration(site, left, right) {
+    return $Call.ByID(2508041020, site, left, right).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType5($result);
+    }));
+}
+
+/**
+ * @param {string} site
+ * @param {string} backup
+ * @param {string} device
+ * @returns {$CancellablePromise<configbackup$0.Preview>}
+ */
+export function ConfigurationPlan(site, backup, device) {
+    return $Call.ByID(1778671888, site, backup, device).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType6($result);
+    }));
 }
 
 /**
@@ -85,12 +135,40 @@ export function CopyText(value) {
 }
 
 /**
+ * @param {toolkit$0.ReportOptions} o
+ * @returns {$CancellablePromise<sites$0.Document>}
+ */
+export function CreateReport(o) {
+    return $Call.ByID(2736221201, o).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType7($result);
+    }));
+}
+
+/**
+ * @param {string} site
+ * @param {string} id
+ * @returns {$CancellablePromise<void>}
+ */
+export function DeleteAdvanced(site, id) {
+    return $Call.ByID(2351641278, site, id);
+}
+
+/**
  * @param {string} site
  * @param {string} id
  * @returns {$CancellablePromise<void>}
  */
 export function DeleteCredential(site, id) {
     return $Call.ByID(2922699621, site, id);
+}
+
+/**
+ * @param {string} site
+ * @param {string} id
+ * @returns {$CancellablePromise<void>}
+ */
+export function DeleteImage(site, id) {
+    return $Call.ByID(1042979713, site, id);
 }
 
 /**
@@ -124,6 +202,35 @@ export function ExportAudit(site, runID, format) {
 
 /**
  * @param {string} site
+ * @param {string} id
+ * @param {string} passphrase
+ * @returns {$CancellablePromise<string>}
+ */
+export function ExportConfiguration(site, id, passphrase) {
+    return $Call.ByID(212676201, site, id, passphrase);
+}
+
+/**
+ * @param {string} site
+ * @param {string} id
+ * @returns {$CancellablePromise<string>}
+ */
+export function ExportEvidence(site, id) {
+    return $Call.ByID(2448744948, site, id);
+}
+
+/**
+ * @param {string} site
+ * @param {string} id
+ * @param {string} format
+ * @returns {$CancellablePromise<string>}
+ */
+export function ExportEvidenceFormat(site, id, format) {
+    return $Call.ByID(3183573895, site, id, format);
+}
+
+/**
+ * @param {string} site
  * @param {string} format
  * @returns {$CancellablePromise<string>}
  */
@@ -145,6 +252,16 @@ export function ExportIPScan(format) {
  */
 export function ExportProvision(format) {
     return $Call.ByID(2221814096, format);
+}
+
+/**
+ * @param {string} site
+ * @param {string} id
+ * @param {string} format
+ * @returns {$CancellablePromise<string>}
+ */
+export function ExportReport(site, id, format) {
+    return $Call.ByID(1093206747, site, id, format);
 }
 
 /**
@@ -175,7 +292,7 @@ export function ExportSwitches(site, format) {
  */
 export function IPScanPage(offset, limit, filter, sort, descending) {
     return $Call.ByID(4233002224, offset, limit, filter, sort, descending).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType2($result);
+        return $$createType8($result);
     }));
 }
 
@@ -184,7 +301,7 @@ export function IPScanPage(offset, limit, filter, sort, descending) {
  */
 export function IPScanResult() {
     return $Call.ByID(3751606962).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType3($result);
+        return $$createType9($result);
     }));
 }
 
@@ -194,7 +311,7 @@ export function IPScanResult() {
  */
 export function IPScope(o) {
     return $Call.ByID(3301664170, o).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType4($result);
+        return $$createType10($result);
     }));
 }
 
@@ -209,11 +326,55 @@ export function IgnoreSiteChange(site, run, identity) {
 }
 
 /**
+ * @param {string} site
+ * @param {string} id
+ * @returns {$CancellablePromise<string>}
+ */
+export function Image(site, id) {
+    return $Call.ByID(1220225756, site, id);
+}
+
+/**
+ * @param {string} site
+ * @param {string} device
+ * @param {string} passphrase
+ * @returns {$CancellablePromise<sites$0.Document>}
+ */
+export function ImportConfiguration(site, device, passphrase) {
+    return $Call.ByID(2519616684, site, device, passphrase).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType7($result);
+    }));
+}
+
+/**
+ * @param {string} site
+ * @param {string} kind
+ * @returns {$CancellablePromise<sites$0.Asset>}
+ */
+export function ImportImage(site, kind) {
+    return $Call.ByID(2660356267, site, kind).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType11($result);
+    }));
+}
+
+/**
+ * @param {string} site
+ * @param {string} id
+ * @param {string[]} devices
+ * @returns {$CancellablePromise<sites$0.SaveResult>}
+ */
+export function ImportRemote(site, id, devices) {
+    return $Call.ByID(2824681428, site, id, devices).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType12($result);
+    }));
+}
+
+/**
  * @returns {$CancellablePromise<toolkit$0.Job>}
  */
 export function Job() {
     return $Call.ByID(4211218174).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType5($result);
+        return $$createType13($result);
     }));
 }
 
@@ -222,7 +383,7 @@ export function Job() {
  */
 export function ListSites() {
     return $Call.ByID(1939429397).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType7($result);
+        return $$createType15($result);
     }));
 }
 
@@ -265,7 +426,7 @@ export function MoveSiteDevice(site, id, destination) {
  */
 export function ONVIFEndpoint(site, id) {
     return $Call.ByID(3826135054, site, id).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType8($result);
+        return $$createType16($result);
     }));
 }
 
@@ -292,7 +453,7 @@ export function PollSwitch(site, id) {
  */
 export function Preferences() {
     return $Call.ByID(989611963).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType9($result);
+        return $$createType17($result);
     }));
 }
 
@@ -303,7 +464,7 @@ export function Preferences() {
  */
 export function PreviewProvision(site, o) {
     return $Call.ByID(632876228, site, o).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType10($result);
+        return $$createType18($result);
     }));
 }
 
@@ -312,7 +473,7 @@ export function PreviewProvision(site, o) {
  */
 export function ProvisionStatus() {
     return $Call.ByID(913796408).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType10($result);
+        return $$createType18($result);
     }));
 }
 
@@ -334,7 +495,7 @@ export function QueryONVIF(site, id, profile, pin) {
  */
 export function ReconcileSite(site, run) {
     return $Call.ByID(941799842, site, run).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType12($result);
+        return $$createType20($result);
     }));
 }
 
@@ -372,7 +533,7 @@ export function ResetIPScan() {
  */
 export function ResolveIP(ip) {
     return $Call.ByID(3055499208, ip).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType13($result);
+        return $$createType21($result);
     }));
 }
 
@@ -382,7 +543,7 @@ export function ResolveIP(ip) {
  */
 export function RestoreSite(passphrase) {
     return $Call.ByID(3862496260, passphrase).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType6($result);
+        return $$createType14($result);
     }));
 }
 
@@ -396,6 +557,16 @@ export function RevealPassword(site, id) {
 }
 
 /**
+ * @param {sites$0.Document} d
+ * @returns {$CancellablePromise<sites$0.Document>}
+ */
+export function SaveAdvanced(d) {
+    return $Call.ByID(817943912, d).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType7($result);
+    }));
+}
+
+/**
  * @param {sites$0.Profile} p
  * @param {string} username
  * @param {string} password
@@ -404,7 +575,7 @@ export function RevealPassword(site, id) {
  */
 export function SaveCredential(p, username, password, privacyPassword) {
     return $Call.ByID(3153647567, p, username, password, privacyPassword).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType14($result);
+        return $$createType22($result);
     }));
 }
 
@@ -414,7 +585,7 @@ export function SaveCredential(p, username, password, privacyPassword) {
  */
 export function SaveIPScan(site) {
     return $Call.ByID(12619426, site).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType15($result);
+        return $$createType23($result);
     }));
 }
 
@@ -425,7 +596,7 @@ export function SaveIPScan(site) {
  */
 export function SaveLiveToSite(site, ids) {
     return $Call.ByID(1706423402, site, ids).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType16($result);
+        return $$createType12($result);
     }));
 }
 
@@ -435,7 +606,7 @@ export function SaveLiveToSite(site, ids) {
  */
 export function SaveSite(site) {
     return $Call.ByID(4256639953, site).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType6($result);
+        return $$createType14($result);
     }));
 }
 
@@ -455,7 +626,21 @@ export function SaveSiteDevice(r) {
  */
 export function SaveSwitch(a) {
     return $Call.ByID(318968506, a).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType17($result);
+        return $$createType24($result);
+    }));
+}
+
+/**
+ * @param {string} id
+ * @param {string} result
+ * @param {string} notes
+ * @param {string[]} evidence
+ * @param {toolkit$0.EventAssessment[]} assessments
+ * @returns {$CancellablePromise<sites$0.Document>}
+ */
+export function SaveWalk(id, result, notes, evidence, assessments) {
+    return $Call.ByID(3831850475, id, result, notes, evidence, assessments).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType7($result);
     }));
 }
 
@@ -465,7 +650,7 @@ export function SaveSwitch(a) {
  */
 export function SearchSites(query) {
     return $Call.ByID(3711126893, query).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType18($result);
+        return $$createType25($result);
     }));
 }
 
@@ -475,7 +660,7 @@ export function SearchSites(query) {
  */
 export function Site(id) {
     return $Call.ByID(975601772, id).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType19($result);
+        return $$createType26($result);
     }));
 }
 
@@ -486,7 +671,7 @@ export function Site(id) {
  */
 export function SiteHistory(site, device) {
     return $Call.ByID(323722780, site, device).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType21($result);
+        return $$createType28($result);
     }));
 }
 
@@ -497,7 +682,7 @@ export function SiteHistory(site, device) {
  */
 export function SiteRun(site, id) {
     return $Call.ByID(3849958313, site, id).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType15($result);
+        return $$createType23($result);
     }));
 }
 
@@ -507,7 +692,7 @@ export function SiteRun(site, id) {
  */
 export function SiteScanScope(site) {
     return $Call.ByID(1873403763, site).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType22($result);
+        return $$createType29($result);
     }));
 }
 
@@ -522,12 +707,28 @@ export function StartAudit(site, ids, pins) {
 }
 
 /**
+ * @param {toolkit$0.DeviceRead} o
+ * @returns {$CancellablePromise<void>}
+ */
+export function StartConfiguration(o) {
+    return $Call.ByID(4268821393, o);
+}
+
+/**
  * @param {string} site
  * @param {ipscan$0.Options} o
  * @returns {$CancellablePromise<void>}
  */
 export function StartIPScan(site, o) {
     return $Call.ByID(375513285, site, o);
+}
+
+/**
+ * @param {toolkit$0.DeviceRead} o
+ * @returns {$CancellablePromise<void>}
+ */
+export function StartNVR(o) {
+    return $Call.ByID(1698106781, o);
 }
 
 /**
@@ -543,6 +744,15 @@ export function StartProvision(planID, confirmation, currentPassword, newPasswor
 
 /**
  * @param {string} site
+ * @param {string} id
+ * @returns {$CancellablePromise<void>}
+ */
+export function StartRemote(site, id) {
+    return $Call.ByID(1409103355, site, id);
+}
+
+/**
+ * @param {string} site
  * @param {string} scopeToken
  * @returns {$CancellablePromise<void>}
  */
@@ -551,12 +761,21 @@ export function StartSiteRescan(site, scopeToken) {
 }
 
 /**
+ * @param {toolkit$0.DeviceRead} o
+ * @param {number} seconds
+ * @returns {$CancellablePromise<void>}
+ */
+export function StartWalk(o, seconds) {
+    return $Call.ByID(3032485368, o, seconds);
+}
+
+/**
  * @param {string} site
  * @returns {$CancellablePromise<switches$0.Asset[]>}
  */
 export function SwitchAssets(site) {
     return $Call.ByID(2692107078, site).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType23($result);
+        return $$createType30($result);
     }));
 }
 
@@ -566,7 +785,7 @@ export function SwitchAssets(site) {
  */
 export function SwitchReports(site) {
     return $Call.ByID(345086, site).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType25($result);
+        return $$createType32($result);
     }));
 }
 
@@ -583,7 +802,7 @@ export function UnlockVault(passphrase) {
  */
 export function VaultStatus() {
     return $Call.ByID(376100019).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType26($result);
+        return $$createType33($result);
     }));
 }
 
@@ -595,31 +814,48 @@ export function VisitSite(id) {
     return $Call.ByID(2569850681, id);
 }
 
+/**
+ * @returns {$CancellablePromise<toolkit$0.WalkTest>}
+ */
+export function Walk() {
+    return $Call.ByID(1510257730).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType34($result);
+    }));
+}
+
 // Private type creation functions
 const $$createType0 = sites$0.Record.createFrom;
-const $$createType1 = audit$0.Report.createFrom;
-const $$createType2 = ipscan$0.Page.createFrom;
-const $$createType3 = ipscan$0.Result.createFrom;
-const $$createType4 = ipscan$0.Scope.createFrom;
-const $$createType5 = toolkit$0.Job.createFrom;
-const $$createType6 = sites$0.Site.createFrom;
-const $$createType7 = $Create.Array($$createType6);
-const $$createType8 = onvif$0.Endpoint.createFrom;
-const $$createType9 = sites$0.Preferences.createFrom;
-const $$createType10 = provision$0.Plan.createFrom;
-const $$createType11 = sites$0.Proposal.createFrom;
-const $$createType12 = $Create.Array($$createType11);
-const $$createType13 = $Create.Array($Create.Any);
-const $$createType14 = sites$0.Profile.createFrom;
-const $$createType15 = sites$0.Run.createFrom;
-const $$createType16 = sites$0.SaveResult.createFrom;
-const $$createType17 = switches$0.Asset.createFrom;
-const $$createType18 = $Create.Array($$createType0);
-const $$createType19 = sites$0.View.createFrom;
-const $$createType20 = sites$0.Event.createFrom;
-const $$createType21 = $Create.Array($$createType20);
-const $$createType22 = toolkit$0.SiteScope.createFrom;
-const $$createType23 = $Create.Array($$createType17);
-const $$createType24 = switches$0.Report.createFrom;
-const $$createType25 = $Create.Array($$createType24);
-const $$createType26 = sites$0.VaultStatus.createFrom;
+const $$createType1 = toolkit$0.AdvancedView.createFrom;
+const $$createType2 = audit$0.Report.createFrom;
+const $$createType3 = retention$0.Result.createFrom;
+const $$createType4 = configbackup$0.Change.createFrom;
+const $$createType5 = $Create.Array($$createType4);
+const $$createType6 = configbackup$0.Preview.createFrom;
+const $$createType7 = sites$0.Document.createFrom;
+const $$createType8 = ipscan$0.Page.createFrom;
+const $$createType9 = ipscan$0.Result.createFrom;
+const $$createType10 = ipscan$0.Scope.createFrom;
+const $$createType11 = sites$0.Asset.createFrom;
+const $$createType12 = sites$0.SaveResult.createFrom;
+const $$createType13 = toolkit$0.Job.createFrom;
+const $$createType14 = sites$0.Site.createFrom;
+const $$createType15 = $Create.Array($$createType14);
+const $$createType16 = onvif$0.Endpoint.createFrom;
+const $$createType17 = sites$0.Preferences.createFrom;
+const $$createType18 = provision$0.Plan.createFrom;
+const $$createType19 = sites$0.Proposal.createFrom;
+const $$createType20 = $Create.Array($$createType19);
+const $$createType21 = $Create.Array($Create.Any);
+const $$createType22 = sites$0.Profile.createFrom;
+const $$createType23 = sites$0.Run.createFrom;
+const $$createType24 = switches$0.Asset.createFrom;
+const $$createType25 = $Create.Array($$createType0);
+const $$createType26 = sites$0.View.createFrom;
+const $$createType27 = sites$0.Event.createFrom;
+const $$createType28 = $Create.Array($$createType27);
+const $$createType29 = toolkit$0.SiteScope.createFrom;
+const $$createType30 = $Create.Array($$createType24);
+const $$createType31 = switches$0.Report.createFrom;
+const $$createType32 = $Create.Array($$createType31);
+const $$createType33 = sites$0.VaultStatus.createFrom;
+const $$createType34 = toolkit$0.WalkTest.createFrom;

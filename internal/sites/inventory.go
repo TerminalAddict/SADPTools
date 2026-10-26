@@ -252,6 +252,9 @@ func (s *Store) IgnoreObservation(site, run, identity string) error {
 func (s *Store) MoveRecord(site, id, destination string) (Record, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if s.deviceHasEvidence(site, id) {
+		return Record{}, errors.New("device has site plans or commissioning evidence; archive it and copy its inventory to the destination instead of moving the evidence across sites")
+	}
 	r, e := s.record(site, id)
 	if e != nil {
 		return r, e
@@ -300,6 +303,9 @@ func (s *Store) MergeRecords(site, keepID, removeID, confirm string) (Record, er
 	remove, e := s.record(site, removeID)
 	if e != nil {
 		return keep, e
+	}
+	if s.deviceHasEvidence(site, removeID) {
+		return keep, errors.New("record has commissioning evidence or plan placements; review/remove those references before merging, or archive the duplicate")
 	}
 	before := encode([]Record{keep, remove})
 	if keep.Notes == "" {

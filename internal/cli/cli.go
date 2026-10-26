@@ -15,17 +15,20 @@ import (
 	"github.com/TerminalAddict/SADPTools/internal/discovery"
 	"github.com/TerminalAddict/SADPTools/internal/multidiscovery"
 	"github.com/TerminalAddict/SADPTools/internal/platform"
+	"github.com/TerminalAddict/SADPTools/internal/remote"
 	"github.com/TerminalAddict/SADPTools/internal/version"
+	"time"
 )
 
 const usage = `SADPTools — Hikvision discovery and device management
 Usage:
-  sadptools discover [--interface NAME | --all-interfaces] [--timeout 10s] [--json] [--debug]
+  sadptools discover [--interface NAME | --all-interfaces] [--timeout 10s] [--json | --report] [--protocols sadp,onvif] [--debug]
   sadptools interfaces [--json]
   sadptools scan --interface NAME [--cidr CIDR | --start IP --end IP] [--confirm-scope] [--json]
   sadptools send <IP> <action> --mac MAC --interface NAME [options]
   sadptools send --help
   sadptools recovery --help
+  sadptools capabilities --json
   sadptools --version
 
 Discovery defaults to all suitable IPv4 adapters. Ctrl+C cancels an active scan.
@@ -55,6 +58,15 @@ func run(ctx context.Context, args []string, out, errOut io.Writer, interfaces f
 		fmt.Fprint(out, usage)
 		return 0
 	}
+	if args[0] == "capabilities" {
+		if len(args) != 2 || args[1] != "--json" {
+			return 2
+		}
+		if json.NewEncoder(out).Encode(remote.Capabilities{Schema: remote.Schema, Version: version.Value, Discovery: true, Protocols: []string{"sadp", "onvif"}}) != nil {
+			return 1
+		}
+		return 0
+	}
 	if args[0] == "--version" {
 		if len(args) > 1 {
 			return 2
@@ -70,10 +82,11 @@ func run(ctx context.Context, args []string, out, errOut io.Writer, interfaces f
 	flags.SetOutput(errOut)
 	jsonOutput := flags.Bool("json", false, "emit JSON")
 	var adapter string
-	var all, debug bool
+	var all, debug, report bool
 	protocols := "sadp"
 	timeout := discovery.DefaultTimeout
 	if args[0] == "discover" {
+		flags.BoolVar(&report, "report", false, "emit a versioned remote discovery report")
 		flags.StringVar(&adapter, "interface", "", "adapter name (exact match)")
 		flags.BoolVar(&all, "all-interfaces", false, "scan all suitable adapters (default)")
 		flags.BoolVar(&debug, "debug", false, "detailed diagnostics on stderr")
@@ -128,7 +141,11 @@ func run(ctx context.Context, args []string, out, errOut io.Writer, interfaces f
 	}
 	log := slog.New(slog.NewTextHandler(errOut, &slog.HandlerOptions{Level: level}))
 	result, err := scan(ctx, discovery.Options{Protocols: strings.Split(protocols, ","), Interface: adapter, Timeout: timeout}, log)
-	if *jsonOutput {
+	if report {
+		if code := encode(remote.Report{Schema: remote.Schema, Version: version.Value, At: time.Now().UTC().Format(time.RFC3339Nano), Devices: result.Devices, Warnings: result.Warnings, Partial: err != nil || len(result.Warnings) > 0}); code != 0 {
+			return code
+		}
+	} else if *jsonOutput {
 		if code := encode(result.Devices); code != 0 {
 			return code
 		}

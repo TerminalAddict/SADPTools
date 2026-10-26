@@ -66,3 +66,38 @@ test("oversized JPEG and unexpected media are rejected", () => {
   g.player.packet(1, new Uint8Array(10));
   assert.equal(g.player.closed, true);
 });
+
+test("advancing playback remains live when WebKit never delivers frame callbacks", () => {
+  const f = fixture();
+  f.player.close();
+  let frame;
+  const observed = [];
+  f.video.requestVideoFrameCallback = (callback) => {
+    frame = callback;
+    return 7;
+  };
+  f.video.cancelVideoFrameCallback = (id) => assert.equal(id, 7);
+  const player = new CameraPlayer(
+    f.video,
+    f.image,
+    (counted) => observed.push(counted),
+    assert.fail,
+  );
+  f.video.paused = false;
+  f.video.currentTime = 1;
+  f.video.ontimeupdate();
+  f.video.ontimeupdate(); // Duplicate timestamps do not establish progress.
+  f.video.currentTime = 2;
+  f.video.ontimeupdate();
+  assert.deepEqual(observed, [false, false]);
+  frame();
+  assert.deepEqual(observed, [false, false, true]);
+  f.video.paused = true;
+  f.video.currentTime = 3;
+  f.video.ontimeupdate();
+  assert.equal(observed.length, 3);
+  player.close();
+  frame();
+  assert.equal(observed.length, 3);
+  assert.equal(f.video.ontimeupdate, null);
+});

@@ -4,7 +4,7 @@ SADP inquiry and device-management command wire formats and response field mappi
 
 The application uses Wails v3 (MIT), Bootstrap 5 (MIT), Go's x/net, x/sys and x/crypto packages (BSD-3-Clause), modernc.org/sqlite and its pure-Go runtime dependencies (BSD-3-Clause and their included third-party notices), gosnmp (BSD-2-Clause, including its Go ASN.1 attribution), icholy/digest (MIT), and their transitive dependencies. Frontend assets retain upstream licence comments; dependency versions are recorded in `go.sum` and `frontend/package-lock.json`. Bundled dependency licence texts are collected in `LICENSES/dependencies.txt` for distribution. Build tooling includes Vite (MIT); its licence is also included there.
 
-Wails generated the initial desktop scaffold and Windows manifest/resource configuration. The original **Signal Lens** mark, wordmarks, installer artwork and interface are SADPTools assets, covered by the project's MIT licence. Their editable source and generation instructions are described in [the branding guide](docs/branding.md). Exported artwork uses system DejaVu Sans; no font files are redistributed with the application.
+Wails generated the initial desktop scaffold and Windows manifest/resource configuration. The original **Signal Lens** mark, wordmarks, installer artwork and interface are SADPTools assets, covered by the project's MIT licence. Their editable source and generation instructions are described in [the branding guide](docs/branding.md). Exported branding artwork uses system DejaVu Sans; that font is not redistributed. PDF reports embed the separately licensed Go fonts described below.
 
 ## Live View
 
@@ -23,3 +23,9 @@ The Windows Setup executable redistributes the **unmodified Microsoft Edge WebVi
 WebView2 includes Microsoft Defender SmartScreen, which collects and sends information to Microsoft as disclosed in [Microsoft's Privacy Statement](https://aka.ms/privacy) and the [Microsoft Edge Privacy Whitepaper](https://learn.microsoft.com/en-us/microsoft-edge/privacy-whitepaper#smartscreen). Microsoft supplies runtime updates separately. SADPTools itself does not implement telemetry. Uninstalling SADPTools leaves this shared Microsoft component installed.
 
 The installer is compiled with **NSIS 3.10**, whose installer stub, Modern UI and standard plugins carry their respective open-source notices. The full copyright/licence file from the pinned Ubuntu NSIS packages is retained in `LICENSES/NSIS.txt`. No Wails NSIS helper code is copied; the installer script is maintained in this repository.
+
+## Commissioning reports and site images
+
+Offline PDF generation uses **codeberg.org/go-pdf/fpdf v0.12.0** (MIT), the maintained successor of go-pdf/fpdf. Reports embed **Go Regular and Go Bold**, copyright (c) 2016 Bigelow & Holmes Inc., under their BSD-style licence in `LICENSES/Go-fonts.txt`. Fonts are supplied by **golang.org/x/image v0.47.0** (BSD-3-Clause), also used to decode WebP site images. Full module licences are included in `LICENSES/dependencies.txt`. No online PDF service, external renderer, PDF input engine or additional media decoder is bundled.
+
+SSH discovery uses the existing pinned **golang.org/x/crypto/ssh** implementation and its agent/known_hosts packages (BSD-3-Clause). ONVIF PTZ, imaging and events support was implemented against published ONVIF WSDLs; no third-party camera-control source was copied. ISAPI channel parsing follows the vendor-authored protocol documentation cited in `docs/ADVANCED_FEATURES_GAP_ANALYSIS.md`.

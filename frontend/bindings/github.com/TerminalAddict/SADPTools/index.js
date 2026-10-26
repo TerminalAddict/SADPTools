@@ -12,5 +12,6 @@ export {
 };
 
 export {
+    PlayerMeasurement,
     PreviewWindow
 } from "./models.js";

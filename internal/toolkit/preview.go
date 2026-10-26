@@ -16,6 +16,7 @@ import (
 )
 
 type PreviewOptions struct {
+	StreamID         string `json:"streamID"`
 	SiteID           string `json:"siteID"`
 	DeviceID         string `json:"deviceID"`
 	Method           string `json:"method"`
@@ -227,7 +228,15 @@ func (m *Manager) PreparePreview(player *streaming.Manager, o PreviewOptions, se
 			if o.Profile == "main" {
 				stream = 1
 			}
+			if o.StreamID != "" {
+				if _, e := m.ChannelStream(o.SiteID, o.DeviceID, "", o.StreamID); e != nil {
+					return streaming.Source{}, e
+				}
+			}
 			raw = "rtsp://" + net.JoinHostPort(d.IPv4, strconv.Itoa(port)) + fmt.Sprintf("/Streaming/channels/%d", o.Channel*100+stream)
+			if o.StreamID != "" {
+				raw = "rtsp://" + net.JoinHostPort(d.IPv4, strconv.Itoa(port)) + "/Streaming/channels/" + o.StreamID
+			}
 			mode = "rtsp"
 		}
 		return streaming.NewSource(d.IPv4, raw, mode, o.StreamPin, secret)

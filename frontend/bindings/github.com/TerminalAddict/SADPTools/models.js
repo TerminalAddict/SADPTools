@@ -10,6 +10,55 @@ import { Create as $Create } from "@wailsio/runtime";
 // @ts-ignore: Unused imports
 import * as toolkit$0 from "./internal/toolkit/models.js";
 
+export class PlayerMeasurement {
+    /**
+     * Creates a new PlayerMeasurement instance.
+     * @param {Partial<PlayerMeasurement>} [$$source = {}] - The source object to create the PlayerMeasurement.
+     */
+    constructor($$source = {}) {
+        if (!("displayedFPS" in $$source)) {
+            /**
+             * @member
+             * @type {number | null}
+             */
+            this["displayedFPS"] = null;
+        }
+        if (!("droppedFrames" in $$source)) {
+            /**
+             * @member
+             * @type {number | null}
+             */
+            this["droppedFrames"] = null;
+        }
+        if (!("testSeconds" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["testSeconds"] = 0;
+        }
+        if (!("label" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["label"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new PlayerMeasurement instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {PlayerMeasurement}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new PlayerMeasurement(/** @type {Partial<PlayerMeasurement>} */($$parsedSource));
+    }
+}
+
 export class PreviewWindow {
     /**
      * Creates a new PreviewWindow instance.
@@ -37,6 +86,13 @@ export class PreviewWindow {
              */
             this["theme"] = "";
         }
+        if (!("streamID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["streamID"] = "";
+        }
         if (!("detail" in $$source)) {
             /**
              * @member
@@ -54,10 +110,10 @@ export class PreviewWindow {
      * @returns {PreviewWindow}
      */
     static createFrom($$source = {}) {
-        const $$createField3_0 = $$createType0;
+        const $$createField4_0 = $$createType0;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("detail" in $$parsedSource) {
-            $$parsedSource["detail"] = $$createField3_0($$parsedSource["detail"]);
+            $$parsedSource["detail"] = $$createField4_0($$parsedSource["detail"]);
         }
         return new PreviewWindow(/** @type {Partial<PreviewWindow>} */($$parsedSource));
     }

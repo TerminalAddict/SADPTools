@@ -12,6 +12,9 @@ type backupProfile struct {
 	Secret  []byte
 }
 type backupData struct {
+	Documents    []Document
+	Assets       []backupAsset
+	OriginalSite string `json:"-"`
 	Switches     []switches.Asset
 	Version      int
 	Site         Site
@@ -25,7 +28,7 @@ type backupData struct {
 func (s *Store) Backup(site, passphrase string) ([]byte, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	b := backupData{Version: 1}
+	b := backupData{Version: 2}
 	var e error
 	if b.Site, e = s.site(site); e != nil {
 		return nil, e
@@ -45,6 +48,17 @@ func (s *Store) Backup(site, passphrase string) ([]byte, error) {
 	if b.Switches, e = s.assets(site); e != nil {
 		return nil, e
 	}
+	if b.Documents, e = s.documents(site, ""); e != nil {
+		return nil, e
+	}
+	if b.Assets, e = s.backupAssets(site); e != nil {
+		return nil, e
+	}
+	defer func() {
+		for _, a := range b.Assets {
+			clear(a.Payload)
+		}
+	}()
 	profiles, e := s.profiles(site)
 	if e != nil {
 		return nil, e
@@ -85,7 +99,7 @@ func (s *Store) Restore(encrypted []byte, passphrase string) (Site, error) {
 	}
 	defer clear(plain)
 	var b backupData
-	if json.Unmarshal(plain, &b) != nil || b.Version != 1 || len(b.Devices) > 10000 || len(b.Profiles) > 10000 || len(b.Switches) > 10000 || len(b.Events) > 100000 || len(b.Runs) > 10000 {
+	if json.Unmarshal(plain, &b) != nil || (b.Version != 1 && b.Version != 2) || len(b.Documents) > 10000 || len(b.Assets) > 1000 || len(b.Devices) > 10000 || len(b.Profiles) > 10000 || len(b.Switches) > 10000 || len(b.Events) > 100000 || len(b.Runs) > 10000 {
 		return Site{}, errors.New("invalid or oversized backup contents")
 	}
 	defer func() {
@@ -103,7 +117,24 @@ func (s *Store) Restore(encrypted []byte, passphrase string) (Site, error) {
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if len(b.Profiles) > 0 {
+	needsKey := len(b.Profiles) > 0
+	totalAssets := 0
+	for _, a := range b.Assets {
+		totalAssets += len(a.Payload)
+		if totalAssets > 32<<20 {
+			return Site{}, errors.New("site attachments exceed 32 MiB")
+		}
+		needsKey = needsKey || a.Meta.Encrypted
+		if len(a.Payload) > 16<<20 {
+			return Site{}, errors.New("oversized attachment")
+		}
+	}
+	defer func() {
+		for _, a := range b.Assets {
+			clear(a.Payload)
+		}
+	}()
+	if needsKey {
 		if e = s.needKey(); e != nil {
 			return Site{}, e
 		}
@@ -137,6 +168,16 @@ func (s *Store) Restore(encrypted []byte, passphrase string) (Site, error) {
 			return Site{}, e
 		}
 	}
+	for _, d := range b.Documents {
+		if e = addID(d.ID); e != nil {
+			return Site{}, e
+		}
+	}
+	for _, a := range b.Assets {
+		if e = addID(a.Meta.ID); e != nil {
+			return Site{}, e
+		}
+	}
 	profileIDs := map[string]bool{}
 	for _, p := range b.Profiles {
 		profileIDs[p.Profile.ID] = true
@@ -145,6 +186,7 @@ func (s *Store) Restore(encrypted []byte, passphrase string) (Site, error) {
 		return Site{}, errors.New("backup default credential reference is missing")
 	}
 	oldSite := b.Site.ID
+	b.OriginalSite = oldSite
 	b.Site.ID = ids[oldSite]
 	b.Site.Name += " (restored)"
 	b.Site.Created = now()
@@ -219,6 +261,9 @@ func (s *Store) Restore(encrypted []byte, passphrase string) (Site, error) {
 			return Site{}, e
 		}
 	}
+	if e = restoreDocuments(tx, &b, ids, s.key); e != nil {
+		return Site{}, e
+	}
 	if e = event(tx, b.Site.ID, "", "restore", "encrypted-backup-restored", oldSite, b.Site.ID); e != nil {
 		return Site{}, e
 	}
@@ -236,9 +281,27 @@ func remapRunIDs(raw string, ids map[string]string) string {
 		case map[string]any:
 			for k, v := range x {
 				switch k {
-				case "id", "siteID", "assetID", "switchID", "recordID", "deviceID", "credentialID":
+				case "id", "siteID", "assetID", "switchID", "recordID", "deviceID", "credentialID", "planID", "linkedDeviceID", "nvrID", "imageID", "snapshotID", "logoID", "documentID", "brandingID":
 					if old, ok := v.(string); ok && ids[old] != "" {
 						x[k] = ids[old]
+					}
+				}
+				if k == "evidenceIDs" || k == "documentIDs" || k == "imageIDs" {
+					if a, ok := v.([]any); ok {
+						for i, item := range a {
+							if old, ok := item.(string); ok && ids[old] != "" {
+								a[i] = ids[old]
+							}
+						}
+					}
+				}
+				if k == "links" {
+					if links, ok := v.(map[string]any); ok {
+						for channel, item := range links {
+							if old, ok := item.(string); ok && ids[old] != "" {
+								links[channel] = ids[old]
+							}
+						}
 					}
 				}
 				visit(v)

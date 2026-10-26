@@ -231,6 +231,22 @@ func (s *Store) DeleteProfile(site, id string) error {
 			return errors.New("remove switch assignments before deleting this profile")
 		}
 	}
+	docs, e := s.documents(site, "ssh-target")
+	if e != nil {
+		return e
+	}
+	for _, d := range docs {
+		var target struct {
+			CredentialID string `json:"credentialID"`
+		}
+		if json.Unmarshal(d.Data, &target) != nil {
+			return errors.New("SSH target metadata unreadable")
+		}
+		if target.CredentialID == id {
+			return errors.New("remove SSH target assignments before deleting this profile")
+		}
+	}
+
 	tx, e := s.db.Begin()
 	if e != nil {
 		return e

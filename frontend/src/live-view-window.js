@@ -4,18 +4,22 @@ import { CameraPlayer } from "./live-view-player.js";
 import { esc, field, select, option, dialog } from "./toolkit-ui.js";
 import * as Vault from "../bindings/github.com/TerminalAddict/SADPTools/toolkitservice.js";
 import "./live-view.css";
+import { initViewerTools } from "./live-view-tools.js";
 
 export function initLiveViewWindow() {
+  let tools;
   let panel,
     selected,
     conn,
     player,
     ticket = "",
+    diagnosticTicket = "",
     timer,
     generation = 0,
     startRequest = 0,
     polling = false;
   let lastFrame = 0,
+    lastCountedFrame = 0,
     frames = 0,
     started = 0,
     statsAt = 0,
@@ -48,6 +52,7 @@ export function initLiveViewWindow() {
     old?.close();
     player?.close();
     player = null;
+    tools?.stopped();
     if (panel) {
       get("play").disabled = false;
       get("play").hidden = false;
@@ -154,9 +159,9 @@ export function initLiveViewWindow() {
     const options = {
       siteID: selected.siteID,
       deviceID: selected.id,
-      method: values.method,
-      profile: values.profile,
-      channel: Number(values.channel),
+      method: get("method").value,
+      profile: get("profile").value,
+      channel: Number(get("channel").value),
       port: Number(values.port),
       url: values.url,
       streamPin: values.streamPin,
@@ -190,19 +195,22 @@ export function initLiveViewWindow() {
         await API.Stop(result.id);
         return;
       }
-      ticket = result.id;
+      ticket = diagnosticTicket = result.id;
       get("play").hidden = true;
       started = statsAt = performance.now();
       frames = statsFrames = 0;
-      lastFrame = 0;
+      lastFrame = lastCountedFrame = 0;
       info = null;
       player = new CameraPlayer(
         get("video"),
         get("image"),
-        () => {
+        (counted) => {
           if (sequence !== generation) return;
           lastFrame = performance.now();
-          frames++;
+          if (counted) {
+            frames++;
+            lastCountedFrame = lastFrame;
+          }
           status(
             options.method.includes("snapshot")
               ? "Snapshot refresh · not continuous video"
@@ -261,6 +269,7 @@ export function initLiveViewWindow() {
     try {
       const state = await API.Status(ticket);
       if (sequence !== generation || !panel) return;
+      tools?.update(state, null, !!lastFrame);
       if (state.state === "error" || state.state === "stopped") {
         const signIn = state.errorCode === "authentication";
         await fail(state.message);
@@ -294,14 +303,17 @@ export function initLiveViewWindow() {
       }
       const now = performance.now(),
         elapsed = (now - statsAt) / 1000;
+      const fpsAvailable =
+        lastCountedFrame > 0 && now - lastCountedFrame < 3000;
       const fps = elapsed > 0 ? (frames - statsFrames) / elapsed : 0;
       get("metrics").textContent = info
-        ? `${info.codec} · ${info.width} × ${info.height} · ${get("video").requestVideoFrameCallback || info.mime === "image/jpeg" ? `${fps.toFixed(1)} displayed frames/s` : "playback advancing"} · ${info.transport}`
+        ? `${info.codec} · ${info.width} × ${info.height} · ${fpsAvailable ? `${fps.toFixed(1)} displayed frames/s` : lastFrame ? "playback advancing · frame count unavailable" : "waiting for playback"} · ${info.transport}`
         : "Waiting for stream information";
+      tools?.update(state, fpsAvailable ? fps : null, !!lastFrame);
       statsAt = now;
       statsFrames = frames;
       get("diagnostics").textContent =
-        `${state.credentialSource}\n${state.message}\nReceived ${(state.bytes / 1048576).toFixed(2)} MiB; ${state.fragments} media fragments.\n${frames} displayed frames in ${((now - started) / 1000).toFixed(1)} s.\nNo audio, recording or automatic retries. Camera encoding is unchanged.`;
+        `${state.credentialSource}\n${state.message}\nReceived ${(state.bytes / 1048576).toFixed(2)} MiB; ${state.fragments} media fragments.\n${fpsAvailable ? `${frames} counted displayed frames` : "Displayed frame count unavailable"} in ${((now - started) / 1000).toFixed(1)} s.\nNo audio, recording or automatic retries. Camera encoding is unchanged.`;
       // Includes profile resolution time, while bounding an unsupported decoder's black screen.
       if (info && !lastFrame && now - started > 40000)
         await fail(
@@ -329,7 +341,7 @@ export function initLiveViewWindow() {
           ? "dark"
           : "light"
         : boot.theme || "dark";
-    selected = { ...detail, siteID, id };
+    selected = { ...detail, siteID, id, streamID: boot.streamID };
     profileKey = "";
     const d = detail.device,
       hasONVIF = d.xaddrs?.length > 0;
@@ -388,7 +400,11 @@ export function initLiveViewWindow() {
       get("trust").hidden = true;
     });
     get("form").addEventListener("change", (event) => {
-      if (["credential", "profile"].includes(event.target.name)) return;
+      if (
+        event.target.closest(".viewer-tools") ||
+        ["credential", "profile"].includes(event.target.name)
+      )
+        return;
       if (ticket || busy)
         void stop("Settings changed. Apply them to reconnect.");
     });
@@ -422,9 +438,31 @@ export function initLiveViewWindow() {
               e?.message || "Certificate inspection failed.";
         }
       };
+    if (boot.streamID) {
+      get("method").value = "hikvision";
+      get("method").disabled = true;
+      get("profile").innerHTML = option(
+        "auto",
+        `Advertised NVR stream ${boot.streamID}`,
+        "auto",
+      );
+      get("profile").disabled = true;
+      get("channel").disabled = true;
+      get("status").textContent =
+        `Opening advertised NVR stream ${boot.streamID}`;
+    }
+    tools = initViewerTools({
+      panel,
+      get,
+      API,
+      Vault,
+      restart: () => start(),
+      context: () => ({ ticket, diagnosticTicket, siteID: selected.siteID }),
+    });
     await start();
   }
   window.addEventListener("beforeunload", () => {
+    tools?.dispose();
     conn?.close();
     player?.close();
   });

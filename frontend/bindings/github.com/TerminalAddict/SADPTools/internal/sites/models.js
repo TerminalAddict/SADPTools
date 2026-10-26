@@ -8,10 +8,111 @@ import { Create as $Create } from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
+import * as json$0 from "../../../../../encoding/json/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
 import * as devices$0 from "../devices/models.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
 import * as ipscan$0 from "../ipscan/models.js";
+
+export class Asset {
+    /**
+     * Creates a new Asset instance.
+     * @param {Partial<Asset>} [$$source = {}] - The source object to create the Asset.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("siteID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["siteID"] = "";
+        }
+        if (!("deviceID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["deviceID"] = "";
+        }
+        if (!("kind" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["kind"] = "";
+        }
+        if (!("title" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["title"] = "";
+        }
+        if (!("mime" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["mime"] = "";
+        }
+        if (!("width" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["width"] = 0;
+        }
+        if (!("height" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["height"] = 0;
+        }
+        if (!("encrypted" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["encrypted"] = false;
+        }
+        if (!("created" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["created"] = "";
+        }
+        if (!("bytes" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["bytes"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new Asset instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {Asset}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new Asset(/** @type {Partial<Asset>} */($$parsedSource));
+    }
+}
 
 export class Difference {
     /**
@@ -59,6 +160,87 @@ export class Difference {
     static createFrom($$source = {}) {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         return new Difference(/** @type {Partial<Difference>} */($$parsedSource));
+    }
+}
+
+/**
+ * Document is site-scoped versioned non-secret data. Sensitive vendor backup
+ * bytes belong in encrypted Asset payloads, never Data or ordinary exports.
+ */
+export class Document {
+    /**
+     * Creates a new Document instance.
+     * @param {Partial<Document>} [$$source = {}] - The source object to create the Document.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("siteID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["siteID"] = "";
+        }
+        if (!("deviceID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["deviceID"] = "";
+        }
+        if (!("kind" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["kind"] = "";
+        }
+        if (!("title" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["title"] = "";
+        }
+        if (!("version" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["version"] = 0;
+        }
+        if (!("data" in $$source)) {
+            /**
+             * @member
+             * @type {json$0.RawMessage}
+             */
+            this["data"] = null;
+        }
+        if (!("updated" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["updated"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new Document instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {Document}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new Document(/** @type {Partial<Document>} */($$parsedSource));
     }
 }
 

@@ -8,6 +8,12 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
+import * as onvif$0 from "./internal/onvif/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as sites$0 from "./internal/sites/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
 import * as streaming$0 from "./internal/streaming/models.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -18,14 +24,50 @@ import * as toolkit$0 from "./internal/toolkit/models.js";
 import * as $models from "./models.js";
 
 /**
+ * @param {string} mode
+ * @param {number} direction
+ * @returns {$CancellablePromise<void>}
+ */
+export function CameraFocus(mode, direction) {
+    return $Call.ByID(3981498351, mode, direction);
+}
+
+/**
+ * @param {string} action
+ * @param {string} id
+ * @param {string} name
+ * @returns {$CancellablePromise<void>}
+ */
+export function CameraPreset(action, id, name) {
+    return $Call.ByID(4054639410, action, id, name);
+}
+
+/**
+ * @returns {$CancellablePromise<onvif$0.Preset[]>}
+ */
+export function CameraPresets() {
+    return $Call.ByID(3022634835).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType1($result);
+    }));
+}
+
+/**
  * @param {string} raw
  * @param {boolean} onvif
  * @returns {$CancellablePromise<streaming$0.Certificate>}
  */
 export function Certificate(raw, onvif) {
     return $Call.ByID(3615263741, raw, onvif).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType0($result);
+        return $$createType2($result);
     }));
+}
+
+/**
+ * @param {string} data
+ * @returns {$CancellablePromise<string>}
+ */
+export function ExportSnapshot(data) {
+    return $Call.ByID(3903711748, data);
 }
 
 /**
@@ -33,8 +75,27 @@ export function Certificate(raw, onvif) {
  */
 export function Load() {
     return $Call.ByID(741099530).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType1($result);
+        return $$createType3($result);
     }));
+}
+
+/**
+ * @returns {$CancellablePromise<onvif$0.ControlCapabilities>}
+ */
+export function LoadControls() {
+    return $Call.ByID(1921912532).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType4($result);
+    }));
+}
+
+/**
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ * @returns {$CancellablePromise<void>}
+ */
+export function MoveCamera(x, y, z) {
+    return $Call.ByID(4035240896, x, y, z);
 }
 
 /**
@@ -49,6 +110,39 @@ export function Open(site, id) {
 }
 
 /**
+ * @param {string} site
+ * @param {string} id
+ * @param {string} channel
+ * @param {string} stream
+ * @returns {$CancellablePromise<void>}
+ */
+export function OpenChannel(site, id, channel, stream) {
+    return $Call.ByID(1433198349, site, id, channel, stream);
+}
+
+/**
+ * @param {string} id
+ * @param {$models.PlayerMeasurement} p
+ * @returns {$CancellablePromise<sites$0.Document>}
+ */
+export function SaveDiagnostic(id, p) {
+    return $Call.ByID(4244993252, id, p).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType5($result);
+    }));
+}
+
+/**
+ * @param {string} data
+ * @param {string} title
+ * @returns {$CancellablePromise<sites$0.Asset>}
+ */
+export function SaveSnapshot(data, title) {
+    return $Call.ByID(2647270503, data, title).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType6($result);
+    }));
+}
+
+/**
  * @param {toolkit$0.PreviewOptions} o
  * @param {string} username
  * @param {string} password
@@ -59,7 +153,7 @@ export function Open(site, id) {
  */
 export function Start(o, username, password, onvifUsername, onvifPassword, replaceCredentials) {
     return $Call.ByID(2420596586, o, username, password, onvifUsername, onvifPassword, replaceCredentials).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType2($result);
+        return $$createType7($result);
     }));
 }
 
@@ -69,7 +163,7 @@ export function Start(o, username, password, onvifUsername, onvifPassword, repla
  */
 export function Status(id) {
     return $Call.ByID(2745594940, id).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType3($result);
+        return $$createType8($result);
     }));
 }
 
@@ -81,8 +175,20 @@ export function Stop(id) {
     return $Call.ByID(1765042186, id);
 }
 
+/**
+ * @returns {$CancellablePromise<string>}
+ */
+export function StopCamera() {
+    return $Call.ByID(3592007609);
+}
+
 // Private type creation functions
-const $$createType0 = streaming$0.Certificate.createFrom;
-const $$createType1 = $models.PreviewWindow.createFrom;
-const $$createType2 = streaming$0.Ticket.createFrom;
-const $$createType3 = streaming$0.Status.createFrom;
+const $$createType0 = onvif$0.Preset.createFrom;
+const $$createType1 = $Create.Array($$createType0);
+const $$createType2 = streaming$0.Certificate.createFrom;
+const $$createType3 = $models.PreviewWindow.createFrom;
+const $$createType4 = onvif$0.ControlCapabilities.createFrom;
+const $$createType5 = sites$0.Document.createFrom;
+const $$createType6 = sites$0.Asset.createFrom;
+const $$createType7 = streaming$0.Ticket.createFrom;
+const $$createType8 = streaming$0.Status.createFrom;

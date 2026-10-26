@@ -21,6 +21,9 @@ type liveViewWindow struct {
 	windowID             uint
 	site, device, ticket string
 	secret, onvifSecret  vault.Secret
+	options              toolkit.PreviewOptions
+	controls             *viewerControl
+	streamID             string
 }
 
 func (v *liveViewWindow) clear() { v.secret.Clear(); v.onvifSecret.Clear() }
@@ -29,6 +32,7 @@ type PreviewWindow struct {
 	SiteID   string                `json:"siteID"`
 	DeviceID string                `json:"deviceID"`
 	Theme    string                `json:"theme"`
+	StreamID string                `json:"streamID"`
 	Detail   toolkit.PreviewDevice `json:"detail"`
 }
 
@@ -44,7 +48,15 @@ type LiveViewService struct {
 
 // Open creates a native, independently movable window. Reopening the same
 // camera focuses it; choosing Live View on another replaces the single stream.
-func (s *LiveViewService) Open(site, id string) error {
+func (s *LiveViewService) Open(site, id string) error { return s.open(site, id, "") }
+func (s *LiveViewService) OpenChannel(site, id, channel, stream string) error {
+	value, e := s.kit.ChannelStream(site, id, channel, stream)
+	if e != nil {
+		return e
+	}
+	return s.open(site, id, value)
+}
+func (s *LiveViewService) open(site, id, streamID string) error {
 	if s.kit == nil {
 		return errors.New("device storage is unavailable")
 	}
@@ -60,7 +72,7 @@ func (s *LiveViewService) Open(site, id string) error {
 		return errors.New("Live View is closing")
 	}
 	old := s.view
-	if old != nil && old.site == site && old.device == id {
+	if old != nil && old.site == site && old.device == id && old.streamID == streamID {
 		window := old.window
 		s.mu.Unlock()
 		window.Show()
@@ -93,7 +105,7 @@ func (s *LiveViewService) Open(site, id string) error {
 		window.Close()
 		return errors.New("Live View is closing")
 	}
-	s.view = &liveViewWindow{window: window, windowID: window.ID(), site: site, device: id}
+	s.view = &liveViewWindow{window: window, windowID: window.ID(), site: site, device: id, streamID: streamID}
 	s.mu.Unlock()
 	window.OnWindowEvent(events.Common.WindowClosing, func(*application.WindowEvent) { s.retire(window.ID()) })
 	s.app.Window.Add(window)
@@ -119,7 +131,7 @@ func (s *LiveViewService) Load(ctx context.Context) (PreviewWindow, error) {
 		return PreviewWindow{}, e
 	}
 	detail, e := s.kit.PreviewDevice(v.site, v.device)
-	return PreviewWindow{SiteID: v.site, DeviceID: v.device, Theme: s.kit.Controller.Settings().Theme, Detail: detail}, e
+	return PreviewWindow{SiteID: v.site, DeviceID: v.device, StreamID: v.streamID, Theme: s.kit.Controller.Settings().Theme, Detail: detail}, e
 }
 func (s *LiveViewService) Start(ctx context.Context, o toolkit.PreviewOptions, username, password, onvifUsername, onvifPassword string, replaceCredentials bool) (streaming.Ticket, error) {
 	s.mu.Lock()
@@ -130,6 +142,14 @@ func (s *LiveViewService) Start(ctx context.Context, o toolkit.PreviewOptions, u
 	}
 	if o.SiteID != v.site || o.DeviceID != v.device {
 		return streaming.Ticket{}, errors.New("select Live View on that camera to change devices")
+	}
+	if v.controls != nil {
+		v.controls.close()
+		v.controls = nil
+	}
+	if v.streamID != "" {
+		o.StreamID = v.streamID
+		o.Method = "hikvision"
 	}
 	if replaceCredentials {
 		secret := vault.Secret{Username: username, Password: password}
@@ -147,6 +167,7 @@ func (s *LiveViewService) Start(ctx context.Context, o toolkit.PreviewOptions, u
 	ticket, e := s.kit.PreparePreview(s.manager, o, v.secret, v.onvifSecret)
 	if e == nil {
 		v.ticket = ticket.ID
+		v.options = o
 	}
 	return ticket, e
 }
@@ -158,6 +179,7 @@ func (s *LiveViewService) Stop(ctx context.Context, id string) {
 		return
 	}
 	s.mu.Unlock()
+	s.StopCamera(ctx)
 	s.manager.Stop(id)
 }
 func (s *LiveViewService) Status(ctx context.Context, id string) streaming.Status {
@@ -191,7 +213,10 @@ func (s *LiveViewService) retire(windowID uint) {
 	s.view = nil
 	v.clear()
 	ticket := v.ticket
+	controls := v.controls
+	v.controls = nil
 	s.mu.Unlock()
+	controls.close()
 	if ticket != "" {
 		s.manager.Stop(ticket)
 	}
@@ -213,6 +238,8 @@ func (s *LiveViewService) lockCredentials() {
 	defer s.mu.Unlock()
 	if s.view != nil {
 		s.view.clear()
+		s.view.controls.close()
+		s.view.controls = nil
 	}
 	s.manager.Stop("")
 }
@@ -221,6 +248,8 @@ func (s *LiveViewService) ServiceShutdown() error {
 	s.closed = true
 	if s.view != nil {
 		s.view.clear()
+		s.view.controls.close()
+		s.view.controls = nil
 		s.view = nil
 	}
 	s.mu.Unlock()

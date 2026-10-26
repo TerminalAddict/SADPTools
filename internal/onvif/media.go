@@ -16,12 +16,13 @@ const media1NS = "http://www.onvif.org/ver10/media/wsdl"
 const media2NS = "http://www.onvif.org/ver20/media/wsdl"
 
 type MediaProfile struct {
-	ID     string `json:"id"`
-	Name   string `json:"name"`
-	Codec  string `json:"codec"`
-	Width  int    `json:"width"`
-	Height int    `json:"height"`
-	token  string
+	ID                    string `json:"id"`
+	Name                  string `json:"name"`
+	Codec                 string `json:"codec"`
+	Width                 int    `json:"width"`
+	Height                int    `json:"height"`
+	token                 string
+	ptzToken, sourceToken string
 }
 type MediaCatalog struct {
 	Profiles            []MediaProfile
@@ -121,7 +122,17 @@ func parseMediaProfiles(data []byte, namespace string) ([]MediaProfile, error) {
 					Token                     string `xml:"token,attr"`
 					Name                      string
 					VideoEncoderConfiguration *mediaEncoder
-					Configurations            struct{ VideoEncoder *mediaEncoder }
+					PTZConfiguration          struct {
+						Token string `xml:"token,attr"`
+					}
+					VideoSourceConfiguration struct{ SourceToken string }
+					Configurations           struct {
+						VideoEncoder *mediaEncoder
+						PTZ          struct {
+							Token string `xml:"token,attr"`
+						}
+						VideoSource struct{ SourceToken string }
+					}
 				} `xml:"Profiles"`
 			} `xml:"GetProfilesResponse"`
 		}
@@ -155,7 +166,11 @@ func parseMediaProfiles(data []byte, namespace string) ([]MediaProfile, error) {
 		if w < 0 || h < 0 || w > 65536 || h > 65536 {
 			return nil, errors.New("invalid ONVIF profile dimensions")
 		}
-		out = append(out, MediaProfile{ID: hex.EncodeToString(sum[:16]), Name: bounded(p.Name), Codec: codec, Width: w, Height: h, token: p.Token})
+		ptzToken, sourceToken := p.PTZConfiguration.Token, p.VideoSourceConfiguration.SourceToken
+		if namespace == media2NS {
+			ptzToken, sourceToken = p.Configurations.PTZ.Token, p.Configurations.VideoSource.SourceToken
+		}
+		out = append(out, MediaProfile{ptzToken: ptzToken, sourceToken: sourceToken, ID: hex.EncodeToString(sum[:16]), Name: bounded(p.Name), Codec: codec, Width: w, Height: h, token: p.Token})
 	}
 	return out, nil
 }
