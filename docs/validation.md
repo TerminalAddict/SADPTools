@@ -276,3 +276,16 @@ multicast/ARP/routes, saved sites and vaults, browser/file dialogs, Live View co
 support/autoplay/lifecycle, and manual upgrade preservation using the checklist
 in [macos.md](macos.md). Current native packages use ad-hoc signatures for testing;
 Developer ID signing and notarization remain a separate distribution step.
+
+### RC2 native CI packaging follow-up
+
+The first native macOS CI run during RC2 preparation compiled both desktop
+architectures, combined them into a universal app, verified its ad-hoc signature
+and plist, and created both ZIP and DMG. `hdiutil verify` and a read-only mount of
+the finished DMG passed; the mounted app's signature and executable matched the
+packaged app. The subsequent redundant `lipo -verify_arch` workflow check exposed
+an argument-order error (input must precede the variable-length architecture
+list); that check was corrected for the release rerun. Publication still requires
+the complete native packaging/desktop-test job to succeed and its artifacts to
+match the final release commit. This is build/packaging evidence, not Finder,
+Gatekeeper, camera or Live View hardware validation.

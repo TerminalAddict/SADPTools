@@ -51,7 +51,7 @@ jobs:
       - run: make tools macos-packages MACOS_ARCH=universal
       - name: Validate universal slices, bundle and desktop tests
         run: |
-          xcrun lipo -verify_arch arm64 x86_64 bin/macos/universal/SADPTools.app/Contents/MacOS/SADPTools
+          xcrun lipo bin/macos/universal/SADPTools.app/Contents/MacOS/SADPTools -verify_arch arm64 x86_64
           codesign --verify --deep --strict bin/macos/universal/SADPTools.app
           plutil -lint bin/macos/universal/SADPTools.app/Contents/Info.plist
           go test -tags desktop -race .
