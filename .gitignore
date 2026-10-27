@@ -28,3 +28,9 @@ coverage.out
 
 # Generated website review screenshots and validation reports
 /web/screenshots/
+
+# Download records, backups and report credentials are private runtime data.
+/web/public/assets/private-downloads/*
+!/web/public/assets/private-downloads/.htaccess
+/web/.download-report-credentials.json*
+/web/public/_app/download-report-auth.json*

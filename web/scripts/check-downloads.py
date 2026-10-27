@@ -7,7 +7,9 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
   raise AssertionError('A first-party endpoint redirected to another URL')
 opener=urllib.request.build_opener(NoRedirect)
 def fetch(path,headers=None,method='GET'):
- return opener.open(urllib.request.Request(base+path,headers=headers or {},method=method),timeout=240)
+ request_headers={'User-Agent':'SADPTools-Website-Download-Check/1.0'}
+ request_headers.update(headers or {})
+ return opener.open(urllib.request.Request(base+path,headers=request_headers,method=method),timeout=240)
 with fetch('/api/releases') as r:
  metadata=r.read(); assert r.status==200; release=json.loads(metadata)
 assert b'github' not in metadata.lower()
@@ -38,9 +40,12 @@ for key,asset in release['assets'].items():
 for path in ['/download/not-a-package.exe','/download.php?target=https://example.com','/download.php?target%5B%5D=linux.deb','/not-a-page']:
  try:fetch(path);raise AssertionError('Missing route accepted')
  except urllib.error.HTTPError as e: assert e.code==404,(path,e.code)
-for path in ['/_app/ReleaseProxy.php','/.credentials.json','/.git/config','/wordfence-waf.php']:
+for path in ['/_app/ReleaseProxy.php','/_app/download-report-auth.json','/.credentials.json','/.git/config','/wordfence-waf.php','/assets/private-downloads/','/assets/private-downloads/downloads.jsonl','/assets/private-downloads/downloads.jsonl.recovery','/assets/private-downloads/.htaccess','/assets/%70rivate-downloads/downloads.jsonl']:
  try:fetch(path);raise AssertionError('Private route exposed')
  except urllib.error.HTTPError as e:assert e.code in (403,404),(path,e.code)
+for path in ['/assets/downloads_report.php','/assets/downloads_report.php?export=jsonl','/assets/downloads_report.php?view=1']:
+ try:fetch(path);raise AssertionError('Private report exposed')
+ except urllib.error.HTTPError as e:assert e.code==401 and e.read()==b'',(path,e.code)
 try:fetch('/download/linux.deb',method='POST');raise AssertionError('POST accepted')
 except urllib.error.HTTPError as e:assert e.code==405
 with fetch('/download/checksums.txt') as r:

@@ -5,6 +5,8 @@ RewriteCond %{HTTP_HOST} ^www\.sadptools\.com$ [NC]
 RewriteRule ^ https://sadptools.com%{REQUEST_URI} [R=301,L,NE]
 RewriteRule ^(?:_app|\.git|\.credentials)(?:/|\.|$) - [F,L]
 RewriteRule ^wordfence-waf\.php$ - [F,L]
+# Also deny here, outside the writable log directory.
+RewriteRule ^assets/private-downloads(?:/|$) - [F,END,NC]
 RewriteRule ^api/releases/?$ releases.php [END]
 RewriteRule ^download/([a-z0-9.-]+)$ download.php?target=$1 [END,QSD]
 <FilesMatch "(^\.|\.(?:env|log|ini|sqlite|bak|sh)$)">

@@ -56,7 +56,7 @@ Playwright and axe are pinned in `package-lock.json`. A compatible Playwright Ch
 
 `validate.sh` invokes the maintainer's actual `/home/paul/bin/validate-site.sh --mode both`. Set `SADPTOOLS_SITE_VALIDATOR` to override that path. Its Nu validator blocks loopback URLs by default, so validate local files directly before deployment, then run the crawler against the public HTTPS site. The public crawl covers the homepage, features page, privacy page, Windows help, Mac help and both linked stylesheets. The 404 page is also validated directly.
 
-Deployment uses `rsync --delay-updates`, sends **only `public/`**, and does not delete existing remote files or modify Apache/system configuration. Existing ACME files are preserved. Review removed public paths manually if a future site change retires a file. No Git push or app release is involved.
+Deployment uses `rsync --delay-updates`, sends **only public application files**, and does not delete existing remote files or modify Apache/system configuration. It installs the download-directory access guard separately and excludes all runtime records and report credentials. Existing log ownership and permissions are preserved. Existing ACME files are preserved. Review removed public paths manually if a future site change retires a file. No Git push or app release is involved.
 
 ### Host compatibility
 
@@ -85,6 +85,127 @@ Metadata refreshes on demand every **five minutes**. A cached catalogue missing 
 Downloads are streamed to a private temporary file, checked against the release SHA-256 manifest (and API digest where supplied), then atomically cached and delivered from this domain. Browser-visible responses never redirect to the upstream provider or relay its headers. Cache files are outside the document root in the PHP user's temporary directory, with a private directory and private files. A shared lock prevents concurrent duplicate transfers. Unused binaries expire after seven days when metadata refreshes; the OS may also clear its temporary directory. Each upstream asset is bounded to 512 MiB and timed out; corrupt/interrupted files are removed.
 
 Only the fixed repository and allowlisted HTTPS release/CDN hosts are accepted, including at each redirect. Visitors cannot supply an upstream URL. Metadata fetches are bounded, certificate verification stays enabled, and full binary hashes are checked before sending any executable bytes. Downloads support HEAD and single byte ranges with an ETag/If-Range handoff. GET/HEAD are the only accepted methods. The proxy does not repack, modify or sign release archives; existing attribution inside those archives remains intact.
+
+## Private download records
+
+The package proxy records each valid package GET in
+`public/assets/private-downloads/downloads.jsonl`: one JSON object per line.
+The file starts empty; records are appended under an exclusive file lock, without
+replacing the file or its owner. The directory and log are **paul:paul, mode 0777**,
+as requested by the maintainer. Both the directory's `.htaccess` and a rule in the
+parent `.htaccess` deny every HTTP request to this directory. PHP reads/writes it
+directly through the filesystem. The preview router enforces the same exclusion.
+
+Rows contain a request ID, UTC start/finish timestamps, direct peer IP, bounded
+user agent, inferred browser/OS, selected release version and filename, requested
+range, HTTP status, bytes sent, duration and outcome. Only `REMOTE_ADDR` is used;
+untrusted forwarded headers do not override the address. Authentication headers,
+cookies, query strings and referrers are not collected. HEAD requests, metadata,
+checksum-file requests and invalid package names are not download records.
+
+`sent` means the server finished writing the requested bytes, not that the visitor
+saved or installed the app. Range requests are separate from full transfers;
+failed and detected disconnected transfers retain their outcomes. Browser/user
+agent labels are estimates, and automated requests can appear. Tests use the
+distinctive `SADPTools-Website-Download-Check/1.0` agent on the live site. There is
+no automatic deletion of records. Logging errors go to the server error log with
+a generic message and do not break package delivery.
+
+The report is at **https://sadptools.com/assets/downloads_report.php**. It uses an
+HTTPS browser password prompt and displays all-time totals with 200 records per
+page in Pacific/Auckland time. Search covers the entire history, case-insensitively,
+with each word matching across the recorded fields (including raw user agents and
+UTC/Auckland dates). Column-heading links toggle ascending/descending order;
+dates, IP addresses, release versions and byte counts use their appropriate data
+ordering. Search/sort choices persist when paging, refreshing or exporting, and
+the controls also work without JavaScript.
+
+Each row has a **Delete** button and a checkbox. The table-header checkbox selects
+the current page; **Select all matching records (every page)** includes the entire
+current search, even beyond the 200 visible rows. Individual visible rows can be
+unchecked to exclude them from that selection. Clear selection resets both modes;
+paging, searching and sorting start a fresh selection. Without JavaScript, row
+checkboxes and select-all-matching still work, but the latter overrides individual
+checkboxes.
+
+Deletion first opens a confirmation showing the exact count, search and sample
+records. **Cancel** leaves the log unchanged. Confirmation captures specific record
+IDs, so later matching downloads are excluded, and expires after ten minutes or one
+use. Only authenticated POST requests with a session CSRF token can preview or
+confirm deletion; GET requests cannot delete records. The report's session cookie
+is scoped to this endpoint, Secure on HTTPS, HttpOnly and SameSite=Strict.
+
+Readers, writers and deletion share an exclusive file lock. Deletion rewrites the
+existing file in place, preserving its inode, owner and permissions. A temporary,
+durable recovery copy in the private directory protects interrupted rewrites; the
+next read/write restores an uncommitted deletion. Successful deletion removes this
+copy, so there is no permanent archive of deleted records. Keep both the log and
+any recovery file together if moving them while the application is stopped.
+
+Authenticated CSV and JSON Lines exports contain **every matching record**, in
+the selected sort order, regardless of the page currently displayed. Clear the
+search to export the full history. CSV includes UTC and Auckland start times,
+finish time, request ID, IP, browser/OS, version/package/filename, transfer/range,
+result, HTTP status, byte counts, duration and raw user agent. It uses UTF-8 with
+a BOM, quoted CSV fields and CRLF row endings. Formula-like cells receive a text
+prefix for initial spreadsheet import; JSON preserves the original values for
+machine processing. No CSV file is saved under the public assets directory.
+No GET parameter bypasses authentication. Anonymous and wrong-password
+requests return an empty `401`; missing login configuration fails closed. Report
+responses use `no-store` and `noindex`. Use a private browser window and close it
+when finished to discard remembered HTTP Basic credentials.
+
+Set up the records/login after deploying the access guards:
+
+```sh
+python3 web/scripts/setup-download-logging.py --local  # optional local preview
+python3 web/scripts/deploy.py
+python3 web/scripts/setup-download-logging.py          # production
+```
+
+The setup command generates a strong password once and saves it in the local,
+mode-0600 **`web/.download-report-credentials.json`** file. Open that file privately
+to obtain the username/password. Only its hash and username are sent over SSH to
+`public/_app/download-report-auth.json`, outside the writable records directory
+and blocked from HTTP. No password is printed or passed in shell arguments.
+Keep the private local credential file to reuse the login on subsequent setup;
+the command refuses to replace a different existing login. To rotate it, choose a
+new password/hash and deliberately replace both private configurations together.
+Provisioning never truncates existing records.
+
+The records directory (except `.htaccess`), backups, local login and server hash
+configuration are all ignored by Git. The deployment script excludes runtime
+records and the server hash even if they exist locally, and does not chmod or
+overwrite them during later website deployments. The report is not linked from
+public pages or included in the sitemap. The existing privacy notice is unchanged.
+
+Additional verification:
+
+```sh
+REPORT_BROWSER_CHECKS=1 npm --prefix web test
+java -jar /home/paul/bin/vnu.jar --stdout web/screenshots/download-report-fixture.html web/screenshots/delete-confirmation-fixture.html
+java -jar /home/paul/bin/vnu.jar --stdout --css web/public/assets/download-report.css
+```
+
+The isolated tests use synthetic packages and logins, concurrent writers, forced
+disconnects, broken log/auth files, hostile user agents, resumed transfers and
+permission-preserving setup, deletion snapshots, cancellation, replay protection,
+CSRF rejection, concurrent logging and interrupted-rewrite recovery. Optional
+browser checks cover individual/bulk selection and deletion and capture only synthetic report
+data in both themes and mobile/desktop layouts. Keep real visitor data out of test
+fixtures and screenshots.
+
+Validation for the logging change: 51 existing proxy assertions, 25 log/auth
+assertions, 31 query/sorting/CSV assertions, 24 deletion/recovery/concurrency assertions
+and 82 isolated HTTP assertions passed. The report and deletion confirmation passed automated
+accessibility checks in four desktop/mobile theme views and Nu HTML/CSS checks.
+The live site passed `validate-site.sh`; all seven full package downloads matched
+their checksums. Production checks verified report authentication and `403`
+responses for the private log and password-hash paths.
+Deletion deployment checks verified authenticated selection previews and cancellation,
+CSRF rejection, session-cookie attributes and denied recovery-file access. Existing
+production records, ownership, permissions and login configuration were preserved;
+actual deletion was tested only with isolated synthetic records.
 
 ## Screenshots and social assets
 
