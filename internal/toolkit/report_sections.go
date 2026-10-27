@@ -29,6 +29,47 @@ func counter(v *uint64) string {
 func evidenceSection(d sites.Document, redact bool, names map[string]string) (reports.Section, error) {
 	out := reports.Section{Title: sanitize.Label(d.Title), Note: "Saved evidence · " + d.Updated, Rows: [][]string{}}
 	switch d.Kind {
+	case "field-evidence":
+		var f FieldEvidence
+		if json.Unmarshal(d.Data, &f) != nil {
+			return out, errors.New("invalid field evidence")
+		}
+		out.Headers = []string{"Test", "State", "Evidence", "Next check"}
+		for _, step := range f.Run.Steps {
+			out.Rows = append(out.Rows, []string{step.Test, step.Status, step.Evidence, step.Next})
+		}
+		for _, finding := range f.Findings {
+			out.Rows = append(out.Rows, []string{finding.Name, finding.State, finding.Evidence, finding.Recommendation + "; what could break: " + finding.CouldBreak})
+		}
+		if f.Imaging != nil {
+			out.Note += "\nPrivacy masks: " + f.Imaging.PrivacyMasks
+			for _, setting := range f.Imaging.Settings {
+				out.Rows = append(out.Rows, []string{setting.Name, setting.State, setting.Value, setting.Reason})
+			}
+		}
+		if f.Recording != nil {
+			r := f.Recording
+			out.Note += "\nRecording: " + r.State + "; replay: " + r.Replay + "; " + strings.Join(r.Notes, "; ")
+			for _, v := range r.Intervals {
+				out.Rows = append(out.Rows, []string{"Recording metadata " + v.Channel, "metadata-only", v.Start.String() + " to " + v.End.String(), v.Precision})
+			}
+			for _, g := range r.Gaps {
+				out.Rows = append(out.Rows, []string{"Metadata gap", "observed", g.Start.String() + " to " + g.End.String(), "Verify recorded playback"})
+			}
+		}
+	case "anpr-session", "image-change":
+		out.Headers = []string{"Evidence", "Value"}
+		var obj map[string]any
+		if json.Unmarshal(d.Data, &obj) != nil {
+			return out, errors.New("invalid commissioning evidence")
+		}
+		for _, key := range []string{"grade", "matchRate", "source", "received", "started", "completed", "transport", "field", "previous", "proposed", "state", "at"} {
+			if value, ok := obj[key]; ok {
+				b, _ := json.Marshal(value)
+				out.Rows = append(out.Rows, []string{key, string(b)})
+			}
+		}
+
 	case "nvr-channels":
 		var inv nvr.Inventory
 		if json.Unmarshal(d.Data, &inv) != nil {

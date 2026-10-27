@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/TerminalAddict/SADPTools/internal/devices"
+	"github.com/TerminalAddict/SADPTools/internal/diagnostics"
 	"github.com/TerminalAddict/SADPTools/internal/sanitize"
 	"github.com/TerminalAddict/SADPTools/internal/vault"
 	"golang.org/x/crypto/ssh"
@@ -26,10 +27,11 @@ const Schema = 1
 const MaxOutput = 8 << 20
 
 type Capabilities struct {
-	Schema    int      `json:"schema"`
-	Version   string   `json:"version"`
-	Discovery bool     `json:"discovery"`
-	Protocols []string `json:"protocols"`
+	Troubleshoot bool     `json:"troubleshoot"`
+	Schema       int      `json:"schema"`
+	Version      string   `json:"version"`
+	Discovery    bool     `json:"discovery"`
+	Protocols    []string `json:"protocols"`
 }
 type Report struct {
 	Schema   int              `json:"schema"`
@@ -54,11 +56,12 @@ type Target struct {
 	Timeout      int    `json:"timeout"`
 }
 type Observation struct {
-	Target     Target `json:"target"`
-	At         string `json:"at"`
-	LatencyMS  int64  `json:"latencyMS"`
-	Report     Report `json:"report"`
-	Diagnostic string `json:"diagnostic"`
+	Connectivity *diagnostics.Envelope `json:"connectivity,omitempty"`
+	Target       Target                `json:"target"`
+	At           string                `json:"at"`
+	LatencyMS    int64                 `json:"latencyMS"`
+	Report       Report                `json:"report"`
+	Diagnostic   string                `json:"diagnostic"`
 }
 
 var safeArg = regexp.MustCompile(`^[A-Za-z0-9_./:@%+=,-]+$`)
@@ -151,10 +154,26 @@ func Parse(data []byte) (Report, error) {
 	return r, nil
 }
 func Run(ctx context.Context, t Target, secret vault.Secret) (Observation, error) {
+	return run(ctx, t, secret, "")
+}
+func Troubleshoot(ctx context.Context, t Target, secret vault.Secret, address string) (Observation, error) {
+	ip := net.ParseIP(address)
+	if ip == nil || ip.To4() == nil || ip.IsUnspecified() || ip.IsMulticast() || address == "255.255.255.255" {
+		return Observation{}, errors.New("remote diagnostic requires one selected unicast IPv4 address")
+	}
+	return run(ctx, t, secret, ip.String())
+}
+func run(ctx context.Context, t Target, secret vault.Secret, diagnosticTarget string) (Observation, error) {
 	out := Observation{Target: t, At: time.Now().UTC().Format(time.RFC3339Nano)}
 	probe, scan, e := Commands(t)
 	if e != nil {
 		return out, e
+	}
+	if diagnosticTarget != "" {
+		scan = quote(t.Executable) + " troubleshoot --ip " + quote(diagnosticTarget) + " --timeout 2s --ports 80,443,554,8000 --report"
+		if t.Interface != "" {
+			scan += " --interface " + quote(t.Interface)
+		}
 	}
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(t.Timeout+30)*time.Second)
 	defer cancel()
@@ -273,7 +292,7 @@ func Run(ctx context.Context, t Target, secret vault.Secret) (Observation, error
 	if e = decode(data, &caps); e != nil {
 		return out, e
 	}
-	if caps.Schema != Schema || !caps.Discovery {
+	if caps.Schema != Schema || diagnosticTarget == "" && !caps.Discovery || diagnosticTarget != "" && !caps.Troubleshoot {
 		return out, errors.New("remote CLI does not support this discovery schema")
 	}
 	data, out.Diagnostic, e = run(scan)
@@ -285,6 +304,21 @@ func Run(ctx context.Context, t Target, secret vault.Secret) (Observation, error
 		if !errors.As(e, &exit) || exit.ExitStatus() != 3 {
 			return out, fmt.Errorf("remote discovery failed; %s", sanitize.Text(out.Diagnostic))
 		}
+	}
+	if diagnosticTarget != "" {
+		var report diagnostics.Envelope
+		if e = decode(data, &report); e != nil {
+			return out, e
+		}
+		if report.Schema != 1 || report.Version == "" || report.Run.Target != diagnosticTarget || len(report.Run.Steps) > 100 || containsCredential(report, secret) {
+			return out, errors.New("invalid or unsafe remote diagnostics envelope")
+		}
+		safe := diagnostics.SafeJSON(report)
+		if e = json.Unmarshal(safe, &report); e != nil {
+			return out, e
+		}
+		out.Connectivity = &report
+		return out, nil
 	}
 	out.Report, e = Parse(data)
 	if e == nil && containsCredential(out.Report, secret) {

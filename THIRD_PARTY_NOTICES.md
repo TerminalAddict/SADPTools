@@ -29,3 +29,9 @@ The installer is compiled with **NSIS 3.10**, whose installer stub, Modern UI an
 Offline PDF generation uses **codeberg.org/go-pdf/fpdf v0.12.0** (MIT), the maintained successor of go-pdf/fpdf. Reports embed **Go Regular and Go Bold**, copyright (c) 2016 Bigelow & Holmes Inc., under their BSD-style licence in `LICENSES/Go-fonts.txt`. Fonts are supplied by **golang.org/x/image v0.47.0** (BSD-3-Clause), also used to decode WebP site images. Full module licences are included in `LICENSES/dependencies.txt`. No online PDF service, external renderer, PDF input engine or additional media decoder is bundled.
 
 SSH discovery uses the existing pinned **golang.org/x/crypto/ssh** implementation and its agent/known_hosts packages (BSD-3-Clause). ONVIF PTZ, imaging and events support was implemented against published ONVIF WSDLs; no third-party camera-control source was copied. ISAPI channel parsing follows the vendor-authored protocol documentation cited in `docs/ADVANCED_FEATURES_GAP_ANALYSIS.md`.
+
+## Field diagnostics and equipment labels
+
+Offline QR label generation uses **skip2/go-qrcode**, pinned to commit `da1b6568686e` (MIT, Copyright (c) 2014 Tom Harwood). Its full licence is included in `LICENSES/go-qrcode-MIT.txt`. QR SVG layout, asset identifiers and diagnostics are implemented here.
+
+Recording metadata and imaging operations follow the published ONVIF recording/search/imaging WSDLs and the vendor-authored ISAPI Content Management specification cited in `docs/v0.6-diagnostics.md`. No vendor firmware, camera recordings or production packet captures are redistributed. Optional packet tracing invokes a separately installed `dumpcap`; Wireshark/Npcap binaries or drivers are not bundled or installed by SADPTools.

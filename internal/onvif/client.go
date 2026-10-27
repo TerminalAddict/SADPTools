@@ -79,7 +79,7 @@ func usernameToken(s vault.Secret, now time.Time, nonce []byte) string {
 	return `<wsse:Security s:mustUnderstand="1" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"><wsse:UsernameToken><wsse:Username>` + xmlText(s.Username) + `</wsse:Username><wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">` + base64.StdEncoding.EncodeToString(hash[:]) + `</wsse:Password><wsse:Nonce EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">` + base64.StdEncoding.EncodeToString(nonce) + `</wsse:Nonce><wsu:Created>` + created + `</wsu:Created></wsse:UsernameToken></wsse:Security>`
 }
 
-var readOperations = map[string]bool{"GetDeviceInformation": true, "GetNetworkInterfaces": true, "GetDNS": true, "GetNTP": true, "GetSystemDateAndTime": true, "GetNetworkProtocols": true, "GetNetworkDefaultGateway": true}
+var readOperations = map[string]bool{"GetUsers": true, "GetDeviceInformation": true, "GetNetworkInterfaces": true, "GetDNS": true, "GetNTP": true, "GetSystemDateAndTime": true, "GetNetworkProtocols": true, "GetNetworkDefaultGateway": true}
 
 func (c *Client) Read(ctx context.Context, operation string, secret vault.Secret) ([]byte, error) {
 	if !readOperations[operation] {
@@ -155,6 +155,10 @@ func (c *Client) soapRequest(ctx context.Context, endpoint, namespace, operation
 		}
 	}
 	defer response.Body.Close()
+	if metadata, ok := ctx.Value(probeMetadataKey{}).(*ProbeMetadata); ok {
+		metadata.Code = response.StatusCode
+		metadata.ContentType = response.Header.Get("Content-Type")
+	}
 	if response.StatusCode == 401 || response.StatusCode == 403 {
 		return nil, ErrAuthentication
 	}

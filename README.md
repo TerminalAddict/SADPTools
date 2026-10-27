@@ -20,9 +20,10 @@ they are published as a GitHub release.
 
 Setup automatically prepares the display component if needed. It installs SADPTools for the current user and provides an entry in Windows' installed-apps list for removal. Builds are currently unsigned, so Windows may show a publisher/SmartScreen warning. Installation and startup still need validation on Windows; see [validation results](docs/validation.md).
 
-See the [code signing policy](docs/code-signing.md) for the SignPath Foundation
-application and signing requirements. Current builds remain unsigned while
-approval is pending; signing will apply to a new, verified release.
+See the [code signing policy](docs/code-signing.md) for signing status and
+requirements. SignPath Foundation declined the application because the project
+is too new. Current builds remain unsigned; an alternative provider and verified
+signing workflow are still needed for a future release.
 
 ## Install on Linux
 
@@ -251,3 +252,9 @@ Build a local test candidate with `make check`, `make frontend`,
 offline WebView2 runtime; the standalone executable uses the runtime already
 present on the PC. No privileged package install is required for the headless
 Go checks or Windows cross-build.
+
+## v0.6 advanced diagnostics
+
+**Commissioning → Diagnostics & service** adds connectivity troubleshooting, recording metadata/gaps, replacement and firmware planning, security inspection, ONVIF imaging, a read-only protocol explorer, ANPR commissioning, opaque equipment QR labels and previewed support bundles. Saved-site device context menus link to common tools. The headless CLI adds `sadptools troubleshoot --ip CAMERA_IP --json`.
+
+See the [v0.6 guide and compatibility matrix](docs/v0.6-diagnostics.md) and [release notes](docs/releases/v0.6.0-beta.1.md). Firmware uploads, automatic replacement writes, privacy-mask editing and verified replay require additional model-specific validation and are not presented as available. Download **v0.6.0-beta.1** from [GitHub Releases](https://github.com/TerminalAddict/SADPTools/releases/tag/v0.6.0-beta.1), or build locally with `make windows-installer` and `make linux-packages`.

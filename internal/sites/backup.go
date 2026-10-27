@@ -281,7 +281,7 @@ func remapRunIDs(raw string, ids map[string]string) string {
 		case map[string]any:
 			for k, v := range x {
 				switch k {
-				case "id", "siteID", "assetID", "switchID", "recordID", "deviceID", "credentialID", "planID", "linkedDeviceID", "nvrID", "imageID", "snapshotID", "logoID", "documentID", "brandingID":
+				case "oldDeviceID", "newDeviceID", "id", "siteID", "assetID", "switchID", "recordID", "deviceID", "credentialID", "planID", "linkedDeviceID", "nvrID", "imageID", "snapshotID", "logoID", "documentID", "brandingID":
 					if old, ok := v.(string); ok && ids[old] != "" {
 						x[k] = ids[old]
 					}

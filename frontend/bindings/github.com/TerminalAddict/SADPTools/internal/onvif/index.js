@@ -7,5 +7,9 @@ export {
     ControlCapabilities,
     Endpoint,
     EventCapabilities,
+    ImageSetting,
+    Imaging,
+    MediaProfile,
+    PlateEvent,
     Preset
 } from "./models.js";

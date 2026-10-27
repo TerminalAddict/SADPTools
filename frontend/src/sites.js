@@ -577,6 +577,22 @@ export function initSites({ getSnapshot, showError, onSiteChanged }) {
         contextMenu(e, [
           ["Live View", preview],
           ["Copy IP", () => perform(() => API.CopyText(r.device.ipv4))],
+          ...[
+            ["Troubleshoot connection", "connectivity"],
+            ["Inspect security", "security"],
+            ["Equipment label", "labels"],
+          ].map(([title, tool]) => [
+            title,
+            () =>
+              perform(async () => {
+                if (r.siteID !== selected) await choose(r.siteID);
+                document.dispatchEvent(
+                  new CustomEvent("toolkit:field", {
+                    detail: { tool, deviceID: r.id },
+                  }),
+                );
+              }),
+          ]),
           [
             "Read ONVIF information",
             () =>

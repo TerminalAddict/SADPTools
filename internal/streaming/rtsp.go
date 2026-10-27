@@ -29,43 +29,9 @@ func (NativeEngine) Play(ctx context.Context, s Source, sink Sink) error {
 }
 
 func playRTSP(ctx context.Context, s Source, sink Sink) error {
-	parsed, err := ValidateURL(s.address, s.raw)
+	c, u, parsed, expected, redirected, err := newRTSPClient(ctx, s, sink)
 	if err != nil {
 		return err
-	}
-	expected := net.JoinHostPort(s.address, endpointPort(parsed))
-	parsed.Host = expected
-	if s.secret.Username != "" {
-		parsed.User = url.UserPassword(s.secret.Username, s.secret.Password)
-	}
-	u, err := base.ParseURL(parsed.String())
-	if err != nil {
-		return ErrEndpoint
-	}
-	tlsConfig, err := TLSConfig(s.pin)
-	if err != nil {
-		return err
-	}
-	protocol := gortsplib.ProtocolTCP
-	var redirected atomic.Bool
-	c := &gortsplib.Client{Scheme: u.Scheme, Host: u.Host, Protocol: &protocol, ReadTimeout: 5 * time.Second, WriteTimeout: 3 * time.Second, TLSConfig: tlsConfig, UserAgent: "SADPTools Live View", WriteQueueSize: 16,
-		DialContext: func(inner context.Context, network, address string) (net.Conn, error) {
-			if network != "tcp" || address != expected {
-				return nil, ErrEndpoint
-			}
-			dialCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
-			defer cancel()
-			stop := context.AfterFunc(inner, cancel)
-			defer stop()
-			return (&net.Dialer{}).DialContext(dialCtx, "tcp4", expected)
-		},
-		OnResponse: func(r *base.Response) {
-			if r.StatusCode >= 300 && r.StatusCode < 400 {
-				redirected.Store(true)
-				delete(r.Header, "Location")
-			}
-		},
-		OnTransportSwitch: func(error) {}, OnDecodeError: func(error) { observe(sink, 0, 0, 0, 1) }, OnPacketsLost: func(n uint64) { observe(sink, 0, 0, n, 0) },
 	}
 	if err = c.Start(); err != nil {
 		return connectionError(ctx, err)
@@ -231,4 +197,92 @@ func connectionError(ctx context.Context, err error) error {
 		return ErrTimeout
 	}
 	return ErrConnection
+}
+
+// Shared transport boundary for playback and read-only DESCRIBE diagnostics.
+func newRTSPClient(ctx context.Context, s Source, sink Sink) (*gortsplib.Client, *base.URL, *url.URL, string, *atomic.Bool, error) {
+	parsed, err := ValidateURL(s.address, s.raw)
+	if err != nil {
+		return nil, nil, nil, "", nil, err
+	}
+	expected := net.JoinHostPort(s.address, endpointPort(parsed))
+	parsed.Host = expected
+	if s.secret.Username != "" {
+		parsed.User = url.UserPassword(s.secret.Username, s.secret.Password)
+	}
+	u, err := base.ParseURL(parsed.String())
+	if err != nil {
+		return nil, nil, nil, "", nil, ErrEndpoint
+	}
+	tlsConfig, err := TLSConfig(s.pin)
+	if err != nil {
+		return nil, nil, nil, "", nil, err
+	}
+	protocol := gortsplib.ProtocolTCP
+	redirected := new(atomic.Bool)
+	c := &gortsplib.Client{Scheme: u.Scheme, Host: u.Host, Protocol: &protocol, ReadTimeout: 5 * time.Second, WriteTimeout: 3 * time.Second, TLSConfig: tlsConfig, UserAgent: "SADPTools Live View", WriteQueueSize: 16,
+		DialContext: func(inner context.Context, network, address string) (net.Conn, error) {
+			if network != "tcp" || address != expected {
+				return nil, ErrEndpoint
+			}
+			dialCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+			defer cancel()
+			stop := context.AfterFunc(inner, cancel)
+			defer stop()
+			return (&net.Dialer{}).DialContext(dialCtx, "tcp4", expected)
+		},
+		OnResponse: func(r *base.Response) {
+			if r.StatusCode >= 300 && r.StatusCode < 400 {
+				redirected.Store(true)
+				delete(r.Header, "Location")
+			}
+		},
+		OnTransportSwitch: func(error) {}, OnDecodeError: func(error) { observe(sink, 0, 0, 0, 1) }, OnPacketsLost: func(n uint64) { observe(sink, 0, 0, n, 0) },
+	}
+	return c, u, parsed, expected, redirected, nil
+}
+
+type Description struct {
+	Code   int      `json:"code"`
+	Codecs []string `json:"codecs"`
+}
+
+// Describe performs authentication and SDP inspection only: no SETUP or PLAY.
+func Describe(ctx context.Context, s Source) (Description, error) {
+	out := Description{Codecs: []string{}}
+	if s.mode != "rtsp" {
+		return out, ErrEndpoint
+	}
+	c, u, _, _, redirected, e := newRTSPClient(ctx, s, nil)
+	if e != nil {
+		return out, e
+	}
+	if e = c.Start(); e != nil {
+		return out, connectionError(ctx, e)
+	}
+	defer c.Close()
+	stop := context.AfterFunc(ctx, c.Close)
+	defer stop()
+	desc, response, e := c.Describe(u)
+	if response != nil {
+		out.Code = int(response.StatusCode)
+	}
+	if redirected.Load() {
+		return out, ErrEndpoint
+	}
+	if e != nil {
+		return out, connectionError(ctx, e)
+	}
+	if desc == nil || len(desc.Medias) == 0 || len(desc.Medias) > 16 {
+		return out, ErrSDP
+	}
+	for _, m := range desc.Medias {
+		if len(m.Formats) > 16 {
+			return out, ErrSDP
+		}
+		for _, f := range m.Formats {
+			out.Codecs = append(out.Codecs, f.Codec())
+		}
+	}
+	return out, nil
 }

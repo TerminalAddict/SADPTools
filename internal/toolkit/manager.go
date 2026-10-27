@@ -7,6 +7,7 @@ import (
 	"github.com/TerminalAddict/SADPTools/internal/app"
 	"github.com/TerminalAddict/SADPTools/internal/audit"
 	"github.com/TerminalAddict/SADPTools/internal/cameraip"
+	"github.com/TerminalAddict/SADPTools/internal/diagnostics"
 	"github.com/TerminalAddict/SADPTools/internal/ipscan"
 	"github.com/TerminalAddict/SADPTools/internal/provision"
 	"github.com/TerminalAddict/SADPTools/internal/sites"
@@ -29,6 +30,10 @@ type Job struct {
 	Cancelled bool   `json:"cancelled"`
 }
 type Manager struct {
+	anpr          ANPRSession
+	anprExpiry    *time.Timer
+	field         FieldEvidence
+	support       diagnostics.Bundle
 	cameraIP      *pendingCameraIP
 	cameraIPProbe func(context.Context, cameraip.Options, vault.Secret, func(string)) (cameraip.Result, error)
 	walk          WalkTest
@@ -116,6 +121,11 @@ func (m *Manager) Close() {
 		return
 	}
 	m.closed = true
+	if m.anprExpiry != nil {
+		m.anprExpiry.Stop()
+	}
+	m.anpr.Events = nil
+	m.support = diagnostics.Bundle{}
 	if m.cancel != nil {
 		m.cancel()
 	}

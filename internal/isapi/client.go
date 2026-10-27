@@ -3,6 +3,7 @@
 package isapi
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"github.com/TerminalAddict/SADPTools/internal/streaming"
@@ -12,6 +13,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -41,9 +43,30 @@ func New(address, base, pin string) (*Client, error) {
 	tr := &http.Transport{Proxy: nil, DialContext: dial.DialContext, TLSClientConfig: tls, TLSHandshakeTimeout: 3 * time.Second, ResponseHeaderTimeout: 5 * time.Second, MaxResponseHeaderBytes: 32 << 10, DisableKeepAlives: true}
 	return &Client{u, &http.Client{Transport: tr, Timeout: 12 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}, nil
 }
+
+type ReadMetadata struct {
+	Code           int      `json:"code"`
+	ContentType    string   `json:"contentType"`
+	Authentication []string `json:"authentication"`
+}
+
 func (c *Client) Read(ctx context.Context, path string, s vault.Secret) ([]byte, error) {
+	return c.read(ctx, path, s, nil)
+}
+func (c *Client) Inspect(ctx context.Context, path string, s vault.Secret) ([]byte, ReadMetadata, error) {
+	var m ReadMetadata
+	b, e := c.read(ctx, path, s, &m)
+	return b, m, e
+}
+func (c *Client) read(ctx context.Context, path string, s vault.Secret, metadata *ReadMetadata) ([]byte, error) {
 	if !allowed[path] {
 		return nil, errors.New("ISAPI operation is not an implemented read")
+	}
+	return c.request(ctx, path, "GET", nil, s, metadata)
+}
+func (c *Client) request(ctx context.Context, path, method string, body []byte, s vault.Secret, metadata *ReadMetadata) ([]byte, error) {
+	if !allowed[path] && !(path == "/ISAPI/ContentMgmt/search" && method == "POST") {
+		return nil, errors.New("operation not allowed")
 	}
 	if e := streaming.ValidateCredentials(s); e != nil {
 		return nil, e
@@ -51,11 +74,13 @@ func (c *Client) Read(ctx context.Context, path string, s vault.Secret) ([]byte,
 	u := *c.base
 	u.Path = path
 	do := func(auth string) (*http.Response, error) {
-		req, _ := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+		req, _ := http.NewRequestWithContext(ctx, method, u.String(), bytes.NewReader(body))
 		if auth != "" {
 			req.Header.Set("Authorization", auth)
 		}
 		req.Header.Set("Cache-Control", "no-store")
+		req.Header.Set("Content-Type", "application/xml")
+		req.GetBody = nil
 		return c.http.Do(req)
 	}
 	r, e := do("")
@@ -71,7 +96,7 @@ func (c *Client) Read(ctx context.Context, path string, s vault.Secret) ([]byte,
 		if err != nil {
 			return nil, ErrAuthentication
 		}
-		credential, err := digest.Digest(challenge, digest.Options{Method: "GET", URI: u.RequestURI(), Count: 1, Username: s.Username, Password: s.Password})
+		credential, err := digest.Digest(challenge, digest.Options{Method: method, GetBody: func() (io.ReadCloser, error) { return io.NopCloser(bytes.NewReader(body)), nil }, URI: u.RequestURI(), Count: 1, Username: s.Username, Password: s.Password})
 		if err != nil {
 			return nil, ErrAuthentication
 		}
@@ -84,6 +109,15 @@ func (c *Client) Read(ctx context.Context, path string, s vault.Secret) ([]byte,
 		}
 	}
 	defer r.Body.Close()
+	if metadata != nil {
+		metadata.Code = r.StatusCode
+		metadata.ContentType = r.Header.Get("Content-Type")
+		for _, name := range []string{"Basic", "Digest", "Bearer"} {
+			if strings.Contains(strings.ToLower(r.Header.Get("WWW-Authenticate")), strings.ToLower(name)) {
+				metadata.Authentication = append(metadata.Authentication, name)
+			}
+		}
+	}
 	if r.StatusCode == 401 || r.StatusCode == 403 {
 		return nil, ErrAuthentication
 	}

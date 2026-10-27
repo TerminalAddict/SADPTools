@@ -39,6 +39,9 @@ export function commissioningPage(c) {
   );
   const attachments = c.data.documents.filter((d) =>
     [
+      "field-evidence",
+      "anpr-session",
+      "image-change",
       "nvr-channels",
       "stream-diagnostic",
       "walk-test",

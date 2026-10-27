@@ -2,24 +2,53 @@
 
 ## Current status
 
-The published beta.1 and beta.2 Windows binaries are unsigned. Their application,
+The Windows builds, including **v0.6.0-beta.1**, are unsigned. Their application,
 CLI and installer have no embedded Authenticode signature. A Windows report of
 **Unknown publisher** is therefore expected; the company name in executable
 metadata and the release's SHA-256 checksums do not establish a trusted publisher.
 
-[SignPath Foundation](https://signpath.org/apply) has **confirmed receipt** of
-the application for free signing, in an acknowledgement email shared by Paul on
-23 October 2026. Its team expects to respond within the next few business days.
-No resubmission is needed. Approval, a signing account, certificate provisioning
-and a tested signing workflow are still required.
-SignPath has not yet signed or endorsed this project. If accepted, Windows will
-show the certificate's publisher, **SignPath Foundation**.
+[SignPath Foundation](https://signpath.org/apply) **declined the application**
+because the project is too new, as reported by Paul on 27 October 2026. The earlier
+receipt acknowledgement was not approval. SignPath has not signed or endorsed
+this project. A different signing route, identity validation and a tested signing
+workflow are required before a signed release can be published.
 
 A valid signature establishes a publisher and detects changes to signed code.
 It does not guarantee that a new download immediately avoids SmartScreen:
 Microsoft also evaluates file and publisher reputation. Self-signed certificates
 do not solve public distribution trust. See
 [Microsoft's current SmartScreen guidance](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation).
+
+## Provider preference — 27 October 2026
+
+Paul has explicitly ruled out paying Microsoft a monthly signing fee. Do not
+propose or provision Azure Artifact Signing for this project. Evaluate a
+non-Microsoft certificate authority instead; no provider or purchase is approved.
+SignPath Foundation's rejection still stands.
+
+Local inspection of Paul's `tmp/HiToolsDelivery.exe` and
+`tmp/HiToolsDeliverySetup_EN.exe` found that both are signed by **Hangzhou Hikvision
+DIGITAL Technology Co., Ltd.**, with certificates issued by **GlobalSign GCC R45
+EV CodeSigning CA 2020** and **DigiCert** timestamps. Both embedded signatures in
+each file passed `osslsigncode` 2.13 digest, chain, timestamp and CRL checks against
+the Linux host's trust store. This is static signature verification, not a
+Windows SmartScreen execution test or a malware assessment. The SADPTools beta
+standalone EXE has no Authenticode signature. The supplied EXEs remain local
+inspection material and must not be included in source commits or releases.
+
+[GlobalSign](https://www.globalsign.com/en/code-signing-certificate/what-is-code-signing)
+and [Sectigo](https://www.sectigo.com/ssl-certificates-tls/code-signing) offer
+commercial code-signing products. Certum also lists an
+[open-source product](https://shop.certum.eu/open-source-code-signing-on-simplysign.html),
+but the shop currently reports it out of stock. Obtain current availability,
+New Zealand eligibility, identity-validation requirements, renewal terms and the
+full token/cloud cost before recommending a purchase. Provider selection must
+also account for how signing will work from Sparx or an approved CI workflow.
+
+A trusted CA signature establishes the publisher; it is not a promise of instant
+SmartScreen reputation. Do not infer a vendor's billing arrangement from an
+executable's certificate or timestamp, and do not buy EV solely on a claim that
+it automatically bypasses SmartScreen.
 
 ## Maintainer responsibilities
 
@@ -28,14 +57,14 @@ do not solve public distribution trust. See
   requires explicit maintainer approval, including changes to build scripts.
 - Contributions from others require maintainer review before signing. Signing
   credentials must not be available to pull-request builds.
-- Maintainers must enable MFA on GitHub and SignPath before using the signing
+- Maintainers must enable MFA on GitHub and the selected provider before using the signing
   service. Account configuration has not been verified by the application code.
 - Sign only SADPTools executables built from the reviewed source commit. Keep
   third-party publisher signatures intact.
 
 These are project responsibilities and onboarding requirements; they are not a
-claim that SignPath roles, MFA enforcement or production signing are configured.
-After acceptance, add the required attribution: “Free code signing provided by
+claim that provider roles, MFA enforcement or production signing are configured.
+If a future SignPath application is accepted, add its required attribution: “Free code signing provided by
 SignPath.io, certificate by SignPath Foundation”, with links to the providers.
 
 ## Privacy and eligibility disclosure
@@ -60,13 +89,14 @@ exception. It must not claim that every bundled component is open source or
 that all bundled software makes no external requests. Microsoft runtime files
 must not be signed with the SADPTools signing identity.
 
-## Signing workflow requirements after approval
+## Release signing requirements
 
-SignPath Foundation's [GitHub integration](https://docs.signpath.io/trusted-build-systems/github)
+Any future SignPath Foundation [GitHub integration](https://docs.signpath.io/trusted-build-systems/github)
 requires all jobs leading to a signing request to use GitHub-hosted runners and
 the input to be a GitHub Actions artifact. Development remains on Sparx, but
 uploading a locally built binary does not satisfy that source-verification
-requirement. The current local release builder does not perform code signing.
+requirement. Other providers have their own integration requirements. The current
+local release builder does not perform code signing.
 
 The approved workflow must:
 
@@ -87,11 +117,11 @@ The approved workflow must:
    changes or rebuilding may occur after signing.
 6. Publish a new version through the verified release process, with signing
    evidence and remaining Windows-runtime checks recorded. Never replace the
-   already-published beta.1/beta.2 files or move their tags.
+   already-published release files or move their tags.
 
-Use SignPath's approved project, artifact configurations and production signing
-policy; keep its API token in GitHub Actions secrets. Its GitHub action and all
-other build actions must be pinned. Do not substitute test/self-signed
+Use the selected provider's verified production identity and approved signing
+configuration; keep signing credentials out of source and untrusted builds.
+Signing actions and all other build actions must be pinned. Do not substitute test/self-signed
 certificates for the production certificate, or report a signed release until
 the actual signature verification has passed.
 

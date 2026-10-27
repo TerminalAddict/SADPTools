@@ -135,6 +135,14 @@ func encodeReference(enc *xml.Encoder, n *xmlsafe.Node, top bool) error {
 	return enc.EncodeToken(start.End())
 }
 func (s *Subscription) Pull(ctx context.Context) ([]CameraEvent, error) {
+	data, e := s.pullRaw(ctx)
+	if e != nil {
+		return nil, e
+	}
+	defer clear(data)
+	return ParseEvents(data, time.Now().UTC())
+}
+func (s *Subscription) pullRaw(ctx context.Context) ([]byte, error) {
 	if time.Now().After(s.expires) {
 		b, e := s.client.action(ctx, s.endpoint, "http://docs.oasis-open.org/wsn/b-2", "Renew", "<tds:TerminationTime>PT2M</tds:TerminationTime>", "http://docs.oasis-open.org/wsn/bw-2/SubscriptionManager/RenewRequest", s.headers, s.secret, false)
 		clear(b)
@@ -147,8 +155,7 @@ func (s *Subscription) Pull(ctx context.Context) ([]CameraEvent, error) {
 	if e != nil {
 		return nil, e
 	}
-	defer clear(data)
-	return ParseEvents(data, time.Now().UTC())
+	return data, nil
 }
 func (s *Subscription) Close(ctx context.Context) error {
 	data, e := s.client.action(ctx, s.endpoint, "http://docs.oasis-open.org/wsn/b-2", "Unsubscribe", "", "http://docs.oasis-open.org/wsn/bw-2/SubscriptionManager/UnsubscribeRequest", s.headers, s.secret, false)

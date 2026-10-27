@@ -23,6 +23,7 @@ import (
 const usage = `SADPTools — Hikvision discovery and device management
 Usage:
   sadptools discover [--interface NAME | --all-interfaces] [--timeout 10s] [--json | --report] [--protocols sadp,onvif] [--debug]
+  sadptools troubleshoot --ip ADDRESS [--interface NAME] [--ports 80,443,554] [--timeout 2s] [--json]
   sadptools interfaces [--json]
   sadptools scan --interface NAME [--cidr CIDR | --start IP --end IP] [--confirm-scope] [--json]
   sadptools send <IP> <action> --mac MAC --interface NAME [options]
@@ -39,6 +40,9 @@ Exit codes: 0 success (including no devices), 1 failure, 2 usage, 3 partial scan
 type scanFunc func(context.Context, discovery.Options, *slog.Logger) (discovery.Result, error)
 
 func Run(ctx context.Context, args []string, out, errOut io.Writer) int {
+	if len(args) > 0 && args[0] == "troubleshoot" {
+		return runTroubleshoot(ctx, args[1:], out, errOut)
+	}
 	if len(args) > 0 && args[0] == "scan" {
 		return runIPScan(ctx, args[1:], out, errOut)
 	}
@@ -62,7 +66,7 @@ func run(ctx context.Context, args []string, out, errOut io.Writer, interfaces f
 		if len(args) != 2 || args[1] != "--json" {
 			return 2
 		}
-		if json.NewEncoder(out).Encode(remote.Capabilities{Schema: remote.Schema, Version: version.Value, Discovery: true, Protocols: []string{"sadp", "onvif"}}) != nil {
+		if json.NewEncoder(out).Encode(remote.Capabilities{Troubleshoot: true, Schema: remote.Schema, Version: version.Value, Discovery: true, Protocols: []string{"sadp", "onvif"}}) != nil {
 			return 1
 		}
 		return 0

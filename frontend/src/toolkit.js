@@ -94,6 +94,9 @@ export function initToolkit({ getSnapshot, getSelected }) {
   kit.audit = initAudit(kit);
   kit.switches = initSwitches(kit);
   kit.advanced = initAdvanced(kit);
+  document.addEventListener("toolkit:field", (e) => {
+    void kit.advanced.openField(e.detail.tool, e.detail.deviceID).catch(error);
+  });
   kit.openRun = async (site, run) => {
     if (run.kind === "audit") return kit.audit.openSaved(site, run);
     message(

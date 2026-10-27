@@ -188,7 +188,7 @@ func (s *ToolkitService) ExportEvidence(site, id string) (string, error) {
 		return "", e
 	}
 	switch d.Kind {
-	case "nvr-channels", "stream-diagnostic", "walk-test", "retention", "plan":
+	case "field-evidence", "image-change", "anpr-session", "nvr-channels", "stream-diagnostic", "walk-test", "retention", "plan":
 	default:
 		return "", errors.New("this document needs its dedicated export")
 	}

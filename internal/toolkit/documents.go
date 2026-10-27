@@ -266,7 +266,7 @@ func (m *Manager) CreateReport(o ReportOptions) (sites.Document, error) {
 			return sites.Document{}, e
 		}
 		switch d.Kind {
-		case "nvr-channels", "stream-diagnostic", "walk-test", "retention", "plan":
+		case "field-evidence", "anpr-session", "image-change", "nvr-channels", "stream-diagnostic", "walk-test", "retention", "plan":
 		default:
 			return sites.Document{}, errors.New("choose diagnostic, channel, walk-test, retention or plan evidence")
 		}

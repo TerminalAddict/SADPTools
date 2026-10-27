@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/TerminalAddict/SADPTools/internal/devices"
+	"github.com/TerminalAddict/SADPTools/internal/diagnostics"
 	"github.com/TerminalAddict/SADPTools/internal/vault"
 	"golang.org/x/crypto/ssh"
 	"net"
@@ -88,7 +89,7 @@ func fixtureServer(t *testing.T, mode string) (Target, <-chan string) {
 							code := uint32(0)
 							var output any
 							if strings.Contains(args.Command, "capabilities") {
-								output = Capabilities{Schema: Schema, Version: "synthetic", Discovery: true}
+								output = Capabilities{Schema: Schema, Version: "synthetic", Discovery: true, Troubleshoot: strings.HasPrefix(mode, "diagnostic")}
 								if mode == "schema" {
 									output = Capabilities{Schema: 99, Version: "future", Discovery: true}
 								}
@@ -111,6 +112,14 @@ func fixtureServer(t *testing.T, mode string) (Target, <-chan string) {
 								if mode == "malformed" {
 									output = "not report"
 								}
+							}
+							if strings.Contains(args.Command, "troubleshoot") {
+								target := "192.0.2.8"
+								if mode == "diagnostic-wrong-target" {
+									target = "192.0.2.9"
+								}
+								output = diagnostics.Envelope{Schema: 1, Version: "synthetic", Run: diagnostics.Run{Target: target, State: "completed", Steps: []diagnostics.Step{{Test: "Synthetic TCP", Status: "failed", Evidence: "TCP refused; password=UNRELATED-SECRET"}}}}
+								code = 3
 							}
 							json.NewEncoder(channel).Encode(output)
 							channel.SendRequest("exit-status", false, ssh.Marshal(struct{ Status uint32 }{code}))
@@ -185,5 +194,30 @@ func TestHostileArgumentsAndBoundedSchema(t *testing.T) {
 	b, _ := json.Marshal(good)
 	if _, e := Parse(append(b, []byte(" {}")...)); e == nil {
 		t.Fatal("trailing JSON accepted")
+	}
+}
+
+func TestRemoteDiagnosticNegotiationTargetAndRedaction(t *testing.T) {
+	for _, mode := range []string{"diagnostic", "diagnostic-wrong-target", "ok"} {
+		target, commands := fixtureServer(t, mode)
+		out, e := Troubleshoot(context.Background(), target, vault.Secret{Username: "fixture", Password: "synthetic-login"}, "192.0.2.8")
+		if mode != "diagnostic" {
+			if e == nil {
+				t.Fatal("wrong target/old CLI accepted", mode)
+			}
+			continue
+		}
+		if e != nil || out.Connectivity == nil || out.Connectivity.Run.Target != "192.0.2.8" {
+			t.Fatal(out, e)
+		}
+		raw, _ := json.Marshal(out.Connectivity)
+		if strings.Contains(string(raw), "synthetic-login") {
+			t.Fatal("remote secret not scrubbed")
+		}
+		<-commands
+		command := <-commands
+		if !strings.Contains(command, " troubleshoot --ip '192.0.2.8'") || strings.Contains(command, "send") {
+			t.Fatal(command)
+		}
 	}
 }

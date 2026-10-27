@@ -1,3 +1,4 @@
+import { fieldPage, selectFieldTool } from "./field-service.js";
 import * as API from "../bindings/github.com/TerminalAddict/SADPTools/toolkitservice.js";
 import * as Viewer from "../bindings/github.com/TerminalAddict/SADPTools/liveviewservice.js";
 import {
@@ -17,6 +18,7 @@ import { plansPage } from "./plans.js";
 import { commissioningPage } from "./commissioning.js";
 import "./advanced.css";
 export function initAdvanced(kit) {
+  let fieldDispose;
   let tab = "nvr",
     site = "",
     view = null,
@@ -30,6 +32,7 @@ export function initAdvanced(kit) {
     grades = {};
   const root = $("advanced-page"),
     tabs = {
+      field: "Diagnostics & service",
       nvr: "NVR channels",
       events: "Event walk-test",
       retention: "Storage planner",
@@ -130,6 +133,8 @@ export function initAdvanced(kit) {
     if (pin) pin.id = "ad-pin";
   }
   const ctx = {
+    devicePicker,
+    readOptions,
     API,
     Viewer,
     kit,
@@ -160,6 +165,8 @@ export function initAdvanced(kit) {
     },
   };
   async function render() {
+    fieldDispose?.();
+    fieldDispose = null;
     clearInterval(timer);
     root.innerHTML = `<div class="d-flex justify-content-between flex-wrap gap-2"><h2>Commissioning tools</h2><div>${button("refresh", "Reload saved evidence")}</div></div><div class="d-flex align-items-end gap-3 mb-3">${select(
       "Site",
@@ -193,6 +200,7 @@ export function initAdvanced(kit) {
         '<p class="text-body-secondary">Choose a saved site to collect and organise device evidence. Storage planning is also available without a site.</p>';
       return;
     }
+    if (tab === "field") fieldDispose = await fieldPage(ctx);
     if (tab === "nvr") nvrPage();
     if (tab === "events") await eventPage();
     if (tab === "retention") await retentionPage(ctx);
@@ -644,6 +652,12 @@ export function initAdvanced(kit) {
   }
   kit.pages.advanced = refresh;
   return {
+    openField: async (tool, id) => {
+      tab = "field";
+      device = id;
+      selectFieldTool(tool);
+      await kit.navigate("advanced");
+    },
     refresh,
     completed: async () => {
       if (!root.hidden) await refresh();

@@ -280,6 +280,273 @@ export class EventCapabilities {
     }
 }
 
+export class ImageSetting {
+    /**
+     * Creates a new ImageSetting instance.
+     * @param {Partial<ImageSetting>} [$$source = {}] - The source object to create the ImageSetting.
+     */
+    constructor($$source = {}) {
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("value" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["value"] = "";
+        }
+        if (!("state" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["state"] = "";
+        }
+        if (!("reason" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["reason"] = "";
+        }
+        if (!("min" in $$source)) {
+            /**
+             * @member
+             * @type {number | null}
+             */
+            this["min"] = null;
+        }
+        if (!("max" in $$source)) {
+            /**
+             * @member
+             * @type {number | null}
+             */
+            this["max"] = null;
+        }
+        if (!("choices" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["choices"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ImageSetting instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ImageSetting}
+     */
+    static createFrom($$source = {}) {
+        const $$createField6_0 = $$createType0;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("choices" in $$parsedSource) {
+            $$parsedSource["choices"] = $$createField6_0($$parsedSource["choices"]);
+        }
+        return new ImageSetting(/** @type {Partial<ImageSetting>} */($$parsedSource));
+    }
+}
+
+export class Imaging {
+    /**
+     * Creates a new Imaging instance.
+     * @param {Partial<Imaging>} [$$source = {}] - The source object to create the Imaging.
+     */
+    constructor($$source = {}) {
+        if (!("profileID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["profileID"] = "";
+        }
+        if (!("settings" in $$source)) {
+            /**
+             * @member
+             * @type {ImageSetting[]}
+             */
+            this["settings"] = [];
+        }
+        if (!("privacyMasks" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["privacyMasks"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new Imaging instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {Imaging}
+     */
+    static createFrom($$source = {}) {
+        const $$createField1_0 = $$createType2;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("settings" in $$parsedSource) {
+            $$parsedSource["settings"] = $$createField1_0($$parsedSource["settings"]);
+        }
+        return new Imaging(/** @type {Partial<Imaging>} */($$parsedSource));
+    }
+}
+
+export class MediaProfile {
+    /**
+     * Creates a new MediaProfile instance.
+     * @param {Partial<MediaProfile>} [$$source = {}] - The source object to create the MediaProfile.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("codec" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["codec"] = "";
+        }
+        if (!("width" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["width"] = 0;
+        }
+        if (!("height" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["height"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new MediaProfile instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {MediaProfile}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new MediaProfile(/** @type {Partial<MediaProfile>} */($$parsedSource));
+    }
+}
+
+export class PlateEvent {
+    /**
+     * Creates a new PlateEvent instance.
+     * @param {Partial<PlateEvent>} [$$source = {}] - The source object to create the PlateEvent.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("deviceTime" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["deviceTime"] = "";
+        }
+        if (!("received" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["received"] = "";
+        }
+        if (!("source" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["source"] = "";
+        }
+        if (!("type" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["type"] = "";
+        }
+        if (!("plate" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["plate"] = "";
+        }
+        if (!("confidence" in $$source)) {
+            /**
+             * @member
+             * @type {number | null}
+             */
+            this["confidence"] = null;
+        }
+        if (!("direction" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["direction"] = "";
+        }
+        if (!("lane" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["lane"] = "";
+        }
+        if (!("integration" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["integration"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new PlateEvent instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {PlateEvent}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new PlateEvent(/** @type {Partial<PlateEvent>} */($$parsedSource));
+    }
+}
+
 export class Preset {
     /**
      * Creates a new Preset instance.
@@ -317,3 +584,5 @@ export class Preset {
 
 // Private type creation functions
 const $$createType0 = $Create.Array($Create.Any);
+const $$createType1 = ImageSetting.createFrom;
+const $$createType2 = $Create.Array($$createType1);

@@ -38,7 +38,7 @@ type Asset struct {
 	Bytes     int    `json:"bytes"`
 }
 
-var documentKinds = map[string]bool{"nvr-channels": true, "channel-links": true, "stream-diagnostic": true, "walk-test": true, "configuration": true, "retention": true, "plan": true, "commissioning": true, "branding": true, "ssh-target": true, "remote-observation": true, "report": true}
+var documentKinds = map[string]bool{"field-evidence": true, "asset-label": true, "image-change": true, "firmware": true, "replacement": true, "anpr-session": true, "nvr-channels": true, "channel-links": true, "stream-diagnostic": true, "walk-test": true, "configuration": true, "retention": true, "plan": true, "commissioning": true, "branding": true, "ssh-target": true, "remote-observation": true, "report": true}
 
 func validateDocument(d Document) error {
 	if !documentKinds[d.Kind] || len(d.Title) > 300 || len(d.Data) > 16<<20 || !json.Valid(d.Data) || d.Version != 1 {
@@ -461,7 +461,7 @@ func validateImportedReferences(d Document, b *backupData, records map[string]bo
 			switch k {
 			case "siteID":
 				valid = x == b.OriginalSite
-			case "deviceID", "linkedDeviceID", "nvrID":
+			case "oldDeviceID", "newDeviceID", "recordID", "deviceID", "linkedDeviceID", "nvrID":
 				valid = records[x]
 			case "imageID", "snapshotID", "logoID", "imageIDs":
 				valid = images[x]
