@@ -102,6 +102,13 @@ func (s *Store) Restore(encrypted []byte, passphrase string) (Site, error) {
 	if json.Unmarshal(plain, &b) != nil || (b.Version != 1 && b.Version != 2) || len(b.Documents) > 10000 || len(b.Assets) > 1000 || len(b.Devices) > 10000 || len(b.Profiles) > 10000 || len(b.Switches) > 10000 || len(b.Events) > 100000 || len(b.Runs) > 10000 {
 		return Site{}, errors.New("invalid or oversized backup contents")
 	}
+	return s.restoreBackup(b, "")
+}
+
+// Shared transaction for legacy backups and reviewed site imports. Identities and
+// credential encryption are always recreated for the destination computer.
+func (s *Store) restoreBackup(b backupData, name string) (Site, error) {
+	var e error
 	defer func() {
 		for i := range b.Profiles {
 			clear(b.Profiles[i].Secret)
@@ -188,7 +195,11 @@ func (s *Store) Restore(encrypted []byte, passphrase string) (Site, error) {
 	oldSite := b.Site.ID
 	b.OriginalSite = oldSite
 	b.Site.ID = ids[oldSite]
-	b.Site.Name += " (restored)"
+	if name == "" {
+		b.Site.Name += " (restored)"
+	} else {
+		b.Site.Name = name
+	}
 	b.Site.Created = now()
 	b.Site.DefaultCredential = ids[b.Site.DefaultCredential]
 	tx, e := s.db.Begin()
@@ -264,7 +275,11 @@ func (s *Store) Restore(encrypted []byte, passphrase string) (Site, error) {
 	if e = restoreDocuments(tx, &b, ids, s.key); e != nil {
 		return Site{}, e
 	}
-	if e = event(tx, b.Site.ID, "", "restore", "encrypted-backup-restored", oldSite, b.Site.ID); e != nil {
+	source, kind := "restore", "encrypted-backup-restored"
+	if name != "" {
+		source, kind = "import", "site-imported"
+	}
+	if e = event(tx, b.Site.ID, "", source, kind, oldSite, b.Site.ID); e != nil {
 		return Site{}, e
 	}
 	return b.Site, tx.Commit()

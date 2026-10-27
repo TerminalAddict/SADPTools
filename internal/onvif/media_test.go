@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -28,7 +29,7 @@ func TestMediaProfilesURIAndDomainRestrictions(t *testing.T) {
 				}
 				switch {
 				case strings.Contains(body, "GetServices"):
-					reply = soap("GetServices", `<Service><Namespace>`+namespace+`</Namespace><XAddr>http://192.0.2.3/onvif/media</XAddr></Service>`)
+					reply = soap("GetServices", `<Service><Namespace>`+namespace+`</Namespace><XAddr>http://192.0.2.3:80/onvif/media</XAddr></Service>`)
 				case strings.Contains(body, "GetProfiles"):
 					encoder := `<VideoEncoderConfiguration><Encoding>H264</Encoding><Resolution><Width>640</Width><Height>360</Height></Resolution></VideoEncoderConfiguration>`
 					if namespace == media2NS {
@@ -74,6 +75,31 @@ func TestMediaProfilesURIAndDomainRestrictions(t *testing.T) {
 		})
 		if _, e := client.MediaProfiles(context.Background(), vault.Secret{}, 0); e == nil || calls != 1 {
 			t.Fatal("unsafe media authority followed")
+		}
+	}
+}
+
+func TestServiceAuthorityUsesEffectiveHTTPPort(t *testing.T) {
+	for _, tc := range []struct {
+		base, service string
+		same          bool
+	}{
+		{"http://192.0.2.3/onvif/device_service", "http://192.0.2.3:80/onvif/media", true},
+		{"http://192.0.2.3:80/onvif/device_service", "http://192.0.2.3/onvif/media", true},
+		{"https://192.0.2.3/onvif/device_service", "https://192.0.2.3:443/onvif/media", true},
+		{"http://192.0.2.3:2020/onvif/device_service", "http://192.0.2.3:2020/onvif/media", true},
+		{"http://192.0.2.3:2020/onvif/device_service", "http://192.0.2.3/onvif/media", false},
+		{"http://192.0.2.3/onvif/device_service", "https://192.0.2.3/onvif/media", false},
+		{"http://192.0.2.3/onvif/device_service", "http://192.0.2.4/onvif/media", false},
+	} {
+		base, _ := url.Parse(tc.base)
+		u, _ := url.Parse(tc.service)
+		if sameHTTPAuthority(base, u) != tc.same {
+			t.Fatalf("wrong authority comparison for %s / %s", tc.base, tc.service)
+		}
+		c, _ := NewClient(Target{Address: "192.0.2.3", URL: tc.base})
+		if c.sameAuthority(tc.service) != tc.same {
+			t.Fatalf("ONVIF service authority mismatch for %s", tc.service)
 		}
 	}
 }

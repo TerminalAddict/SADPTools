@@ -284,6 +284,52 @@ func (s *ToolkitService) RestoreSite(passphrase string) (sites.Site, error) {
 	defer clear(data)
 	return s.manager.Store.Restore(data, passphrase)
 }
+
+func (s *ToolkitService) SiteExportNeedsVault(site string) (bool, error) {
+	if e := s.ready(); e != nil {
+		return false, e
+	}
+	return s.manager.Store.ExportNeedsVault(site)
+}
+
+func (s *ToolkitService) PrepareSiteImport(passphrase string) (sites.ImportPreview, error) {
+	if e := s.ready(); e != nil {
+		return sites.ImportPreview{}, e
+	}
+	path, e := s.app.Dialog.OpenFile().SetTitle("Import site").
+		AddFilter("SADPTools site or NX Camera Info JSON", "*.sadpsite;*.json").PromptForSingleSelection()
+	if e != nil || path == "" {
+		return sites.ImportPreview{}, e
+	}
+	f, e := os.Open(path)
+	if e != nil {
+		return sites.ImportPreview{}, errors.New("could not open the selected site file")
+	}
+	defer f.Close()
+	info, e := f.Stat()
+	if e != nil || !info.Mode().IsRegular() || info.Size() > 2*vault.MaxBackup {
+		return sites.ImportPreview{}, errors.New("choose a regular site file no larger than 128 MiB")
+	}
+	data, e := io.ReadAll(io.LimitReader(f, 2*vault.MaxBackup+1))
+	defer clear(data)
+	if e != nil {
+		return sites.ImportPreview{}, errors.New("could not read the selected site file")
+	}
+	return s.manager.PrepareSiteImport(data, passphrase)
+}
+
+func (s *ToolkitService) CommitSiteImport(token, name string) (sites.Site, error) {
+	if e := s.ready(); e != nil {
+		return sites.Site{}, e
+	}
+	return s.manager.CommitSiteImport(token, name)
+}
+
+func (s *ToolkitService) CancelSiteImport(token string) {
+	if s.manager != nil {
+		s.manager.CancelSiteImport(token)
+	}
+}
 func (s *ToolkitService) ExportSite(site, format string) (string, error) {
 	if e := s.ready(); e != nil {
 		return "", e

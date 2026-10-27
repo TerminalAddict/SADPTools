@@ -86,7 +86,7 @@ func (c *Client) MediaProfiles(ctx context.Context, secret vault.Secret, offsetS
 		}
 		base, _ := url.Parse(c.target.URL)
 		target, e := url.Parse(endpoint)
-		if e != nil || !ValidXAddr(endpoint, c.target.Address) || target.Scheme != base.Scheme || target.Host != base.Host {
+		if e != nil || !ValidXAddr(endpoint, c.target.Address) || !sameHTTPAuthority(base, target) {
 			return MediaCatalog{}, errors.New("ONVIF media service changed address or port; use an explicitly selected stream endpoint")
 		}
 		data, err = c.soap(ctx, endpoint, namespace, "GetProfiles", "", secret, offset)
@@ -107,6 +107,21 @@ func (c *Client) MediaProfiles(ctx context.Context, secret vault.Secret, offsetS
 		}
 	}
 	return MediaCatalog{}, errors.New("no supported ONVIF video profiles; select the Hikvision endpoint or an explicit custom URL")
+}
+
+// An explicit default port is the same origin (camera:80 == camera for HTTP).
+// Different schemes, hosts and effective ports still require a new selection.
+func sameHTTPAuthority(a, b *url.URL) bool {
+	port := func(u *url.URL) string {
+		if u.Port() != "" {
+			return u.Port()
+		}
+		if u.Scheme == "https" {
+			return "443"
+		}
+		return "80"
+	}
+	return a != nil && b != nil && a.Scheme == b.Scheme && a.Hostname() == b.Hostname() && port(a) == port(b)
 }
 
 type mediaEncoder struct {

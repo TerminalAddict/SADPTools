@@ -384,8 +384,8 @@ export function initViewerTools({ panel, get, API, Vault, restart, context }) {
         throw Error(
           "Open each advertised NVR stream and run its test separately",
         );
-      if (!["hikvision", "onvif"].includes(get("method").value))
-        throw Error("Main/sub comparison requires Hikvision or ONVIF video");
+      if (!["saved", "hikvision", "onvif"].includes(get("method").value))
+        throw Error("Main/sub comparison requires imported streams, Hikvision or ONVIF video");
       const generation = ++compareGeneration;
       for (const profile of ["sub", "main"]) {
         if (generation !== compareGeneration) return;

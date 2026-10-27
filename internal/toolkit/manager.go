@@ -30,6 +30,7 @@ type Job struct {
 	Cancelled bool   `json:"cancelled"`
 }
 type Manager struct {
+	siteImport    *pendingSiteImport
 	anpr          ANPRSession
 	anprExpiry    *time.Timer
 	field         FieldEvidence
@@ -121,6 +122,7 @@ func (m *Manager) Close() {
 		return
 	}
 	m.closed = true
+	m.clearSiteImport()
 	if m.anprExpiry != nil {
 		m.anprExpiry.Stop()
 	}

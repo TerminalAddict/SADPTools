@@ -360,6 +360,132 @@ export class Event {
     }
 }
 
+/**
+ * ImportPreview deliberately excludes credentials and raw file contents.
+ */
+export class ImportPreview {
+    /**
+     * Creates a new ImportPreview instance.
+     * @param {Partial<ImportPreview>} [$$source = {}] - The source object to create the ImportPreview.
+     */
+    constructor($$source = {}) {
+        if (!("token" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["token"] = "";
+        }
+        if (!("format" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["format"] = "";
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("customer" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["customer"] = "";
+        }
+        if (!("devices" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["devices"] = 0;
+        }
+        if (!("credentials" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["credentials"] = 0;
+        }
+        if (!("devicesWithCredentials" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["devicesWithCredentials"] = 0;
+        }
+        if (!("switches" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["switches"] = 0;
+        }
+        if (!("documents" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["documents"] = 0;
+        }
+        if (!("attachments" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["attachments"] = 0;
+        }
+        if (!("history" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["history"] = 0;
+        }
+        if (!("runs" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["runs"] = 0;
+        }
+        if (!("needsVault" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["needsVault"] = false;
+        }
+        if (!("warnings" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["warnings"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ImportPreview instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ImportPreview}
+     */
+    static createFrom($$source = {}) {
+        const $$createField13_0 = $$createType1;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("warnings" in $$parsedSource) {
+            $$parsedSource["warnings"] = $$createField13_0($$parsedSource["warnings"]);
+        }
+        return new ImportPreview(/** @type {Partial<ImportPreview>} */($$parsedSource));
+    }
+}
+
 export class Preferences {
     /**
      * Creates a new Preferences instance.
@@ -390,7 +516,7 @@ export class Preferences {
      * @returns {Preferences}
      */
     static createFrom($$source = {}) {
-        const $$createField1_0 = $$createType1;
+        const $$createField1_0 = $$createType2;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("scanner" in $$parsedSource) {
             $$parsedSource["scanner"] = $$createField1_0($$parsedSource["scanner"]);
@@ -520,9 +646,9 @@ export class Proposal {
      * @returns {Proposal}
      */
     static createFrom($$source = {}) {
-        const $$createField4_0 = $$createType2;
-        const $$createField5_0 = $$createType2;
-        const $$createField6_0 = $$createType4;
+        const $$createField4_0 = $$createType3;
+        const $$createField5_0 = $$createType3;
+        const $$createField6_0 = $$createType5;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("before" in $$parsedSource) {
             $$parsedSource["before"] = $$createField4_0($$parsedSource["before"]);
@@ -637,9 +763,9 @@ export class Record {
      * @returns {Record}
      */
     static createFrom($$source = {}) {
-        const $$createField2_0 = $$createType2;
-        const $$createField5_0 = $$createType5;
-        const $$createField6_0 = $$createType5;
+        const $$createField2_0 = $$createType3;
+        const $$createField5_0 = $$createType1;
+        const $$createField6_0 = $$createType1;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("device" in $$parsedSource) {
             $$parsedSource["device"] = $$createField2_0($$parsedSource["device"]);
@@ -796,7 +922,7 @@ export class SaveResult {
      * @returns {SaveResult}
      */
     static createFrom($$source = {}) {
-        const $$createField2_0 = $$createType5;
+        const $$createField2_0 = $$createType1;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("review" in $$parsedSource) {
             $$parsedSource["review"] = $$createField2_0($$parsedSource["review"]);
@@ -919,9 +1045,9 @@ export class Site {
      * @returns {Site}
      */
     static createFrom($$source = {}) {
-        const $$createField5_0 = $$createType5;
-        const $$createField6_0 = $$createType5;
-        const $$createField8_0 = $$createType5;
+        const $$createField5_0 = $$createType1;
+        const $$createField6_0 = $$createType1;
+        const $$createField8_0 = $$createType1;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("tags" in $$parsedSource) {
             $$parsedSource["tags"] = $$createField5_0($$parsedSource["tags"]);
@@ -1063,11 +1189,11 @@ export class View {
 
 // Private type creation functions
 const $$createType0 = Record.createFrom;
-const $$createType1 = ipscan$0.Options.createFrom;
-const $$createType2 = devices$0.Device.createFrom;
-const $$createType3 = Difference.createFrom;
-const $$createType4 = $Create.Array($$createType3);
-const $$createType5 = $Create.Array($Create.Any);
+const $$createType1 = $Create.Array($Create.Any);
+const $$createType2 = ipscan$0.Options.createFrom;
+const $$createType3 = devices$0.Device.createFrom;
+const $$createType4 = Difference.createFrom;
+const $$createType5 = $Create.Array($$createType4);
 const $$createType6 = Site.createFrom;
 const $$createType7 = $Create.Array($$createType0);
 const $$createType8 = Profile.createFrom;

@@ -20,7 +20,7 @@ func (c *Client) sameAuthority(raw string) bool {
 		return false
 	}
 	base, _ := url.Parse(c.target.URL)
-	return u.Scheme == base.Scheme && u.Host == base.Host
+	return sameHTTPAuthority(base, u)
 }
 func (c *Client) service(ctx context.Context, ns, category string, s vault.Secret) (string, error) {
 	data, e := c.soap(ctx, c.target.URL, deviceNS, "GetServices", "<tds:IncludeCapability>false</tds:IncludeCapability>", s, 0)

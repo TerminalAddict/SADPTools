@@ -1,6 +1,7 @@
 import * as Desktop from "../bindings/github.com/TerminalAddict/SADPTools/desktopservice.js";
 import { mappingTable } from "./switches.js";
 import { cameraIPForm } from "./camera-ip.js";
+import { exportSiteDialog, importSiteDialog } from "./site-transfer.js";
 import * as API from "../bindings/github.com/TerminalAddict/SADPTools/toolkitservice.js";
 import { Events } from "@wailsio/runtime";
 import {
@@ -384,42 +385,16 @@ export function initSites({ getSnapshot, showError, onSiteChanged }) {
     );
   }
   function backup() {
-    dialog(
-      "Encrypted site backup",
-      `<p>Includes saved inventory and credentials. Choose a separate passphrase to restore on another computer. ${vault.unlocked || vault.automatic ? "" : "Unlock saved passwords first if this site contains credentials."}</p>` +
-        field(
-          "Backup passphrase",
-          "passphrase",
-          "",
-          "password",
-          "required minlength=12",
-        ) +
-        field(
-          "Repeat passphrase",
-          "repeat",
-          "",
-          "password",
-          "required minlength=12",
-        ),
-      async (v) => {
-        if (v.passphrase !== v.repeat) throw Error("Passphrases do not match.");
-        await API.BackupSite(selected, v.passphrase);
-      },
-      "Choose backup file",
-    );
+    return perform(() => exportSiteDialog(API, selected));
   }
   function restore() {
-    dialog(
-      "Restore encrypted site",
-      `<p>Imports a new site; existing sites are preserved. ${vault.unlocked || vault.automatic ? "" : "Unlock or create password protection before restoring credentials."}</p>` +
-        field("Backup passphrase", "passphrase", "", "password", "required"),
-      async (v) => {
-        const site = await API.RestoreSite(v.passphrase);
-        if (site.id) selected = site.id;
-        await refresh();
-      },
-      "Choose backup file",
-    );
+    importSiteDialog(API, async site => {
+      selected = site.id;
+      selectedRecords.clear();
+      page = 0;
+      await API.VisitSite(site.id);
+      await refresh();
+    });
   }
   async function addByIP(address = "") {
     sites = await API.ListSites();
@@ -623,7 +598,7 @@ export function initSites({ getSnapshot, showError, onSiteChanged }) {
   function render() {
     if (!$("sites-page")) return;
     $("sites-page").innerHTML =
-      `<aside class="site-sidebar"><div class="d-flex gap-2"><h2 class="me-auto">Sites</h2><button id="new-site" class="btn btn-sm btn-primary">New</button></div><input id="site-filter" class="form-control my-2" placeholder="Find a site" aria-label="Find a site"><div id="site-list">${sites.map((s) => `<button class="site-choice ${s.id === selected ? "active" : ""}" data-site="${esc(s.id)}">${esc(s.name)}${s.archived ? " · Archived" : ""}<small>${esc(s.customer)}</small></button>`).join("") || '<p class="text-body-secondary">Create a site to save an inventory.</p>'}</div><button id="site-add-ip" class="btn btn-sm btn-outline-primary mt-3">Add camera by IP</button><button id="restore-site" class="btn btn-sm btn-outline-secondary mt-3">Restore encrypted backup</button><hr><p class="small">Saved passwords: <strong>${vault.automatic ? "Protected by Windows" : vault.unlocked ? "Available" : "Locked"}</strong></p><button id="vault-action" class="btn btn-sm btn-outline-secondary">${vault.unlocked || vault.automatic ? "Lock now" : "Unlock saved passwords"}</button></aside><section class="site-content">${view ? `<div class="tool-heading"><div><h2>${esc(view.site.name)}</h2><p>${esc(view.site.customer)} · ${view.devices.filter((r) => !r.removed).length} saved devices · Last visited ${esc(date(view.site.lastVisited))}</p><p class="small">Networks: ${esc(view.site.networks?.join(", ") || "Not configured")} · Last scan ${esc(date(view.site.lastScan))}</p></div><button id="edit-site" class="btn btn-sm btn-outline-secondary">Edit site</button></div><div class="tool-actions"><button id="site-save-all" class="btn btn-primary">Save all discovered</button><button id="site-rescan" class="btn btn-outline-primary">Rescan site</button><button id="site-credentials" class="btn btn-outline-secondary">Credentials</button><button id="site-export" class="btn btn-outline-secondary">Export</button><button id="site-backup" class="btn btn-outline-secondary">Backup</button><button id="site-history" class="btn btn-outline-secondary">History</button><button id="site-merge" class="btn btn-outline-secondary">Merge selected</button><button id="site-delete" class="btn btn-outline-danger">Delete site</button></div><div class="tool-actions"><input id="saved-search" class="form-control" placeholder="Search IP, MAC, serial, model, name or notes" value="${esc(query)}"><label class="text-nowrap"><input id="all-sites-search" type="checkbox" ${allSearch ? "checked" : ""}> Across sites</label><select id="site-sort" class="form-select w-auto">${["ipv4", "model", "mac", "serial", "firmware", "name"].map((k) => option(k, `Sort: ${k}`, sort)).join("")}</select><button id="site-direction" class="btn btn-outline-secondary">${direction === 1 ? "↑" : "↓"}</button></div><div id="site-records"></div><div id="site-pagination" class="tool-actions"></div><div id="site-runs" class="mt-3"><h3>Saved scans and reports</h3>${view.runs.map((r) => `<button class="btn btn-sm btn-outline-secondary me-2 mb-2" data-run="${esc(r.id)}">${esc(r.kind)} · ${esc(date(r.at))} · ${esc(r.outcome)}</button>`).join("") || "No saved scans yet."}</div>` : '<div class="tool-empty"><h2>Persistent site inventories</h2><p>Select or create a site. Live discovery stays separate until you explicitly save observations.</p></div>'}</section>`;
+      `<aside class="site-sidebar"><div class="d-flex gap-2"><h2 class="me-auto">Sites</h2><button id="new-site" class="btn btn-sm btn-primary">New</button></div><input id="site-filter" class="form-control my-2" placeholder="Find a site" aria-label="Find a site"><div id="site-list">${sites.map((s) => `<button class="site-choice ${s.id === selected ? "active" : ""}" data-site="${esc(s.id)}">${esc(s.name)}${s.archived ? " · Archived" : ""}<small>${esc(s.customer)}</small></button>`).join("") || '<p class="text-body-secondary">Create a site to save an inventory.</p>'}</div><button id="site-add-ip" class="btn btn-sm btn-outline-primary mt-3">Add camera by IP</button><button id="restore-site" class="btn btn-sm btn-outline-secondary mt-3">Import site</button><hr><p class="small">Saved passwords: <strong>${vault.automatic ? "Protected by Windows" : vault.unlocked ? "Available" : "Locked"}</strong></p><button id="vault-action" class="btn btn-sm btn-outline-secondary">${vault.unlocked || vault.automatic ? "Lock now" : "Unlock saved passwords"}</button></aside><section class="site-content">${view ? `<div class="tool-heading"><div><h2>${esc(view.site.name)}</h2><p>${esc(view.site.customer)} · ${view.devices.filter((r) => !r.removed).length} saved devices · Last visited ${esc(date(view.site.lastVisited))}</p><p class="small">Networks: ${esc(view.site.networks?.join(", ") || "Not configured")} · Last scan ${esc(date(view.site.lastScan))}</p></div><button id="edit-site" class="btn btn-sm btn-outline-secondary">Edit site</button></div><div class="tool-actions"><button id="site-save-all" class="btn btn-primary">Save all discovered</button><button id="site-rescan" class="btn btn-outline-primary">Rescan site</button><button id="site-credentials" class="btn btn-outline-secondary">Credentials</button><button id="site-export" class="btn btn-outline-secondary">Export report</button><button id="site-backup" class="btn btn-outline-secondary">Export site</button><button id="site-history" class="btn btn-outline-secondary">History</button><button id="site-merge" class="btn btn-outline-secondary">Merge selected</button><button id="site-delete" class="btn btn-outline-danger">Delete site</button></div><div class="tool-actions"><input id="saved-search" class="form-control" placeholder="Search IP, MAC, serial, model, name or notes" value="${esc(query)}"><label class="text-nowrap"><input id="all-sites-search" type="checkbox" ${allSearch ? "checked" : ""}> Across sites</label><select id="site-sort" class="form-select w-auto">${["ipv4", "model", "mac", "serial", "firmware", "name"].map((k) => option(k, `Sort: ${k}`, sort)).join("")}</select><button id="site-direction" class="btn btn-outline-secondary">${direction === 1 ? "↑" : "↓"}</button></div><div id="site-records"></div><div id="site-pagination" class="tool-actions"></div><div id="site-runs" class="mt-3"><h3>Saved scans and reports</h3>${view.runs.map((r) => `<button class="btn btn-sm btn-outline-secondary me-2 mb-2" data-run="${esc(r.id)}">${esc(r.kind)} · ${esc(date(r.at))} · ${esc(r.outcome)}</button>`).join("") || "No saved scans yet."}</div>` : '<div class="tool-empty"><h2>Persistent site inventories</h2><p>Select or create a site. Live discovery stays separate until you explicitly save observations.</p></div>'}</section>`;
     $("new-site").onclick = () => perform(() => siteForm());
     $("restore-site").onclick = restore;
     $("site-add-ip").onclick = () => perform(() => addByIP());

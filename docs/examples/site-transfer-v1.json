@@ -1,0 +1,23 @@
+{
+  "format": "sadptools-site",
+  "version": 1,
+  "site": {
+    "name": "Synthetic demonstration site",
+    "customer": "Synthetic fixture — not a real customer",
+    "networks": ["192.0.2.0/24"],
+    "defaultCredentials": {
+      "username": "synthetic-shared-user",
+      "password": "SYNTHETIC-shared-password"
+    }
+  },
+  "cameras": [
+    {"name": "Synthetic shared camera", "ipv4": "192.0.2.10", "mac": "02:00:00:00:00:10"},
+    {
+      "name": "Synthetic override camera",
+      "ipv4": "192.0.2.11",
+      "httpsPort": 8443,
+      "credentials": {"username": "synthetic-override-user", "password": "SYNTHETIC-override-password"}
+    },
+    {"name": "Synthetic unknown credentials", "ipv4": "192.0.2.12", "inheritCredentials": false}
+  ]
+}

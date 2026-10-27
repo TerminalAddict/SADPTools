@@ -1279,6 +1279,13 @@ export class PreviewDevice {
              */
             this["credentials"] = [];
         }
+        if (!("savedPreview" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["savedPreview"] = false;
+        }
 
         Object.assign(this, $$source);
     }

@@ -11,6 +11,7 @@ import (
 
 	"github.com/TerminalAddict/SADPTools/internal/devices"
 	"github.com/TerminalAddict/SADPTools/internal/onvif"
+	"github.com/TerminalAddict/SADPTools/internal/sites"
 	"github.com/TerminalAddict/SADPTools/internal/streaming"
 	"github.com/TerminalAddict/SADPTools/internal/vault"
 )
@@ -37,8 +38,9 @@ type PreviewCredential struct {
 	Label    string `json:"label"`
 }
 type PreviewDevice struct {
-	Device      devices.Device      `json:"device"`
-	Credentials []PreviewCredential `json:"credentials"`
+	Device       devices.Device      `json:"device"`
+	Credentials  []PreviewCredential `json:"credentials"`
+	SavedPreview bool                `json:"savedPreview"`
 }
 
 func (m *Manager) previewDevice(site, id string) (devices.Device, error) {
@@ -90,6 +92,7 @@ func (m *Manager) PreviewDevice(site, id string) (PreviewDevice, error) {
 		return PreviewDevice{}, e
 	}
 	out := PreviewDevice{Device: d, Credentials: []PreviewCredential{}}
+	out.SavedPreview = site != "" && m.Store.HasPreviewEndpoints(site, id)
 	sites, e := m.Store.Sites()
 	if e != nil {
 		return out, nil
@@ -128,7 +131,7 @@ func (m *Manager) PreparePreview(player *streaming.Manager, o PreviewOptions, se
 		o.Profile = "sub"
 	}
 	switch o.Method {
-	case "onvif", "onvif-snapshot", "hikvision", "rtsp", "mjpeg", "snapshot":
+	case "saved", "onvif", "onvif-snapshot", "hikvision", "rtsp", "mjpeg", "snapshot":
 	default:
 		return streaming.Ticket{}, errors.New("select a supported Live View method")
 	}
@@ -145,6 +148,14 @@ func (m *Manager) PreparePreview(player *streaming.Manager, o PreviewOptions, se
 	}
 	credentialSource := "Session credentials"
 	var alive func() bool
+	var endpoints sites.PreviewEndpoints
+	if o.Method == "saved" {
+		endpoints, e = m.Store.ReadPreviewEndpoints(o.SiteID, o.DeviceID)
+		if e != nil {
+			return streaming.Ticket{}, e
+		}
+		alive = m.Store.CredentialSessionActive
+	}
 	if o.CredentialSite != "" {
 		saved, e := m.previewDevice(o.CredentialSite, o.CredentialRecord)
 		if e != nil {
@@ -167,9 +178,28 @@ func (m *Manager) PreparePreview(player *streaming.Manager, o PreviewOptions, se
 	if !o.SeparateONVIF {
 		onvifSecret = secret
 	}
-	dispose := func() { secret.Clear(); onvifSecret.Clear(); o.URL = "" }
+	dispose := func() { secret.Clear(); onvifSecret.Clear(); o.URL = ""; endpoints.Clear() }
 	resolve := func(ctx context.Context, state func(string, string), profiles func([]streaming.Profile)) (streaming.Source, error) {
 		raw, mode := o.URL, o.Method
+		if mode == "saved" {
+			if endpoints.StreamCount() > 0 {
+				state("resolving_profile", "Using the camera stream address from the imported site")
+				choices := []streaming.Profile{}
+				for i := 0; i < endpoints.StreamCount(); i++ {
+					choices = append(choices, streaming.Profile{ID: fmt.Sprintf("saved:%d", i), Name: fmt.Sprintf("Imported stream %d", i+1)})
+				}
+				profiles(choices)
+				var e error
+				raw, e = endpoints.Stream(o.Profile)
+				if e != nil {
+					return streaming.Source{}, e
+				}
+				mode = "rtsp"
+			} else {
+				d.XAddrs = []string{endpoints.ONVIF()}
+				mode = "onvif"
+			}
+		}
 		if mode == "onvif" || mode == "onvif-snapshot" {
 			state("resolving_profile", "Authenticating and reading ONVIF video profiles")
 			target, e := targetForONVIF(d, o.ONVIFPin)

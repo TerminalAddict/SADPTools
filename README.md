@@ -44,7 +44,7 @@ releases starting with **0.3.0-beta.2**.
 
 The **0.3.0-beta.1** test build adds the complete technician toolkit roadmap. See [the implementation guide and hardware checklist](docs/toolkit-implementation.md).
 
-- Named offline sites, protected shared/device credentials, encrypted portable backups, reviewed inventory changes and history.
+- Named offline sites, protected shared/device credentials, encrypted portable site export/import, NX Camera Info JSON imports, reviewed inventory changes and history. See [site transfer and the integration format](docs/site-transfer.md).
 - IPv4 investigation with ICMP/TCP and neighbour evidence, a 10-column grid/table, reservations, saved scans and CLI.
 - Explicit bulk activation/network plans, serial writes without retries and stable-identity verification.
 - ONVIF WS-Discovery and authenticated read-only information queries with certificate trust checks.

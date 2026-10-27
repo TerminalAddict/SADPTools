@@ -5,6 +5,7 @@ import { esc, field, select, option, dialog } from "./toolkit-ui.js";
 import * as Vault from "../bindings/github.com/TerminalAddict/SADPTools/toolkitservice.js";
 import "./live-view.css";
 import { initViewerTools } from "./live-view-tools.js";
+import { defaultPreviewMethod } from "./live-view-source.js";
 
 export function initLiveViewWindow() {
   let tools;
@@ -115,13 +116,13 @@ export function initLiveViewWindow() {
     loginPrompt.querySelector('input[type="password"]')?.focus();
   }
   async function credentialsReady() {
-    if (!selectedCredential()) return true;
+    if (!selectedCredential() && get("method").value !== "saved") return true;
     const state = await Vault.VaultStatus();
     if (state.unlocked || state.automatic) return true;
     if (loginPrompt) return false;
     loginPrompt = dialog(
-      "Unlock saved credentials",
-      `<p>${state.mode === "dpapi" ? "Saved credentials were locked manually. Unlock with your Windows account to view this camera." : "Enter your master passphrase to use this camera’s saved credentials."}</p>` +
+      "Unlock saved camera details",
+      `<p>${state.mode === "dpapi" ? "Saved camera details were locked manually. Unlock with your Windows account to view this camera." : "Enter your master passphrase to use this camera’s saved credentials and stream addresses."}</p>` +
         (state.mode === "dpapi"
           ? ""
           : field(
@@ -173,6 +174,11 @@ export function initLiveViewWindow() {
     };
     status("Preparing camera preview…", true);
     try {
+      if (["rtsp", "mjpeg", "snapshot"].includes(options.method) && !options.url.trim()) {
+        get("advanced").open = true;
+        await fail("Enter this camera’s stream URL below, or re-import its NX Camera Info export to use saved stream addresses.");
+        return;
+      }
       if (!(await credentialsReady()) || request !== startRequest) return;
       authRequired = false;
       const pending = API.Start(
@@ -294,7 +300,7 @@ export function initLiveViewWindow() {
             .map((p) =>
               option(
                 p.id,
-                `${p.name || "Profile"} · ${p.codec} ${p.width || "?"}×${p.height || "?"}`,
+                `${p.name || "Profile"}${p.codec ? ` · ${p.codec} ${p.width || "?"}×${p.height || "?"}` : ""}`,
                 value,
               ),
             )
@@ -344,14 +350,14 @@ export function initLiveViewWindow() {
     selected = { ...detail, siteID, id, streamID: boot.streamID };
     profileKey = "";
     const d = detail.device,
-      hasONVIF = d.xaddrs?.length > 0;
+      defaultMethod = defaultPreviewMethod(detail);
     panel = document.createElement("section");
     panel.className = "camera-preview";
     panel.innerHTML = `<form id="lv-form"><div class="dialog-heading"><div><h2>Live View</h2><div class="small text-body-secondary">${esc(d.name || d.model || "Camera")} · ${esc(d.ipv4)}</div></div><button id="lv-close" type="button" class="btn-close" aria-label="Close Live View"></button></div>
       <div id="lv-stage" class="camera-stage"><video id="lv-video" autoplay muted playsinline disablepictureinpicture></video><img id="lv-image" alt="Live camera preview" hidden></div>
       <div class="camera-status" role="status"><span id="lv-spinner" class="spinner-border spinner-border-sm" hidden></span><span id="lv-status">Opening camera preview…</span></div><div id="lv-metrics" class="small text-body-secondary mb-2"></div>
       <div class="camera-controls"><button id="lv-play" class="btn btn-primary" type="submit" hidden>Retry</button><button id="lv-pause" class="btn btn-outline-secondary" type="button" disabled>Pause</button><button id="lv-stop" class="btn btn-outline-secondary" type="button" disabled>Stop</button><button id="lv-fullscreen" class="btn btn-outline-secondary" type="button">Fullscreen</button><span class="small text-body-secondary">Audio off</span></div>
-      <p class="small text-body-secondary mt-2 mb-0">Read-only preview. RTSP and HTTP may be unencrypted; use a trusted management network.</p><div class="camera-options mt-3">${select("Source", "method", option("onvif", "ONVIF video profiles", hasONVIF ? "onvif" : "hikvision") + option("hikvision", "Hikvision RTSP endpoint", hasONVIF ? "onvif" : "hikvision") + option("rtsp", "Custom RTSP / RTSPS URL") + option("mjpeg", "HTTP multipart MJPEG") + option("snapshot", "HTTP snapshot refresh (1 fps)") + option("onvif-snapshot", "ONVIF snapshot refresh (1 fps)"))}${select("Stream", "profile", baseProfiles())}</div>
+      <p class="small text-body-secondary mt-2 mb-0">Read-only preview. RTSP and HTTP may be unencrypted; use a trusted management network.</p><div class="camera-options mt-3">${select("Source", "method", (detail.savedPreview ? option("saved", "Imported camera stream", defaultMethod) : "") + option("onvif", "ONVIF video profiles", defaultMethod) + option("hikvision", "Hikvision RTSP endpoint", defaultMethod) + option("rtsp", "Custom RTSP / RTSPS URL", defaultMethod) + option("mjpeg", "HTTP multipart MJPEG") + option("snapshot", "HTTP snapshot refresh (1 fps)") + option("onvif-snapshot", "ONVIF snapshot refresh (1 fps)"))}${select("Stream", "profile", baseProfiles())}</div>
       ${select("Credentials", "credential", option("session", "Enter for this session", detail.credentials.length === 1 ? "0" : "session") + detail.credentials.map((c, i) => option(String(i), c.label, detail.credentials.length === 1 ? "0" : "session")).join(""))}
 <div class="mb-2"><button id="lv-login" class="btn btn-sm btn-outline-secondary" type="button">Change login</button><span class="small text-body-secondary ms-2">Session credentials clear when this window closes.</span></div>
       <details id="lv-advanced"><summary>Endpoint, channel and certificate settings</summary><div class="camera-options mt-2">${field("Hikvision channel", "channel", "1", "number", 'min="1" max="256"')}${field("Hikvision RTSP port (0 = advertised/default)", "port", d.rtspPort || "0", "number", 'min="0" max="65535"')}</div>

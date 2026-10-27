@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SADPTools site import v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "version", "site", "cameras"],
+  "properties": {
+    "format": {"const": "sadptools-site"},
+    "version": {"const": 1},
+    "site": {
+      "type": "object", "additionalProperties": false, "required": ["name"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1, "maxLength": 200, "pattern": "\\S"},
+        "customer": {"type": "string", "maxLength": 500},
+        "address": {"type": "string", "maxLength": 1000},
+        "notes": {"type": "string", "maxLength": 32768},
+        "tags": {"type": ["array", "null"], "maxItems": 100, "items": {"type": "string"}},
+        "networks": {"type": ["array", "null"], "maxItems": 128, "items": {"type": "string", "description": "IPv4 CIDR"}},
+        "defaultCredentials": {"$ref": "#/$defs/credentials"}
+      }
+    },
+    "cameras": {
+      "type": "array", "maxItems": 10000,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "properties": {
+          "name": {"type": "string"}, "ipv4": {"type": "string", "description": "IPv4 address or empty if unknown"},
+          "mac": {"type": "string"}, "serial": {"type": "string"},
+          "vendor": {"type": "string"}, "model": {"type": "string"}, "firmware": {"type": "string"},
+          "subnetMask": {"type": "string"}, "gateway": {"type": "string"},
+          "httpPort": {"$ref": "#/$defs/port"}, "httpsPort": {"$ref": "#/$defs/port"}, "rtspPort": {"$ref": "#/$defs/port"},
+          "activated": {"type": ["boolean", "null"]}, "dhcp": {"type": ["boolean", "null"]},
+          "location": {"type": "string"}, "notes": {"type": "string"},
+          "tags": {"type": ["array", "null"], "items": {"type": "string"}},
+          "credentials": {"$ref": "#/$defs/credentials"},
+          "inheritCredentials": {"type": ["boolean", "null"]}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "port": {"type": ["integer", "null"], "minimum": 1, "maximum": 65535},
+    "credentials": {
+      "type": ["object", "null"], "additionalProperties": false, "required": ["password"],
+      "properties": {
+        "username": {"type": "string", "maxLength": 256},
+        "password": {"type": "string", "maxLength": 4096}
+      }
+    }
+  }
+}

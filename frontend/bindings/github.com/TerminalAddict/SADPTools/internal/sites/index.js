@@ -8,6 +8,7 @@ export {
     Difference,
     Document,
     Event,
+    ImportPreview,
     Preferences,
     Profile,
     Proposal,

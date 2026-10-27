@@ -328,9 +328,17 @@ func restoreDocuments(tx *sql.Tx, b *backupData, ids map[string]string, key []by
 			return errors.New("invalid imported asset")
 		}
 		data := item.Payload
-		if a.Kind == "configuration" {
+		if a.Kind == "configuration" || a.Kind == previewEndpointsKind {
 			if !a.Encrypted {
-				return errors.New("configuration asset must be encrypted")
+				return errors.New("sensitive asset must be encrypted")
+			}
+			if a.Kind == previewEndpointsKind {
+				if a.DeviceID == "" {
+					return errors.New("camera endpoint asset needs a device reference")
+				}
+				if _, e := decodePreviewEndpoints(data); e != nil {
+					return e
+				}
 			}
 			var e error
 			data, e = vault.Seal(key, data, "asset:"+a.ID)
@@ -424,7 +432,7 @@ func validateImportedReferences(d Document, b *backupData, records map[string]bo
 	images, assets, docs, profiles := map[string]bool{}, map[string]bool{}, map[string]bool{}, map[string]bool{}
 	for _, a := range b.Assets {
 		assets[a.Meta.ID] = true
-		if a.Meta.Kind != "configuration" {
+		if a.Meta.Kind == "plan" || a.Meta.Kind == "snapshot" || a.Meta.Kind == "branding" {
 			images[a.Meta.ID] = true
 		}
 	}
