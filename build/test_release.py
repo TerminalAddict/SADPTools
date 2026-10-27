@@ -8,10 +8,18 @@ import zipfile
 from unittest.mock import patch
 
 import release
-from release_version import metadata, windows_version
+from release_version import metadata, windows_version, version_stamp, has_version_stamp
 
 
 class VersionTests(unittest.TestCase):
+    def test_stable_stamp_does_not_depend_on_go_string_alignment(self):
+        # Go's linker can put a non-NUL byte immediately before its -X string.
+        self.assertTrue(has_version_stamp(b'g' + version_stamp('1.0.0').encode() + b'\0', '1.0.0'))
+        for value in (b'\0dependency/v1.0.0\0', b'\0' + '1.0.0'.encode('utf-16-le') + b'\0',
+                      b'\0SADPToolsVersion[11.0.0]\0', b'\0SADPToolsVersion[1.0.0-rc.1]\0',
+                      b'\0SADPToolsVersion[1.0.0', b'\0SADPToolsVersion[1.0.00]\0', b'\0' + b'1.0.0\0'):
+            self.assertFalse(has_version_stamp(value, '1.0.0'))
+
     def test_full_beta_label_and_numeric_windows_version(self):
         result = metadata("0.2.0-beta.1")
         self.assertEqual(result["fixed"]["file_version"], "0.2.0.1")

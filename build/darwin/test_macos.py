@@ -45,6 +45,14 @@ class MacTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 common.verify_binary(binary, arch, version)
 
+    def test_stable_stamp_in_macho_does_not_need_leading_nul(self):
+        binary = thin('arm64')[:32] + b'g' + common.version_stamp('1.0.0').encode() + b'\0'
+        common.verify_binary(binary, 'arm64', '1.0.0')
+        with self.assertRaisesRegex(ValueError, 'release version'):
+            common.verify_binary(binary, 'arm64', '1.0.1')
+        with self.assertRaisesRegex(ValueError, 'release version'):
+            common.verify_binary(thin('arm64', '1.0.0'), 'arm64', '1.0.0')
+
     def test_malformed_fat_slices_rejected(self):
         for position, replacement in [(8, common.ARCHES['arm64']), (8+8, 1), (28+8, 16384), (28+12, 0xffffffff), (28+16, 31)]:
             binary = bytearray(fat())

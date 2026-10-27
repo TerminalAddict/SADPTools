@@ -6,12 +6,12 @@ tasks:
       GOARCH: '{{.TARGET_ARCH}}'
       CGO_ENABLED: '1'
     cmds:
-      - go build -tags desktop,production -trimpath -buildvcs=false -ldflags="-s -w -X github.com/TerminalAddict/SADPTools/internal/version.Value={{.APP_VERSION}}" -o bin/SADPTools-linux-{{.TARGET_ARCH}} .
+      - go build -tags desktop,production -trimpath -buildvcs=false -ldflags="-s -w -X github.com/TerminalAddict/SADPTools/internal/version.Value=SADPToolsVersion[{{.APP_VERSION}}]" -o bin/SADPTools-linux-{{.TARGET_ARCH}} .
   package:
     env:
       GOOS: linux
       GOARCH: '{{.TARGET_ARCH}}'
       CGO_ENABLED: '0'
     cmds:
-      - go build -trimpath -buildvcs=false -ldflags="-s -w -X github.com/TerminalAddict/SADPTools/internal/version.Value={{.APP_VERSION}}" -o bin/sadptools ./cmd/sadptools
+      - go build -trimpath -buildvcs=false -ldflags="-s -w -X github.com/TerminalAddict/SADPTools/internal/version.Value=SADPToolsVersion[{{.APP_VERSION}}]" -o bin/sadptools ./cmd/sadptools
       - python3 build/linux/package.py --version '{{.APP_VERSION}}'

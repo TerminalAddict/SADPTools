@@ -9,7 +9,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'build'))
-from release_version import windows_version
+from release_version import windows_version, version_stamp, has_version_stamp
 
 ARCHES = {'arm64': 0x100000c, 'amd64': 0x1000007}
 MINIMUM = '12.0'
@@ -85,7 +85,7 @@ def verify_binary(data, arch, version):
     if set(slices) != architectures(arch):
         raise ValueError('Mach-O architectures do not match the requested build')
     for value in slices.values():
-        if b'\0' + version.encode() + b'\0' not in value:
+        if not has_version_stamp(value, version):
             raise ValueError('Missing embedded release version in Mach-O slice')
 
 

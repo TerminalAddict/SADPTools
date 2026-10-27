@@ -25,6 +25,21 @@ def windows_version(value, *, release=False):
     return f"{major}.{minor}.{patch}.{revision}"
 
 
+def version_stamp(value):
+    windows_version(value)
+    return f"SADPToolsVersion[{value}]"
+
+
+def has_version_stamp(data, value):
+    # The exact value consumed by version.init, including its frame. Neither
+    # Go string padding nor incidental dependency/resource versions prove it.
+    if version_stamp(value).encode() in data:
+        return True
+    # Retain validation of immutable pre-1.0 archives built with the old marker.
+    return (tuple(map(int, value.split('-')[0].split('.'))) < (1, 0, 0)
+            and b"\0" + value.encode() + b"\0" in data)
+
+
 def metadata(value):
     numeric = windows_version(value)
     result = json.loads((ROOT / "build/windows/info.json").read_text())

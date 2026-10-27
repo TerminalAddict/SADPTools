@@ -9,7 +9,7 @@ import platform
 import shutil
 import subprocess
 import tempfile
-from common import ROOT, MINIMUM, architectures, digest, run, source_state, verify_binary, windows_version, write_json
+from common import ROOT, MINIMUM, architectures, digest, run, source_state, verify_binary, windows_version, version_stamp, write_json
 
 IMAGE = 'sadptools-macos:go1.26.10-zig0.14.0-sdk14.5-v1'
 SDK = 'MacOSX14.5.sdk.tar.xz'
@@ -102,7 +102,7 @@ def build(arch, version):
     cache = CACHE / 'go'
     cache.mkdir(parents=True, exist_ok=True)
     flags = ['-tags', 'desktop,production', '-trimpath', '-buildvcs=false', '-ldflags',
-             f'-s -w -X github.com/TerminalAddict/SADPTools/internal/version.Value={version}']
+             f'-s -w -X github.com/TerminalAddict/SADPTools/internal/version.Value={version_stamp(version)}']
     # A failed rebuild invalidates provenance, so packaging cannot use stale files.
     receipt = output / f'build-{arch}.json'
     receipt.unlink(missing_ok=True)

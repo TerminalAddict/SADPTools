@@ -19,7 +19,7 @@ import tempfile
 BUILD = Path(__file__).resolve().parents[1]
 ROOT = BUILD.parent
 sys.path.insert(0, str(BUILD))
-from release_version import windows_version
+from release_version import windows_version, has_version_stamp
 
 WAILS_VERSION = "v3.0.0-beta.34"
 APP_ID = "io.github.terminaladdict.sadptools"
@@ -55,7 +55,7 @@ def verify_binary(path, version):
     data = path.read_bytes()
     if data[:6] != b"\x7fELF\x02\x01" or int.from_bytes(data[18:20], "little") != 62:
         raise ValueError(f"Expected a Linux AMD64 ELF executable: {path}")
-    if b"\0" + version.encode() + b"\0" not in data:
+    if not has_version_stamp(data, version):
         raise ValueError(f"{path} is not stamped {version}; rebuild both Linux binaries")
 
 

@@ -16,7 +16,7 @@ import tarfile
 import tempfile
 import zipfile
 
-from release_version import windows_version
+from release_version import windows_version, version_stamp, has_version_stamp
 from linux.package import asset_names as linux_asset_names
 from darwin.common import asset_names as macos_asset_names
 from darwin.package import verify_import as verify_macos_import
@@ -43,10 +43,9 @@ def digest(path):
 
 
 def verify_binary_version(binary, version):
-    # -trimpath deliberately omits ldflags from `go version -m`. The linker
-    # stores the -X string separately with NUL padding; PE resource strings are
-    # UTF-16 and cannot accidentally satisfy this UTF-8 Go-string check.
-    if b"\0" + version.encode() + b"\0" not in binary.read_bytes():
+    # -trimpath omits ldflags from `go version -m`. Inspect the framed linker
+    # value consumed by the app, not unrelated resource/dependency strings.
+    if not has_version_stamp(binary.read_bytes(), version):
         raise ValueError(f"Missing release version in {binary}")
 
 
@@ -205,7 +204,7 @@ def build(version, folder, macos_dir=None):
     # apart from SADPTools-windows-amd64.exe so repeated builds stay unambiguous.
     windows_cli = ROOT / "bin/cli-windows-amd64/sadptools.exe"
     windows_cli.parent.mkdir(parents=True, exist_ok=True)
-    run("go", "build", "-trimpath", "-buildvcs=false", "-ldflags", f"-s -w -X {VERSION_SYMBOL}={version}",
+    run("go", "build", "-trimpath", "-buildvcs=false", "-ldflags", f"-s -w -X {VERSION_SYMBOL}={version_stamp(version)}",
         "-o", windows_cli, "./cmd/sadptools",
         env=dict(env, GOOS="windows", GOARCH="amd64", CGO_ENABLED="0"))
     for binary in (ROOT / "bin/sadptools", windows_cli, ROOT / "bin/SADPTools-windows-amd64.exe",

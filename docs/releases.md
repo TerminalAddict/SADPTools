@@ -62,7 +62,10 @@ administrator approval (`sudo apt install 7zip`).
 The build runs `make check`, regenerates bindings, installs the locked frontend
 dependencies, builds the frontend and Windows app, packages/tests the offline
 installer, and builds Windows/Linux AMD64 CLIs. It checks the embedded Go version
-string and executes the Linux CLI's `--version`. Generated bindings must match
+string and executes the Linux CLI's `--version`. From v1.0, the linker value uses
+a `SADPToolsVersion[<VERSION>]` frame, unwrapped by the app at startup. This avoids
+assuming NUL padding around Go strings and distinguishes the application version
+from dependency/resource strings in stripped executables. Generated bindings must match
 the committed bindings or the clean-checkout check fails.
 
 From `0.3.0-beta.2`, bundles also build the Linux desktop and its DEB, RPM and manual

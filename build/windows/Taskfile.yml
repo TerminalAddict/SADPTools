@@ -9,7 +9,7 @@ tasks:
       - python3 build/release_version.py '{{.APP_VERSION}}' .cache/windows-info.json
       - wails3 generate syso -arch {{.TARGET_ARCH}} -icon build/windows/icon.ico -manifest build/windows/wails.exe.manifest -info .cache/windows-info.json -out wails_windows_{{.TARGET_ARCH}}.syso
       - defer: '{{if eq OS "windows"}}cmd /c del{{else}}rm -f{{end}} wails_windows_{{.TARGET_ARCH}}.syso'
-      - go build -tags desktop,production -trimpath -buildvcs=false -ldflags="-s -w -H windowsgui -X github.com/TerminalAddict/SADPTools/internal/version.Value={{.APP_VERSION}}" -o bin/SADPTools-windows-{{.TARGET_ARCH}}.exe .
+      - go build -tags desktop,production -trimpath -buildvcs=false -ldflags="-s -w -H windowsgui -X github.com/TerminalAddict/SADPTools/internal/version.Value=SADPToolsVersion[{{.APP_VERSION}}]" -o bin/SADPTools-windows-{{.TARGET_ARCH}}.exe .
   package:
     desc: Package the built Windows executable with the offline display runtime
     cmds:
