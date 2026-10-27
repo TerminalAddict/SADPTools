@@ -4,6 +4,8 @@ Release from Sparx using the installed `gh` CLI. `make release-build` prepares
 files locally; `make release-publish` pushes the source commit and annotated tag,
 uploads a draft, downloads every asset to verify its SHA-256, then publishes.
 Beta and release-candidate versions are marked **Pre-release**, never **Latest**.
+Stable versions (for example `1.0.0`) are published without the prerelease flag
+and become **Latest** after all uploaded assets have been verified.
 Ordinary commits and CI builds do not publish releases.
 
 ## Prepare a release

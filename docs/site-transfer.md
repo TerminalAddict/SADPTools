@@ -155,8 +155,8 @@ go test ./...
 go vet ./...
 go test -race ./...
 npm --prefix frontend test
-make windows VERSION=0.6.1-dev
-make linux-gui VERSION=0.6.1-dev
+make windows VERSION=1.0.0
+make linux-gui VERSION=1.0.0
 # Optional browser tests use the website's pinned development dependencies:
 npm --prefix web ci
 node frontend/tests/site-transfer-browser.mjs
@@ -168,7 +168,7 @@ and revealed exports, invalid inputs, cancellation, expiry and replay rejection.
 All test credentials and cameras are synthetic. Test with your saved site files
 on two actual laptops before relying on the transfer as your only backup.
 
-Validation on Sparx (2026-10-28): full Go tests, vet and race checks passed;
+Initial site-transfer validation on Sparx (2026-10-28): full Go tests, vet and race checks passed;
 36 frontend tests and four light/dark desktop/mobile browser scenarios passed,
 including axe checks. The local NX Camera Info CLI generated
 a JSON export from its synthetic demo database; SADPTools imported its eight
@@ -176,7 +176,7 @@ physical camera records and all six recovered credential pairs. This implementat
 does not require changes to NX Camera Info. JSON Schema validation tooling was not installed; the schema
 and example parse as JSON and the Go importer tests the documented example.
 
-Local test artifacts are stamped **0.6.1-dev**:
+Initial local test artifacts were stamped **0.6.1-dev**; the stable release is **1.0.0**:
 
 - `bin/SADPTools-windows-amd64.exe`
 - `bin/SADPTools-Setup-windows-amd64.exe` (includes the offline WebView2 runtime)
@@ -184,5 +184,6 @@ Local test artifacts are stamped **0.6.1-dev**:
 
 Compilation and synthetic tests do not verify native Windows/macOS file dialogs,
 Windows DPAPI between real user accounts, or transfers of your real saved sites.
-Those still need testing on the destination laptops. No camera was contacted or
-reconfigured during this work.
+Those still need testing on the destination laptops. The site-transfer tests did
+not contact cameras. Subsequent read-only hardware playback checks are recorded
+in [Live View compatibility](live-view-compatibility.md).
