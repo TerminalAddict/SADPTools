@@ -150,7 +150,7 @@
             "Override access for a particular device when needed.",
             "Keep secrets separate from ordinary preferences and inventory exports."
           ],
-          "note": "Credential storage uses local protection; platform behaviour and portable-backup unlocking differ.",
+          "note": "Windows uses account-based credential protection. Linux and Apple Mac use a master-passphrase vault; Mac Keychain auto-unlock is not implemented. Use encrypted site backups to move credentials between platforms.",
           "caption": "Credential-management dialog with a synthetic profile and no visible secret."
         },
         {
@@ -205,7 +205,7 @@
             "Keep viewing while you move through the site and diagnostic tools.",
             "Pause, stop or use fullscreen; retain visible playback and connection status."
           ],
-          "note": "Codec, stream and credential support depend on the device. Current playback uses RTSP over TCP.",
+          "note": "Playback uses RTSP over TCP. Try H.264 first on Apple Mac; H.265/HEVC depends on the OS and decoder. Stream and credential support also depend on the camera.",
           "caption": "Live H.265 video from an authorised physical camera. A temporary local relay keeps its network address private; no camera settings were changed.",
           "capture": "real-camera"
         },
@@ -297,11 +297,11 @@
           "title": "Connection troubleshooter",
           "text": "Check the actual route to the selected device.",
           "points": [
-            "Inspect available source, route and neighbour information, then bounded TCP/HTTP/HTTPS checks.",
+            "Inspect source, route, gateway and neighbour information on Windows, Linux and Apple Mac, then run bounded TCP/HTTP/HTTPS checks.",
             "Optionally include ICMP and approved ONVIF or RTSP metadata reads.",
             "Compare with a trusted SSH probe and copy a safe diagnostic summary."
           ],
-          "note": "A routed camera can be reachable without sharing your subnet. A timeout or blocked ping alone does not establish failure.",
+          "note": "Routed cameras do not have to share your subnet. Cached neighbour entries are not proof of a live device; a timeout or blocked ping alone does not establish failure.",
           "caption": "Connection-troubleshooter controls targeting the local test fixture; no checks were run for this screenshot."
         },
         {
@@ -470,7 +470,7 @@
       "id": "everyday",
       "title": "Built for work on your own computer.",
       "short": "Support & preferences",
-      "intro": "Windows and Linux, local evidence, and controls that keep the operator in charge.",
+      "intro": "Windows, Linux and Apple Mac, local evidence, and controls that keep the operator in charge.",
       "features": [
         {
           "id": "support",
@@ -481,7 +481,7 @@
             "Use optional local passphrase encryption and explicitly approve any screenshots.",
             "Request a separate, bounded trace for one selected host when capture tools are available."
           ],
-          "note": "Nothing is uploaded automatically. Raw traces require an existing capture tool and OS permissions and are not automatically scrubbed.",
+          "note": "Nothing is uploaded automatically. Raw traces need an existing capture tool and OS permissions, and are not automatically scrubbed. Mac supports existing Wireshark/Homebrew capture installations; SADPTools does not install drivers or change privileges.",
           "caption": "Support-bundle preparation screen; no packet capture or export was started."
         },
         {
@@ -491,9 +491,9 @@
           "points": [
             "Choose a light or dark theme and preferred discovery adapter.",
             "Set scan duration and automatic discovery interval.",
-            "Use optional in-app update checks and view version information in About."
+            "View the installed version in About and optionally check for updates matching Windows, Linux or Apple Mac."
           ],
-          "note": "Downloads and update checks require a connection; local site management does not require an app account.",
+          "note": "Windows keeps its installer update flow. Mac updates require quitting and replacing the app manually; Linux uses its package or manual installer. Update checks and downloads need a connection.",
           "caption": "Appearance and discovery settings, shown as a cropped dialog detail."
         }
       ]

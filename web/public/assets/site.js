@@ -36,7 +36,7 @@
         const link = document.querySelector(`[data-download="${CSS.escape(key)}"]`);
         if (link) link.title = `${asset.name} · ${(asset.size / 1048576).toFixed(1)} MB`;
         const size = document.querySelector(`[data-size="${CSS.escape(key)}"]`);
-        if (size) size.textContent = `${(asset.size / 1048576).toFixed(1)} MB · Offline installer · ${data.version}`;
+        if (size) size.textContent = `${(asset.size / 1048576).toFixed(1)} MB · ${size.dataset.format || "Download"} · ${data.version}`;
       }
     }).catch(() => { status.textContent = 'Release information is temporarily unavailable. Please try the download again shortly.'; });
   document.querySelectorAll('.download-link').forEach(link => link.addEventListener('click', () => {

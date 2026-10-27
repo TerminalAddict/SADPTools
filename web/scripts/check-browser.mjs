@@ -61,11 +61,13 @@ try {
   const page=await context.newPage(); const errors=[]; const external=[];
   page.on('pageerror',error=>errors.push(error.message));
   page.on('request',r=>{if(new URL(r.url()).origin!==new URL(base).origin) external.push(r.url());});
-  for (const route of ['/','/features.html','/windows-help.html','/privacy.html']) {
+  for (const route of ['/','/features.html','/windows-help.html','/mac-help.html','/privacy.html']) {
    await page.goto(base+route,{waitUntil:'networkidle'});
    await page.evaluate(()=>document.fonts.ready);
    assert.equal(await page.locator('html').getAttribute('data-theme'),theme);
    assert.equal(await page.locator('h1').count(),1);
+   assert.match(await page.locator('.footer-bottom').textContent(),/Windows \+ Linux \+ Apple Mac/);
+   assert.match(await page.locator('meta[property="og:image:alt"]').getAttribute('content'),/Windows, Linux and Apple Mac/);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Horizontal overflow');
    const broken=await page.locator('img').evaluateAll(images=>images.filter(i=>i.loading!=='lazy' && (!i.complete||i.naturalWidth===0)).map(i=>i.src));
    assert.deepEqual(broken,[],'Broken images');
@@ -82,7 +84,12 @@ try {
     await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));
     await page.screenshot({path:path.join(out,`homepage-${theme}.png`),fullPage:true});
     await page.screenshot({path:path.join(out,`hero-${theme}.png`)});
-    assert.equal(await page.locator('[data-download]').count(),5);
+    assert.equal(await page.locator('[data-download]').count(),7);
+    assert.match(await page.locator('.mac-card').textContent(),/Apple Silicon \+ Intel/);
+    assert.equal(await page.locator('.mac-card a[href="/download/macos.dmg"]').count(),1);
+    assert.match(await page.locator('script[type="application/ld+json"]').textContent(),/macOS 12 or later/);
+    await page.locator('#downloads').scrollIntoViewIfNeeded();
+    await page.screenshot({path:path.join(out,`downloads-${theme}.png`)});
     const original=theme; await page.locator('.theme-toggle').click();
     assert.notEqual(await page.locator('html').getAttribute('data-theme'),original);
     await page.reload({waitUntil:'networkidle'});
@@ -112,6 +119,11 @@ try {
   await featureChecks(page,theme,true);
   const featureAxe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();
   report.push({theme,route:'features-mobile',violations:featureAxe.violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>({target:n.target,summary:n.failureSummary}))}))});
+  await page.goto(base+'/mac-help.html',{waitUntil:'networkidle'});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Mac help mobile overflow');
+  const macAxe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();
+  report.push({theme,route:'mac-help-mobile',violations:macAxe.violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>({target:n.target,summary:n.failureSummary}))}))});
+  await page.screenshot({path:path.join(out,`mac-help-mobile-${theme}.png`),fullPage:true});
   await context.close();
  }
  await writeFile(path.join(out,'browser-report.json'),JSON.stringify({base,checkedAt:new Date().toISOString(),report},null,2)+'\n');

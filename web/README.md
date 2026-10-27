@@ -2,12 +2,13 @@
 
 Public site: **https://sadptools.com/**
 
-The website promotes cross-platform camera installation, management and diagnostics. It includes a searchable 36-area features page with 72 light/dark desktop screenshots, Windows installation help, a privacy page, social sharing metadata and a 1200 × 630 social image, JSON-LD, a sitemap, and first-party downloads. No source-code links or upstream release-provider links are exposed in pages, scripts, metadata or download responses.
+The website promotes camera installation, management and diagnostics on **Windows, Linux and Apple Mac**. It includes a searchable 36-area features page with 72 light/dark desktop screenshots, Windows and Apple Mac installation help, a privacy page, social sharing metadata and a 1200 × 630 social image, JSON-LD, a sitemap, and first-party downloads. No source-code links or upstream release-provider links are exposed in pages, scripts, metadata or download responses.
 
 ## Layout
 
 - `public/`: the only directory deployed to the document root. Static HTML/CSS/JS and images plus the PHP download endpoints.
 - `public/_app/ReleaseProxy.php`: release resolution, checksum validation, cache and bounded HTTPS transfers. Apache denies public access to this directory.
+- `scripts/mac_help.py`: Mac installation, Gatekeeper, network access, credentials and manual-update guidance.
 - `scripts/build-pages.py`: page content and shared metadata/header/footer. Regenerate HTML after editing.
 - `content/features.json` and `scripts/feature_page.py`: the full feature catalogue, capability boundaries, captions and static features-page renderer.
 - `content/screenshots.json`: reviewed capture dimensions, provenance and SHA-256 hashes.
@@ -41,6 +42,7 @@ The preview is at `http://127.0.0.1:8790`. In a second terminal:
 
 ```sh
 node web/scripts/social-card.mjs
+npm --prefix web run build # refresh content-hashed sharing image and asset URLs
 node web/scripts/check-browser.mjs
 java -jar /home/paul/bin/vnu.jar --stdout web/public/*.html
 java -jar /home/paul/bin/vnu.jar --stdout --css web/public/assets/site.css web/public/assets/features.css
@@ -52,7 +54,7 @@ python3 web/scripts/check-downloads.py
 
 Playwright and axe are pinned in `package-lock.json`. A compatible Playwright Chromium installation is required only for authoring/testing. The host already has it. If setting up a new development machine, `cd web && npx playwright install chromium` downloads the user-local browser; it does not install system packages.
 
-`validate.sh` invokes the maintainer's actual `/home/paul/bin/validate-site.sh --mode both`. Set `SADPTOOLS_SITE_VALIDATOR` to override that path. Its Nu validator blocks loopback URLs by default, so validate local files directly before deployment, then run the crawler against the public HTTPS site. The public crawl covers the homepage, features page, privacy page, Windows help and both linked stylesheets. The 404 page is also validated directly.
+`validate.sh` invokes the maintainer's actual `/home/paul/bin/validate-site.sh --mode both`. Set `SADPTOOLS_SITE_VALIDATOR` to override that path. Its Nu validator blocks loopback URLs by default, so validate local files directly before deployment, then run the crawler against the public HTTPS site. The public crawl covers the homepage, features page, privacy page, Windows help, Mac help and both linked stylesheets. The 404 page is also validated directly.
 
 Deployment uses `rsync --delay-updates`, sends **only `public/`**, and does not delete existing remote files or modify Apache/system configuration. Existing ACME files are preserved. Review removed public paths manually if a future site change retires a file. No Git push or app release is involved.
 
@@ -71,12 +73,14 @@ The stable public URLs are:
 | `/download/linux.deb` | Linux AMD64 DEB |
 | `/download/linux.rpm` | Linux x86-64 RPM |
 | `/download/linux.tar.gz` | Linux AMD64 manual installer with `install.sh` |
-| `/download/checksums.txt` | Hashes and original versioned names for these five files |
+| `/download/macos.dmg` | Universal Apple Silicon + Intel app in a drag-to-Applications DMG |
+| `/download/macos.zip` | The same universal Mac app in a ZIP |
+| `/download/checksums.txt` | Hashes and original versioned names for these seven files |
 | `/api/releases` | Public version, date, sizes, hashes and first-party URLs |
 
-The proxy reads the fixed project's public release API, includes beta/RC releases, excludes drafts and sorts valid semantic versions. It requires all five desktop formats and their checksum manifest in the newest release. The release builder's established filenames are the contract; no version is hardcoded in the website.
+The proxy reads the fixed project's public release API, includes beta/RC releases, excludes drafts and sorts valid semantic versions. It requires all seven desktop formats and their checksum manifest in the newest release. The release builder's established filenames are the contract; no version is hardcoded in the website.
 
-Metadata refreshes on demand every **five minutes**. No redeployment or cron job is needed after a normal release. An upstream outage can use last-confirmed metadata for up to 24 hours, labelled as stale by the UI; requests back off for a minute after failure. An incomplete newest release does not silently masquerade as complete. If no usable metadata remains, the endpoints return `503` and a retry hint.
+Metadata refreshes on demand every **five minutes**. A cached catalogue missing a current target is invalidated immediately, including migration from the original five Windows/Linux formats. No redeployment or cron job is needed after a normal release. An upstream outage can use last-confirmed metadata for up to 24 hours, labelled as stale by the UI; requests back off for a minute after failure. An incomplete newest release does not silently masquerade as complete. If no usable metadata remains, the endpoints return `503` and a retry hint.
 
 Downloads are streamed to a private temporary file, checked against the release SHA-256 manifest (and API digest where supplied), then atomically cached and delivered from this domain. Browser-visible responses never redirect to the upstream provider or relay its headers. Cache files are outside the document root in the PHP user's temporary directory, with a private directory and private files. A shared lock prevents concurrent duplicate transfers. Unused binaries expire after seven days when metadata refreshes; the OS may also clear its temporary directory. Each upstream asset is bounded to 512 MiB and timed out; corrupt/interrupted files are removed.
 
@@ -93,7 +97,7 @@ node web/scripts/social-card.mjs
 
 ### Full feature gallery
 
-The page at `/features.html` groups 36 feature areas into eight workflows. It includes all ten v0.6 diagnostic tools, the v0.5 commissioning/Live View tools, discovery, activation, network configuration, authorised recovery and saved-site management. The CLI is described separately with example commands. Features that depend on device support and planning-only tools have explicit boundaries.
+The page at `/features.html` groups 36 feature areas into eight workflows. It includes all ten v0.6 diagnostic tools, the v0.5 commissioning/Live View tools, discovery, activation, network configuration, authorised recovery and saved-site management. A new platform section covers universal Mac packaging, native network diagnostics and platform-aware updates. The catalogue documents Mac/Linux passphrase credentials and Mac codec/capture limits. All app images remain Linux captures; none are presented as evidence of Mac hardware testing. The CLI is described separately with example commands. Features that depend on device support and planning-only tools have explicit boundaries.
 
 The page is static HTML and remains readable without JavaScript. Screenshot links fall back to original images. With JavaScript enabled, search filters the catalogue locally; category links clear the filter; the native dialog supports Light/Dark, Previous/Next, arrow keys, Escape, focus return and a full-resolution image link. Thumbnail themes follow the website preference. Images are served from this site, without third-party requests.
 
@@ -112,7 +116,7 @@ python3 web/scripts/prepare-feature-images.py
 python3 web/scripts/build-pages.py
 ```
 
-Review raw captures before publishing, especially if the application layout has changed: the native X11 automation uses fixed coordinates and can otherwise photograph the wrong panel. Do not publish real addresses, customer details or secrets. The builder refuses missing theme images; the preparation script checks that the theme pairs differ and have matching dimensions. Rerun the gallery whenever a UI or feature description changes; release downloads continue updating automatically through the existing proxy.
+Review raw captures before publishing, especially if the application layout has changed: the native X11 automation uses fixed coordinates and can otherwise photograph the wrong panel. Do not publish real addresses, customer details or secrets. The builder refuses missing theme images; the preparation script checks that the theme pairs differ and have matching dimensions. Review the gallery whenever a UI or feature description changes; recapture altered screens and keep existing platform-neutral images when still representative. Real-camera recaptures require new authorisation; release downloads continue updating automatically through the existing proxy.
 
 ### Authorised real-camera views
 
@@ -131,11 +135,11 @@ The supplied Windows SmartScreen screenshot is copied without alteration from `d
 
 ## Validation — 27 October 2026
 
-- PHP lint and **44** synthetic proxy assertions passed.
-- Public `validate-site.sh --mode both`: **PASS**, four HTML pages and two stylesheets; no warnings/errors. Five local HTML files (including 404) and both stylesheets also passed Nu validation.
+- PHP lint and **51** synthetic proxy assertions passed, including universal Mac target selection, legacy-cache refresh, missing-Mac rejection and archive verification.
+- Public `validate-site.sh --mode both`: **PASS**, five HTML pages and two stylesheets; no warnings/errors. Six local HTML files (including 404) and both stylesheets also passed Nu validation.
 - 72 feature-gallery screenshots in light and dark mode: 64 synthetic demonstration screens and eight authorised physical-camera captures. The latter show read-only H.265 playback, real stream metrics, preview-only alignment/sharpness and the unarmed PTZ interface on Linux. No camera settings or physical controls were changed. Original homepage screenshots are retained.
 - Chromium desktop/mobile checks passed for both themes, theme persistence, navigation, same-origin requests, metadata and all feature thumbnails. Gallery checks cover search/no-results/reset, theme changes, previous/next and arrow-key navigation, Escape, focus return and responsive layout. axe WCAG 2 A/AA and 2.1 AA checks reported no violations in the checked views. This is automated testing, not a claim of complete accessibility certification.
-- All five real production downloads completed and matched the published release hashes. HEAD, range resume, invalid-range, invalid-method and private-path checks passed.
+- All seven real production downloads completed and matched the published release hashes. HEAD, range resume, invalid-range, invalid-method and private-path checks passed.
 - Public metadata and page links contain no upstream-provider/source links. Social image is served successfully and has the expected dimensions. Search/social platforms' eventual indexing is outside these checks.
 - Credentials file is ignored, mode `0600`, and not deployed. No private SSH keys copied, privileged packages installed, Git commits pushed, or new desktop release created by this website task.
 

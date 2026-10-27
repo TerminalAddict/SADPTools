@@ -11,6 +11,7 @@ def fetch(path,headers=None,method='GET'):
 with fetch('/api/releases') as r:
  metadata=r.read(); assert r.status==200; release=json.loads(metadata)
 assert b'github' not in metadata.lower()
+assert set(release['assets'])=={'windows-setup.exe','windows-portable.zip','linux.deb','linux.rpm','linux.tar.gz','macos.dmg','macos.zip'}, 'Missing platform download'
 results=[]
 for key,asset in release['assets'].items():
  path=asset['download']; assert path=='/download/'+key
@@ -47,4 +48,4 @@ with fetch('/download/checksums.txt') as r:
  for a in release['assets'].values():assert a['sha256']+'  '+a['name'] in hashes
 out=pathlib.Path(__file__).resolve().parents[1]/'screenshots/download-report.json'
 out.write_text(json.dumps({'base':base,'version':release['version'],'results':results,'negativeChecks':'passed'},indent=2)+'\n')
-print('All five downloads, checksums, range requests and private-route protections passed.')
+print(f'All {len(results)} downloads, checksums, range requests and private-route protections passed.')

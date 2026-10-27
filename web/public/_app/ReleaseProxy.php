@@ -15,6 +15,8 @@ final class ReleaseProxy
         'linux.deb' => ['SADPTools-%s-linux-amd64.deb', 'application/vnd.debian.binary-package'],
         'linux.rpm' => ['SADPTools-%s-linux-x86_64.rpm', 'application/x-rpm'],
         'linux.tar.gz' => ['SADPTools-%s-manual-linux-amd64.tar.gz', 'application/gzip'],
+        'macos.dmg' => ['SADPTools-%s-macos-universal.dmg', 'application/x-apple-diskimage'],
+        'macos.zip' => ['SADPTools-%s-macos-universal.zip', 'application/zip'],
     ];
     private string $cache;
     private Closure $transport;
@@ -36,7 +38,15 @@ final class ReleaseProxy
         if (!is_file($path)) return null;
         try {
             $value = json_decode((string)file_get_contents($path), true, 64, JSON_THROW_ON_ERROR);
-            return is_array($value) && isset($value['release'], $value['fetchedAt']) ? $value : null;
+            if (!is_array($value) || !isset($value['release'], $value['fetchedAt'])) return null;
+            // A deployment may add download targets before the cached release expires.
+            // Refresh incomplete catalogues rather than serving missing platform links.
+            $assets = $value['release']['assets'] ?? null;
+            if (!is_array($assets) || count($assets) !== count(self::TARGETS)) return null;
+            foreach (self::TARGETS as $key => [$pattern, $type]) {
+                if (!isset($assets[$key]['sha256']) || ($assets[$key]['type'] ?? '') !== $type) return null;
+            }
+            return $value;
         } catch (Throwable) { return null; }
     }
 
