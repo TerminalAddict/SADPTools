@@ -1,0 +1,502 @@
+{
+  "groups": [
+    {
+      "id": "discover",
+      "title": "Find every camera. Near or far.",
+      "short": "Find & connect",
+      "intro": "Start on the local network, follow a routed address or work through a trusted remote probe.",
+      "features": [
+        {
+          "id": "discovery",
+          "title": "SADP & ONVIF discovery",
+          "text": "Find compatible cameras and recorders in one live inventory.",
+          "points": [
+            "Choose an adapter or all suitable adapters; use one-off or automatic scans.",
+            "Search and sort devices, distinguish inactive equipment and export CSV or JSON.",
+            "Keep results visible across scans, with progress, cancellation and diagnostic logs."
+          ],
+          "note": "Multicast discovery normally stays within the local broadcast domain. SADP can find compatible devices with addresses outside the host subnet.",
+          "caption": "Discovery inventory populated with synthetic devices; no network scan was performed."
+        },
+        {
+          "id": "add-ip",
+          "title": "Add a camera by IP",
+          "text": "A different subnet does not have to mean a different tool.",
+          "points": [
+            "Enter a known camera address on an authorised routed network.",
+            "Inspect reachable web and camera services, with credential and certificate handling.",
+            "Save identified equipment into the site inventory for further work."
+          ],
+          "note": "Requires a working route and reachable services. Routed access does not carry local SADP multicast or guarantee support for SADP writes.",
+          "caption": "Add-by-IP setup dialog, before any network request."
+        },
+        {
+          "id": "scanner",
+          "title": "IPv4 network scanner",
+          "text": "Work through an explicit network range and see which addresses respond.",
+          "points": [
+            "Calculate a range from a CIDR or enter start and end addresses.",
+            "Select bounded service probes, timeouts and concurrency.",
+            "Cancel a scan and retain the evidence already collected."
+          ],
+          "note": "Silence is not proof that an address is unused. Neighbour and vendor information is shown only when available.",
+          "caption": "Scanner setup with a synthetic documentation network and adapter."
+        },
+        {
+          "id": "remote",
+          "title": "Discovery through a trusted SSH host",
+          "text": "Reach the broadcast domain at the other end of the connection.",
+          "points": [
+            "Configure a remote probe host and explicitly trust its host-key fingerprint.",
+            "Run the shared CLI discovery or network tools through SSH.",
+            "Review returned equipment and retain the remote origin of observations."
+          ],
+          "note": "Needs an authorised SSH host with the compatible sadptools CLI installed. Remote observations do not enable local Layer 2 write operations.",
+          "caption": "Remote-discovery configuration screen; no SSH connection was made."
+        }
+      ]
+    },
+    {
+      "id": "configure",
+      "title": "From factory fresh to ready for service.",
+      "short": "Set up devices",
+      "intro": "Explicit, reviewed actions for compatible Hikvision equipment, with device identity and outcome kept in view.",
+      "features": [
+        {
+          "id": "activation",
+          "title": "Device activation",
+          "text": "Set the first administrator password on a supported inactive device.",
+          "points": [
+            "Select an inactive camera directly from discovery.",
+            "Use its discovered adapter automatically when the route is unambiguous.",
+            "Review the device identity and submit one deliberate activation request."
+          ],
+          "note": "Password rules and activation support depend on firmware. A timeout does not establish that the password was unchanged.",
+          "caption": "Activation form for a synthetic inactive device. No password was entered or activation sent."
+        },
+        {
+          "id": "network",
+          "title": "IP address & DHCP configuration",
+          "text": "Bring compatible equipment onto the network it needs to use.",
+          "points": [
+            "Review IPv4 address, subnet mask, gateway and advertised service settings.",
+            "Switch supported devices between DHCP and static addressing.",
+            "Confirm the selected device and credentials, then rediscover to verify."
+          ],
+          "note": "SADP writes need the appropriate local adapter. A web interface reachable through a router does not guarantee SADP write reachability.",
+          "caption": "Network-configuration form with synthetic addresses; no settings were applied."
+        },
+        {
+          "id": "recovery",
+          "title": "Authorised password recovery",
+          "text": "Use the recovery method the camera actually supports.",
+          "points": [
+            "Check supported security-question recovery over the reachable web interface.",
+            "Answer the three previously configured questions and choose a new password.",
+            "Use support-provided recovery codes on compatible SADP devices."
+          ],
+          "note": "This does not bypass camera security. Security questions must already be configured; supported models and recovery protocols vary.",
+          "caption": "Recovery form with explicitly synthetic question labels. No answers or passwords were supplied."
+        },
+        {
+          "id": "provision",
+          "title": "Batch provisioning",
+          "text": "Prepare a consistent installation without repeating every field by hand.",
+          "points": [
+            "Select eligible devices and prepare activation or sequential network changes.",
+            "Review the plan, address assignments and checks before applying it.",
+            "Track per-device results and stop when an outcome needs investigation."
+          ],
+          "note": "Changes stay explicit and firmware-dependent. The plan is not proof that an address is unused or that every operation will succeed.",
+          "caption": "Bulk-provisioning controls for the demonstration inventory; no plan was applied."
+        }
+      ]
+    },
+    {
+      "id": "organise",
+      "title": "Keep the job together.",
+      "short": "Sites & credentials",
+      "intro": "Save the site context, equipment history and supporting files on your own computer.",
+      "features": [
+        {
+          "id": "sites",
+          "title": "Saved sites & inventory",
+          "text": "Return to a job with the equipment list already organised.",
+          "points": [
+            "Keep separate named sites with customer context, networks and tags.",
+            "Save cameras, recorders and locations; search the inventory.",
+            "Reconcile observations and retain device identity when addresses change."
+          ],
+          "caption": "Saved demonstration site containing synthetic camera and recorder records."
+        },
+        {
+          "id": "device-details",
+          "title": "Equipment details & notes",
+          "text": "Keep the practical details beside the device they describe.",
+          "points": [
+            "Retain model, IP, MAC, serial, firmware, location and operator notes.",
+            "Assign credentials by site, shared profile or individual device.",
+            "Use discovered HTTP/HTTPS information when opening a camera’s web interface."
+          ],
+          "note": "Unknown values remain unknown. Web access and TLS certificate decisions use the detected endpoint.",
+          "caption": "Saved-device details using illustrative identifiers and notes."
+        },
+        {
+          "id": "credentials",
+          "title": "Protected credential profiles",
+          "text": "Manage authorised access without scattering passwords through inventories.",
+          "points": [
+            "Assign site defaults and reusable named credential profiles.",
+            "Override access for a particular device when needed.",
+            "Keep secrets separate from ordinary preferences and inventory exports."
+          ],
+          "note": "Credential storage uses local protection; platform behaviour and portable-backup unlocking differ.",
+          "caption": "Credential-management dialog with a synthetic profile and no visible secret."
+        },
+        {
+          "id": "backup",
+          "title": "Encrypted site backups",
+          "text": "Take the site’s working context with you.",
+          "points": [
+            "Export site data and assets in a passphrase-protected portable backup.",
+            "Restore a separate copy as a new site, with remapped local IDs.",
+            "Keep the backup and its passphrase under your control."
+          ],
+          "note": "A restored copy has new local asset IDs; print new equipment labels for that copy.",
+          "caption": "Portable site-backup dialog; no real site data or passphrase is shown."
+        },
+        {
+          "id": "history",
+          "title": "Device & site history",
+          "text": "See what changed and retain evidence from earlier visits.",
+          "points": [
+            "Review saved observations and inventory changes.",
+            "Keep audit runs, diagnostic documents and commissioning evidence with the site.",
+            "Compare current work with the recorded history before making changes."
+          ],
+          "caption": "History screen for the synthetic demonstration site."
+        },
+        {
+          "id": "configuration",
+          "title": "Configuration backup & comparison",
+          "text": "Keep a reference before changing compatible equipment.",
+          "points": [
+            "Read supported configuration data and retain a protected backup.",
+            "Compare backups and review differences.",
+            "Review restore compatibility and identity before considering a restore."
+          ],
+          "note": "The current adapter provides a restore preview; actual configuration restore is disabled until a validated write adapter is available.",
+          "caption": "Configuration-backup and restore-preview controls, before a device read."
+        }
+      ]
+    },
+    {
+      "id": "watch",
+      "title": "See it. Align it. Check it.",
+      "short": "Live View & imaging",
+      "intro": "A separate Live View window keeps the camera visible while you continue working in the main application.",
+      "features": [
+        {
+          "id": "live-view",
+          "title": "Live View in its own window",
+          "text": "Open a camera and start watching without a second play-button step.",
+          "points": [
+            "Resolve supported Hikvision or ONVIF streams and choose main or sub stream.",
+            "Keep viewing while you move through the site and diagnostic tools.",
+            "Pause, stop or use fullscreen; retain visible playback and connection status."
+          ],
+          "note": "Codec, stream and credential support depend on the device. Current playback uses RTSP over TCP.",
+          "caption": "Live H.265 video from an authorised physical camera. A temporary local relay keeps its network address private; no camera settings were changed.",
+          "capture": "real-camera"
+        },
+        {
+          "id": "stream-info",
+          "title": "Stream information & connection tests",
+          "text": "Understand what the video connection is doing.",
+          "points": [
+            "Inspect available codec, resolution, timing and playback information.",
+            "Run bounded connection tests and compare main and sub streams.",
+            "Review the connection timeline and save diagnostic evidence to the site."
+          ],
+          "note": "Unavailable metrics stay unknown. Encoded frame rate and displayed frame rate are different measurements.",
+          "caption": "Live stream metrics from an authorised physical camera. Unavailable measurements remain unknown; the temporary relay address is shown in place of the camera address.",
+          "capture": "real-camera"
+        },
+        {
+          "id": "focus",
+          "title": "Focus & alignment assistant",
+          "text": "Use the live picture to make a more deliberate setup.",
+          "points": [
+            "Overlay thirds, crosshair, grid or horizon guides; pan and digitally zoom the preview.",
+            "Use a relative sharpness trend as a visual aid.",
+            "Capture timestamped before/after images, compare them and save chosen snapshots."
+          ],
+          "note": "Digital zoom and guides affect the preview. Sharpness is relative, not a calibrated measurement of focus or optical performance.",
+          "caption": "Preview-only alignment guide and relative sharpness trend over real camera video. No physical focus or camera settings were changed.",
+          "capture": "real-camera"
+        },
+        {
+          "id": "ptz",
+          "title": "PTZ, motor focus & presets",
+          "text": "Control supported camera mechanisms with explicit operator intent.",
+          "points": [
+            "Read available movement and focus controls before arming them.",
+            "Use bounded moves, zoom, focus and supported iris controls.",
+            "Read or manage supported presets and preview a selected preset sequence."
+          ],
+          "note": "Physical controls depend on advertised capabilities and permissions. Preset preview does not program a device tour.",
+          "caption": "PTZ capability and arming controls alongside real camera video. Physical controls were not queried, armed or operated.",
+          "capture": "real-camera"
+        },
+        {
+          "id": "imaging",
+          "title": "Image tuning studio",
+          "text": "Read supported imaging settings and review one change at a time.",
+          "points": [
+            "Inspect ONVIF imaging capabilities and current values.",
+            "Preview a setting with advertised bounds and the selected device identity.",
+            "Confirm explicitly, read back the result and retain previous/proposed values."
+          ],
+          "note": "HLC, IR-intensity and privacy-mask editing do not have validated adapters. An unconfirmed change is not automatically retried.",
+          "caption": "Image-tuning setup screen before reading device capabilities."
+        }
+      ]
+    },
+    {
+      "id": "diagnose",
+      "title": "Find the evidence behind the fault.",
+      "short": "Network & diagnostics",
+      "intro": "Move from reachability to device behaviour without losing the connection to the site inventory.",
+      "features": [
+        {
+          "id": "audit",
+          "title": "Site health audits",
+          "text": "Review equipment health with consistent, recorded checks.",
+          "points": [
+            "Run selected service and supported authenticated checks across saved equipment.",
+            "Track progress, cancel work and retain per-device findings.",
+            "Export findings and use saved evidence in the handover."
+          ],
+          "note": "A failed or unsupported check is evidence to investigate, not a complete diagnosis.",
+          "caption": "Saved health-audit findings generated from explicitly synthetic fixtures."
+        },
+        {
+          "id": "switches",
+          "title": "Switch ports, VLANs & PoE",
+          "text": "Connect camera symptoms to the managed switch beneath them.",
+          "points": [
+            "Add authorised SNMP switches and read available port information.",
+            "Correlate camera MAC addresses with forwarding-table and VLAN observations.",
+            "Inspect link speed, port state and reported PoE delivery or power."
+          ],
+          "note": "Mapping confidence and PoE availability vary with switch support and network topology. These tools do not cycle PoE power.",
+          "caption": "Synthetic managed-switch evidence and camera-to-port mappings; no switch was polled."
+        },
+        {
+          "id": "connectivity",
+          "title": "Connection troubleshooter",
+          "text": "Check the actual route to the selected device.",
+          "points": [
+            "Inspect available source, route and neighbour information, then bounded TCP/HTTP/HTTPS checks.",
+            "Optionally include ICMP and approved ONVIF or RTSP metadata reads.",
+            "Compare with a trusted SSH probe and copy a safe diagnostic summary."
+          ],
+          "note": "A routed camera can be reachable without sharing your subnet. A timeout or blocked ping alone does not establish failure.",
+          "caption": "Connection-troubleshooter controls targeting the local test fixture; no checks were run for this screenshot."
+        },
+        {
+          "id": "protocol",
+          "title": "ONVIF / ISAPI explorer",
+          "text": "See what a device reports through supported management APIs.",
+          "points": [
+            "Choose fixed, safe ONVIF read operations or approved ISAPI GET paths.",
+            "Inspect status, response timing, content type and scrubbed XML.",
+            "Save capability evidence and review JSON before exporting it."
+          ],
+          "note": "This is a bounded read tool, with no arbitrary URL or write-method editor. Advertised capabilities are not all verified behaviour.",
+          "caption": "Protocol explorer before a read request."
+        },
+        {
+          "id": "security",
+          "title": "Security inspector",
+          "text": "Review observable exposure and supported account information.",
+          "points": [
+            "Inspect selected services, TLS and authentication behaviour.",
+            "Read available ONVIF account-role and network-protocol information.",
+            "Keep findings and compatibility consequences as evidence."
+          ],
+          "note": "Read-only checks do not try default passwords or automatically harden a device. Missing evidence is not a security certification.",
+          "caption": "Security-inspection setup, before any device connection."
+        }
+      ]
+    },
+    {
+      "id": "record",
+      "title": "Check what happens after the image arrives.",
+      "short": "Recording & events",
+      "intro": "Bring recorder channels, event observations and storage assumptions into the commissioning workflow.",
+      "features": [
+        {
+          "id": "nvr",
+          "title": "NVR channel inventory",
+          "text": "Make the camera-to-recorder relationship visible.",
+          "points": [
+            "Read supported channel inventories and retain recorder-side identifiers.",
+            "Review linked camera details and reconcile saved equipment.",
+            "Keep channel context for streaming, recording checks and reports."
+          ],
+          "note": "Live-stream channel numbers and recording-track IDs are not always interchangeable.",
+          "caption": "Saved synthetic channel inventory; no recorder was contacted."
+        },
+        {
+          "id": "recordings",
+          "title": "Recording & gap finder",
+          "text": "Inspect supported recording metadata over an explicit time window.",
+          "points": [
+            "Search paginated ISAPI segments or supported ONVIF recording bounds.",
+            "Normalise overlapping ranges and report gaps only when the evidence permits it.",
+            "Retain clock, storage and search evidence for the handover."
+          ],
+          "note": "Coarse, partial or ambiguous results cannot prove precise gaps. Verified replay retrieval is not implemented; confirm playback on the recorder.",
+          "caption": "Recording-search setup with explicit time bounds, before a search."
+        },
+        {
+          "id": "events",
+          "title": "Event walk-test",
+          "text": "Observe supported camera events while you test the installation.",
+          "points": [
+            "Monitor supported ONVIF event topics and receive timestamps.",
+            "Run a bounded test, stop it and retain the observed event evidence.",
+            "Use results in commissioning alongside the operator’s checks."
+          ],
+          "note": "No observed event is not proof that the camera failed to detect something; topic and subscription support vary.",
+          "caption": "Event walk-test controls; no subscription was started."
+        },
+        {
+          "id": "anpr",
+          "title": "ANPR commissioning",
+          "text": "Record a deliberate plate-detection test with its conditions.",
+          "points": [
+            "Inspect recognised ONVIF plate events and delivery observations.",
+            "Record test counts, operator observations and match-rate assumptions.",
+            "Save an assessment with plate text redacted by default."
+          ],
+          "note": "Vendor-only plate feeds, image attachments and VMS event injection are unsupported. No event means unverified, not a measured detection failure.",
+          "caption": "ANPR test setup; no plates or camera footage are included."
+        },
+        {
+          "id": "storage",
+          "title": "Storage & retention planner",
+          "text": "Turn recording assumptions into a capacity conversation.",
+          "points": [
+            "Model channel groups, bitrate ranges, recording schedules and audio.",
+            "Account for usable capacity, reserve, overhead and a safety margin.",
+            "Compare saved scenarios and target retention periods."
+          ],
+          "note": "This is an estimate. Unknown bitrates leave the estimate incomplete; real retention depends on the recorded workload and recorder behaviour.",
+          "caption": "Local storage calculation using synthetic bitrate and capacity assumptions."
+        }
+      ]
+    },
+    {
+      "id": "handover",
+      "title": "Plan the work. Leave a useful handover.",
+      "short": "Planning & handover",
+      "intro": "Keep diagrams, maintenance decisions and evidence useful to the next technician who visits.",
+      "features": [
+        {
+          "id": "plans",
+          "title": "Offline site plans",
+          "text": "Put equipment back into its physical context.",
+          "points": [
+            "Import a local floor-plan image and place saved cameras.",
+            "Annotate approximate direction, layers, names and notes.",
+            "Pan, zoom and keep plan assets with the site."
+          ],
+          "note": "Direction cones are manual annotations, not calculated optical coverage or a guarantee against blind spots.",
+          "caption": "Illustrative floor plan and synthetic placements, not real premises."
+        },
+        {
+          "id": "replacement",
+          "title": "Camera replacement planning",
+          "text": "Preserve identity and history through a hardware change.",
+          "points": [
+            "Record old and replacement devices, dependencies and manual recovery steps.",
+            "Check compatibility and run a recent identity/connectivity preflight.",
+            "Explicitly reconcile the inventory and retain both histories after verification."
+          ],
+          "note": "This is a planning and inventory workflow. It does not clone settings, transfer credentials or automatically reassociate NVR channels.",
+          "caption": "Replacement-plan setup; no inventory retirement or device change was performed."
+        },
+        {
+          "id": "firmware",
+          "title": "Firmware compatibility library",
+          "text": "Collect the facts before considering an upgrade.",
+          "points": [
+            "Import local file metadata and calculate or recheck SHA-256.",
+            "Record exact compatibility identifiers and documented intermediate builds.",
+            "Compare available device identity with the manual library entry."
+          ],
+          "note": "There is no firmware upload, reboot or vendor-signature verifier. A matching checksum or model name is not approval to upgrade.",
+          "caption": "Firmware-library controls, before importing a file or reading a device."
+        },
+        {
+          "id": "reports",
+          "title": "Commissioning checklist & reports",
+          "text": "Finish with a record of what was actually checked.",
+          "points": [
+            "Record pass, fail or not-tested outcomes with operator notes.",
+            "Attach chosen site, channel, diagnostic, imaging and event evidence.",
+            "Generate a reviewed handover with missing or unverified work still visible."
+          ],
+          "note": "Saved evidence does not automatically turn an unperformed check into a pass.",
+          "caption": "Demonstration commissioning checklist with unperformed checks left not tested."
+        },
+        {
+          "id": "labels",
+          "title": "Equipment labels & QR lookup",
+          "text": "Make the next visit easier before you leave this one.",
+          "points": [
+            "Create camera, NVR or switch labels with site and location information.",
+            "Choose label size, copies and optional IP, MAC or channel text.",
+            "Preview and export print-safe SVG; look up local assets with a keyboard scanner."
+          ],
+          "note": "The QR contains an opaque local site/asset identifier, never a password or authenticated link. Print at actual size.",
+          "caption": "Equipment-label controls and a locally generated QR preview for a synthetic site and device."
+        }
+      ]
+    },
+    {
+      "id": "everyday",
+      "title": "Built for work on your own computer.",
+      "short": "Support & preferences",
+      "intro": "Windows and Linux, local evidence, and controls that keep the operator in charge.",
+      "features": [
+        {
+          "id": "support",
+          "title": "Reviewed support bundles & traces",
+          "text": "Share the evidence you choose, after seeing what it contains.",
+          "points": [
+            "Preview metadata, bounded logs and selected evidence before exporting a ZIP.",
+            "Use optional local passphrase encryption and explicitly approve any screenshots.",
+            "Request a separate, bounded trace for one selected host when capture tools are available."
+          ],
+          "note": "Nothing is uploaded automatically. Raw traces require an existing capture tool and OS permissions and are not automatically scrubbed.",
+          "caption": "Support-bundle preparation screen; no packet capture or export was started."
+        },
+        {
+          "id": "settings",
+          "title": "Themes, scan preferences & updates",
+          "text": "Set the workspace up for the way you work.",
+          "points": [
+            "Choose a light or dark theme and preferred discovery adapter.",
+            "Set scan duration and automatic discovery interval.",
+            "Use optional in-app update checks and view version information in About."
+          ],
+          "note": "Downloads and update checks require a connection; local site management does not require an app account.",
+          "caption": "Appearance and discovery settings, shown as a cropped dialog detail."
+        }
+      ]
+    }
+  ]
+}

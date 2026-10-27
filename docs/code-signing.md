@@ -2,7 +2,7 @@
 
 ## Current status
 
-The Windows builds, including **v0.6.0-beta.1**, are unsigned. Their application,
+The Windows builds, including **v0.6.0-rc.1**, are unsigned. Their application,
 CLI and installer have no embedded Authenticode signature. A Windows report of
 **Unknown publisher** is therefore expected; the company name in executable
 metadata and the release's SHA-256 checksums do not establish a trusted publisher.

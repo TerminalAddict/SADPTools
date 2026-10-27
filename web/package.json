@@ -1,0 +1,14 @@
+{
+  "name": "sadptools-marketing",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "python3 scripts/build-pages.py",
+    "test": "php tests/proxy.php",
+    "preview": "php -S 127.0.0.1:8790 -t public scripts/router.php",
+    "screenshots": "node scripts/check-browser.mjs",
+    "validate": "bash scripts/validate.sh"
+  },
+  "devDependencies": {"playwright": "1.62.1", "@axe-core/playwright": "4.11.1"}
+}

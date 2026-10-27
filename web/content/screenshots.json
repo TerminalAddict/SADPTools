@@ -1,0 +1,362 @@
+{
+  "discovery": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Discovery inventory populated with synthetic devices; no network scan was performed.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "257a8f645a572798568a2c2719027c90be9318f592416aa68d2a9d8513049e5e",
+      "dark": "38115f793b56eab039629468a7ca82550340b71a6f58130b92ef889016dd4b06"
+    }
+  },
+  "add-ip": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Add-by-IP setup dialog, before any network request.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "8e8a715db09772dffdb177debb8b03e942d0cb74961507067bcf0dc3d32383e3",
+      "dark": "84865aaceddacca85b919f374b3a01fa23ac94eb363bd54619459e18ce6ca1e1"
+    }
+  },
+  "scanner": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Scanner setup with a synthetic documentation network and adapter.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "e90563fe1414d290a77cd5b70e169f2871a0b2784e6b3a227032478c1fffb363",
+      "dark": "4983facb5803784d0a35d5d1bcdae49675dd7ba66019c65f7c4a4478ba856b7d"
+    }
+  },
+  "remote": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Remote-discovery configuration screen; no SSH connection was made.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "5de1c7e391e96d063e44cb2979454a47c328d3e1acf9048d428f0f4c6379d126",
+      "dark": "3485ae8914d7c0b85a1ed697757381c6eb6507c5ecb3f41a5a083902d1ee2823"
+    }
+  },
+  "activation": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Activation form for a synthetic inactive device. No password was entered or activation sent.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "c3f09e3112c75b5e35bfb74ebf25ed8debace07aa1e3544dff3604ab3ec44cec",
+      "dark": "b375c3edbe47226eb844c26ffaaf83170e0a656bb0143e0212410babc98f3f51"
+    }
+  },
+  "network": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Network-configuration form with synthetic addresses; no settings were applied.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "1629cb91a4d10941764f2f25a6e6c22902501e9d739334653e1ec5931905d2fc",
+      "dark": "e8965dff38f0b760fd9bbd4533f8280b9f48473828015e9bc95c0688074c7571"
+    }
+  },
+  "recovery": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Recovery form with explicitly synthetic question labels. No answers or passwords were supplied.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "f33e1a4bddaa8b8b036c8ed9451e12a3533944e99aa7e58e80ced44f660d5a75",
+      "dark": "1fb5cba31f68759d466a78e345bafed661b8495bef2587bcf0608a5de0737088"
+    }
+  },
+  "provision": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Bulk-provisioning controls for the demonstration inventory; no plan was applied.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "c2234ab60f3395e1b3c87d0a6c11d60f3029ff780f4f117e3bf8d3f3698a60e5",
+      "dark": "4dcf9aa972bc10e8a05a0354d07019d7923e4e2f5069aa13c88a44e623f238f7"
+    }
+  },
+  "sites": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Saved demonstration site containing synthetic camera and recorder records.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "1f4db9c69fa9660ddbbde66228b5f4937b45f0ccff1b64e50697868ad8e29dbb",
+      "dark": "459af0aaf0519b892d42370482d2240b38f6e6638ed09f8d92082e3a3a9d48e7"
+    }
+  },
+  "device-details": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Saved-device details using illustrative identifiers and notes.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "8bf7b5a82f185ba2374a833a7e5c54012472a25dc191dcfdd5061599202c5c85",
+      "dark": "aaa089236b021236e1c9f35272bb5fba65ba6409d7bbe372622e5750dbf8de95"
+    }
+  },
+  "credentials": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Credential-management dialog with a synthetic profile and no visible secret.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "db424e1ed3af9e0e243514d2fa0bc61c47e06aa81b1c05a2dd2192c7533ee01a",
+      "dark": "9910dfeb61618040b3e00f3091604beb542b52a351404b0c8d50da225f183aa2"
+    }
+  },
+  "backup": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Portable site-backup dialog; no real site data or passphrase is shown.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "03e3c4e72173635cce297f3f8cb8b3fe8a8dec460c00ee571878abbc074a4c0c",
+      "dark": "b0ddc1808a81b5770245af88c61619cb3c5137dcc13844ee71dd2b2b2f31a727"
+    }
+  },
+  "history": {
+    "width": 1440,
+    "height": 880,
+    "caption": "History screen for the synthetic demonstration site.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "b6014e6a9502894b49ad07fbdc4ee8b59a02bc511343eec9f0ed825337e2f83f",
+      "dark": "f7a6aaf5bc2f6fb0924f1f155e61668de486bd3907ac783f72d12a121dc48846"
+    }
+  },
+  "configuration": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Configuration-backup and restore-preview controls, before a device read.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "e07f3cffe75efa81b722a3fd1cd7f749ad31505001cece4b09f52c62e56dccb2",
+      "dark": "e12806c8c25ead947d226f87e03cee411ed7d7e3c91d1ca8f12c61839381c548"
+    }
+  },
+  "live-view": {
+    "width": 960,
+    "height": 820,
+    "caption": "Live H.265 video from an authorised physical camera. A temporary local relay keeps its network address private; no camera settings were changed.",
+    "origin": "Native released Wails app with authorised physical-camera video via an ephemeral loopback relay; session-only credentials; no device writes",
+    "sha256": {
+      "light": "b63feebeb1e1dec041b867ebdd7791282a37665d67c41de3106d82db476e7c41",
+      "dark": "d64dbaced8c6b5d7d77dbf989291cb6360194f26b4ae10d71d414970b6bdb35e"
+    }
+  },
+  "stream-info": {
+    "width": 960,
+    "height": 1260,
+    "caption": "Live stream metrics from an authorised physical camera. Unavailable measurements remain unknown; the temporary relay address is shown in place of the camera address.",
+    "origin": "Native released Wails app with authorised physical-camera video via an ephemeral loopback relay; session-only credentials; no device writes",
+    "sha256": {
+      "light": "180d91ab177bf78b51a7ebc57867a501969f28b1626a3ff72322bead70a932fd",
+      "dark": "b367f4948b7475a58cc2547b44e18d15ee32f7066ea021446bf9e368141d9e46"
+    }
+  },
+  "focus": {
+    "width": 960,
+    "height": 1400,
+    "caption": "Preview-only alignment guide and relative sharpness trend over real camera video. No physical focus or camera settings were changed.",
+    "origin": "Native released Wails app with authorised physical-camera video via an ephemeral loopback relay; session-only credentials; no device writes",
+    "sha256": {
+      "light": "ea3b827b6a412745450fb9857cfd1811e1fe25e3176753bb51009960abc5b875",
+      "dark": "c2a69d1e526019a5f9e8d354c3beb77cdae67ca85a2640fdfd1775300356d12a"
+    }
+  },
+  "ptz": {
+    "width": 960,
+    "height": 1260,
+    "caption": "PTZ capability and arming controls alongside real camera video. Physical controls were not queried, armed or operated.",
+    "origin": "Native released Wails app with authorised physical-camera video via an ephemeral loopback relay; session-only credentials; no device writes",
+    "sha256": {
+      "light": "5ab13a23a2d007012b54d8e136762becd4ffc3d6302a2a29fa1fe0b2e61c1371",
+      "dark": "3f68da216f414455b48841ec7339482929ff336e6ffa9761108ad068e9e6e03f"
+    }
+  },
+  "imaging": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Image-tuning setup screen before reading device capabilities.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "98c85c4a773b0e9bed54b5e5e1576ffbcc58b37c223eab47c0f1b9bf57239986",
+      "dark": "aab8c868c8df1f36b6426318ee3742ef92470d1d5944872c122799b0061d2d30"
+    }
+  },
+  "audit": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Saved health-audit findings generated from explicitly synthetic fixtures.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "ba94edd7cf48cb751786d1a59709f2a0bc791910cfbd76fff4bc17a57f8c320d",
+      "dark": "03f8c8445b7161f65b62bba983a47ed86483b8b2493c435dabda916e7e022c70"
+    }
+  },
+  "switches": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Synthetic managed-switch evidence and camera-to-port mappings; no switch was polled.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "aaded10193c50bbc6d8430a8d4c59fff7e46a42038b25975a149d907834156b4",
+      "dark": "7c5160538552e9fc9a749bb8d3c2941d905b86a5dbe987429d19655649a6268e"
+    }
+  },
+  "connectivity": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Connection-troubleshooter controls targeting the local test fixture; no checks were run for this screenshot.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "1a959fb580fc817c086cf3e997f3df46d1171d4bf61100761efd5134804a8fb8",
+      "dark": "96112b0ad6fc9351d38a9203de53808aa991ea879f6743563938829a8b4f7bb9"
+    }
+  },
+  "protocol": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Protocol explorer before a read request.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "284b1f544e8c372bdc80f2cee1136dbb0d628ae6d9bbbfa970b94b4fb0903750",
+      "dark": "11b4f109a7e9ec713e206095f1ff5dcc8efd1c44847be3db6fb1bf724082aea5"
+    }
+  },
+  "security": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Security-inspection setup, before any device connection.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "5bfd2804d512caf5b0fa10c613cc57e4a19a93c39b6fe2b495b4d5373c3461ca",
+      "dark": "1363ff43bbcf022d6b148597989d8c7a0ed287622ea5e7346fa3c0174ad53940"
+    }
+  },
+  "nvr": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Saved synthetic channel inventory; no recorder was contacted.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "c0dbc6e1d59a2d8c4b0b63436e10b8866c447f4b3994c473b0e08737728ebf61",
+      "dark": "e880f7485ac1fb6468cf5be5860570b6fab747e0191d18a5c3dca36d14de661d"
+    }
+  },
+  "recordings": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Recording-search setup with explicit time bounds, before a search.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "47e2b8bf2482af4595cc259909c8b932c95102b952244b8171e39adefc8a4653",
+      "dark": "3216f4f518982e7fb731e9f8aa07ea663358af2e0c362f3a788d57d76f3dc7f9"
+    }
+  },
+  "events": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Event walk-test controls; no subscription was started.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "4d34cec3d1d4d8a560f094e85776e78087e3f92a0600e220e33e0cd75a7cc505",
+      "dark": "3fba9a0a0acb6fa4f0c6545e217aa25271a18aa93b68d75a6c828d4f3c66dde1"
+    }
+  },
+  "anpr": {
+    "width": 1440,
+    "height": 880,
+    "caption": "ANPR test setup; no plates or camera footage are included.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "22d3ff8db21e08d79c8644a6be6dcc8fc094201a02e3099d9e2ebaa9d0106b05",
+      "dark": "8f0d52e078afc6f97aabad8be4156351058f342fe129f2a53ea0d958b4471a30"
+    }
+  },
+  "storage": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Local storage calculation using synthetic bitrate and capacity assumptions.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "f7683dde37e75abdfbb1bb7f298dab8700831bbde0548c1b0b50e481c5bb6f6d",
+      "dark": "36d254d7077eeba6faaeebb8b435d187256666b3f6b3a4cd678fa46643de652f"
+    }
+  },
+  "plans": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Illustrative floor plan and synthetic placements, not real premises.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "d8e19cf9c41cc21e179d3fdee2971f4368942cbad1f14102b5788b8ee9d8aa92",
+      "dark": "2bfb6520946871ace9fb8b8e1c45f6aa5842e5fbaaa4940a91b1968e822d7980"
+    }
+  },
+  "replacement": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Replacement-plan setup; no inventory retirement or device change was performed.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "ee13f95ef6a110a39827c38f52fc35fdaa2dc49156a3bb1337ece5f854ca89fd",
+      "dark": "4624191cec14e77da5bfee0a5314d4fd68bec34e54a344fede7c1303a2043a0b"
+    }
+  },
+  "firmware": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Firmware-library controls, before importing a file or reading a device.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "595a4819376d3cf62c6b9712d4ddc125036931e56b8d0ee14d50163fe119c3cd",
+      "dark": "c1aedffc9c3edc996e515848fc20162edd3baae51c721a4239b5754eda9f7bfb"
+    }
+  },
+  "reports": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Demonstration commissioning checklist with unperformed checks left not tested.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "275f894cab577add923a0638803f3424b7de82adb4fc2cd2d831d3c24dc0a5f2",
+      "dark": "b150ab8fba024e587c9869904584fc4dbb0de439c8426bd0728704c3786f3cf8"
+    }
+  },
+  "labels": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Equipment-label controls and a locally generated QR preview for a synthetic site and device.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "0ed2d08c9543c7784d19e39d5b8a7ee46764d387c837c8667a61b4c93c4332fc",
+      "dark": "29e3c2c23d95939a4483b0affe18cdc4bee18cc025f448edba5cb3f57055bd6d"
+    }
+  },
+  "support": {
+    "width": 1440,
+    "height": 880,
+    "caption": "Support-bundle preparation screen; no packet capture or export was started.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "92578e0da3b314733e7c952ebbfdccb33a97ac98c939b38f501af2e028fc205e",
+      "dark": "474ea068b017f56fc7aa606264bf5c68705e79e7bfbcbe6579431a7d7101d46e"
+    }
+  },
+  "settings": {
+    "width": 400,
+    "height": 410,
+    "caption": "Appearance and discovery settings, shown as a cropped dialog detail.",
+    "origin": "Native Wails app with synthetic screenshot fixtures; no physical-device validation",
+    "sha256": {
+      "light": "23135cd232ea89232bdfb0c7a01882ac848daef7c57450a46a941ce7a2543146",
+      "dark": "770785bb369f5c3bdee8aea4448eb1bd1de6a5844ba97e91d1db9c0927055c23"
+    }
+  }
+}

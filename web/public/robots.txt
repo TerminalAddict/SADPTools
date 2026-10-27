@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /_app/
+Disallow: /download/
+Disallow: /api/
+Sitemap: https://sadptools.com/sitemap.xml

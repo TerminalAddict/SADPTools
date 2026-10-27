@@ -15,3 +15,10 @@ coverage.out
 *.sqlite-shm
 *.sadpsite
 .DS_Store
+/web/.credentials.json
+/web/node_modules/
+/web/.cache/
+/web/test-results/
+
+# Generated website review screenshots and validation reports
+/web/screenshots/

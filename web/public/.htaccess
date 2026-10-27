@@ -1,0 +1,24 @@
+Options -Indexes -MultiViews
+DirectoryIndex index.html
+RewriteEngine On
+RewriteCond %{HTTP_HOST} ^www\.sadptools\.com$ [NC]
+RewriteRule ^ https://sadptools.com%{REQUEST_URI} [R=301,L,NE]
+RewriteRule ^(?:_app|\.git|\.credentials)(?:/|\.|$) - [F,L]
+RewriteRule ^wordfence-waf\.php$ - [F,L]
+RewriteRule ^api/releases/?$ releases.php [END]
+RewriteRule ^download/([a-z0-9.-]+)$ download.php?target=$1 [END,QSD]
+<FilesMatch "(^\.|\.(?:env|log|ini|sqlite|bak|sh)$)">
+    Require all denied
+</FilesMatch>
+<IfModule mod_headers.c>
+    Header always unset X-Powered-By
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set X-Frame-Options "DENY"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    <FilesMatch "\.(?:css|js|svg|png|webp|woff2)$">
+        Header set Cache-Control "public, max-age=3600"
+    </FilesMatch>
+</IfModule>
+ErrorDocument 404 /404.html
