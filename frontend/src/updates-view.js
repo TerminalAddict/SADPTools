@@ -12,6 +12,11 @@ export function updateControls(state, configuring = false) {
   };
 }
 
+export function manualUpdateMessage(platform) {
+  if (platform === "darwin") return "Download the macOS DMG or ZIP from the release page. Quit SADPTools, replace SADPTools.app in Applications, then reopen it. Settings and saved sites stay in your Library folder. Automatic replacement is not enabled.";
+  return "Download the Linux DEB, RPM or manual installer from the release page and update using the same installation method. In-app installation is available on Windows AMD64.";
+}
+
 // About shares the same updater state; installation still uses its explicit
 // confirmation screen, including the active-device-operation guard.
 export function aboutUpdateView(state) {

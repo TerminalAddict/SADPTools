@@ -38,7 +38,7 @@ func fixture(tag string, prerelease bool) release {
 	}}
 }
 func syntheticClient(releases []release, edit func(*http.Request, *http.Response) (*http.Response, error)) *Client {
-	return &Client{http: &http.Client{Transport: transportFunc(func(req *http.Request) (*http.Response, error) {
+	return &Client{goos: "windows", goarch: "amd64", http: &http.Client{Transport: transportFunc(func(req *http.Request) (*http.Response, error) {
 		var body []byte
 		switch {
 		case req.URL.Host == "api.github.com":
@@ -47,7 +47,7 @@ func syntheticClient(releases []release, edit func(*http.Request, *http.Response
 			hash := sha256.Sum256(payload)
 			for _, r := range releases {
 				for _, a := range r.Assets {
-					if strings.HasSuffix(a.Name, ".exe") {
+					if a.Name != "SHA256SUMS" {
 						body = append(body, []byte(hex.EncodeToString(hash[:])+"  "+a.Name+"\n")...)
 					}
 				}
@@ -349,5 +349,53 @@ func TestManagerCancellationCloseAndConcurrentActions(t *testing.T) {
 	ready.Cancel()
 	if _, err := os.Stat(filepath.Dir(path)); !os.IsNotExist(err) {
 		t.Fatal("discard left installer behind")
+	}
+}
+
+func TestPlatformReleaseAssets(t *testing.T) {
+	for _, tc := range []struct{ os, arch, suffix string }{
+		{"windows", "amd64", "-Setup-windows-amd64.exe"},
+		{"darwin", "arm64", "-macos-universal.dmg"},
+		{"darwin", "amd64", "-macos-universal.dmg"},
+		{"linux", "amd64", "-manual-linux-amd64.tar.gz"},
+	} {
+		t.Run(tc.os+tc.arch, func(t *testing.T) {
+			r := fixture("v0.2.0-rc.1", true)
+			asset := r.Assets[0]
+			asset.Name = "SADPTools-0.2.0-rc.1" + tc.suffix
+			asset.URL = ReleasesURL + "/download/v0.2.0-rc.1/" + asset.Name
+			r.Assets[0] = asset
+			c := syntheticClient([]release{r}, nil)
+			c.goos, c.goarch = tc.os, tc.arch
+			o := available(t, c)
+			if o.Name != asset.Name || o.SHA256 == "" {
+				t.Fatal(o)
+			}
+		})
+	}
+	for _, target := range []string{"darwin", "linux"} {
+		c := syntheticClient([]release{fixture("v0.2.0-rc.1", true)}, nil)
+		c.goos, c.goarch = target, "amd64"
+		if _, err := c.Check(context.Background(), "0.2.0-beta.1", "beta"); err == nil {
+			t.Fatal("non-Windows platform accepted a Windows-only release")
+		}
+	}
+	if _, err := releaseAsset("0.2.0", "darwin", "386"); err == nil {
+		t.Fatal("unsupported architecture accepted")
+	}
+}
+
+func TestManualPlatformCannotLaunchWindowsUpdate(t *testing.T) {
+	for _, target := range []string{"darwin", "linux"} {
+		m := readyManager(t)
+		m.state.Platform, m.state.Supported = target, false
+		m.launch = func(string) error { t.Fatal("installer launched on manual platform"); return nil }
+		if err := m.Install("beta"); err == nil {
+			t.Fatal("installation was enabled")
+		}
+		if err := m.Download("beta"); err == nil {
+			t.Fatal("download was enabled")
+		}
+		m.Close()
 	}
 }

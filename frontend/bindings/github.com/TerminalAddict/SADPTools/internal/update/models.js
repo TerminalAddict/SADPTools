@@ -68,6 +68,13 @@ export class State {
              */
             this["supported"] = false;
         }
+        if (!("platform" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["platform"] = "";
+        }
 
         Object.assign(this, $$source);
     }

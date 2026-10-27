@@ -94,11 +94,15 @@ func (s *LiveViewService) open(site, id, streamID string) error {
 	if name == "" {
 		name = "Camera"
 	}
-	window := application.NewWindow(application.WebviewWindowOptions{
+	windowOptions := application.WebviewWindowOptions{
 		Title: "Live View — " + name + " · " + detail.Device.IPv4,
 		Width: 960, Height: 820, MinWidth: 540, MinHeight: 420, URL: "/live-view.html",
 		BackgroundColour: application.NewRGB(17, 27, 40), Linux: application.LinuxWindow{Icon: appIcon},
-	})
+	}
+	// The user already chose Live View in the main window. WKWebView does not
+	// carry that gesture into this separate window; explicitly allow playback.
+	windowOptions.Mac.WebviewPreferences.EnableAutoplayWithoutUserAction.Set(true)
+	window := application.NewWindow(windowOptions)
 	s.mu.Lock()
 	if s.closed {
 		s.mu.Unlock()

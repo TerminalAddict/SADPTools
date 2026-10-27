@@ -1,6 +1,6 @@
 import { Browser, Events } from "@wailsio/runtime";
 import * as Backend from "../bindings/github.com/TerminalAddict/SADPTools/desktopservice.js";
-import { aboutUpdateView, updateControls } from "./updates-view.js";
+import { aboutUpdateView, updateControls, manualUpdateMessage } from "./updates-view.js";
 
 export function initUpdates({ getSnapshot, getSettings }) {
   const $ = (id) => document.getElementById(id);
@@ -21,8 +21,9 @@ export function initUpdates({ getSnapshot, getSettings }) {
     $("update-progress").hidden = !controls.progress;
     $("update-progress").value = controls.percent;
     $("update-size").hidden = !controls.offered;
-    $("update-size").textContent = controls.progress ? `${mb(state.downloaded)} of ${mb(state.size)}` : `Installer download: ${mb(state.size)}`;
+    $("update-size").textContent = controls.progress ? `${mb(state.downloaded)} of ${mb(state.size)}` : `Package download: ${mb(state.size)}`;
     $("update-platform").hidden = state.supported !== false;
+    $("update-platform").textContent = manualUpdateMessage(state.platform);
     $("update-install-note").hidden = !controls.install;
     $("update-device-busy").hidden = !controls.install || !controls.installDisabled;
     $("updates-open").textContent = state.status === "ready" ? "Update ready" : controls.offered ? "Update available" : "Updates";

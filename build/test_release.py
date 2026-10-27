@@ -97,6 +97,31 @@ class ReleaseTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "checksum mismatch"):
             self.verify()
 
+    def test_macos_assets_are_explicit_and_preserve_existing_downloads(self):
+        old = release.asset_names(self.version, linux_installers=True)
+        names = release.asset_names(self.version, linux_installers=True, macos_installers=True)
+        self.assertEqual(names - old, {f"SADPTools-{self.version}-macos-universal.zip",
+                                      f"SADPTools-{self.version}-macos-universal.dmg"})
+        self.assertTrue(old < names)
+        self.assertEqual(len(names), len({n.casefold() for n in names}))
+
+    def test_publish_revalidates_macos_payloads_and_provenance(self):
+        path = self.folder / "build-manifest.json"
+        manifest = json.loads(path.read_text())
+        names = release.asset_names(self.version, macos_installers=True)
+        for name in names - self.names:
+            (self.folder / name).write_bytes(b"synthetic Mac artifact")
+        provenance = {"version": self.version, "commit": self.commit}
+        manifest.update(macos_installers=True, macos_build=provenance,
+                        sha256={n: release.digest(self.folder / n) for n in names})
+        path.write_text(json.dumps(manifest))
+        (self.folder / "SHA256SUMS").write_text(release.checksum_text(self.folder, names | {"build-manifest.json"}))
+        with patch("release.verify_macos_payloads") as verify:
+            self.verify()
+            verify.assert_called_once_with(self.folder, provenance, self.version, self.commit)
+        with patch("release.verify_macos_payloads", side_effect=ValueError("invalid native provenance")), self.assertRaisesRegex(ValueError, "provenance"):
+            self.verify()
+
     def test_older_bundle_without_desktop_remains_verifiable(self):
         (self.folder / f"SADPTools-{self.version}-standalone-windows-amd64.zip").unlink()
         manifest_path = self.folder / "build-manifest.json"

@@ -1,29 +1,36 @@
 version: '3'
 vars:
   GOOS: '{{.GOOS | default OS}}'
-  TARGET_ARCH: '{{.GOARCH | default ARCH}}'
-  APP_VERSION: '{{.SADPTOOLS_VERSION | default "0.6.0-rc.1"}}'
+  # Wails v3 translates GOARCH=... to Task's ARCH=... variable. The ARCH
+  # template function alone is the host architecture, not the requested target.
+  TARGET_ARCH: '{{.ARCH | default ARCH}}'
+  APP_VERSION: '{{.SADPTOOLS_VERSION | default "0.6.0-rc.2"}}'
 includes:
   common: ./build/Taskfile.yml
   windows: ./build/windows/Taskfile.yml
   linux: ./build/linux/Taskfile.yml
+  darwin: ./build/darwin/Taskfile.yml
 tasks:
   build:
-    desc: Build the desktop application (GOOS=windows or linux)
+    desc: Build the desktop application (GOOS=windows, linux or darwin)
     cmds:
       - task: common:frontend
       - task: '{{.GOOS}}:build'
+        vars:
+          TARGET_ARCH: '{{.ARCH | default ARCH}}'
   run:
     cmds:
-      - 'bin/SADPTools-{{.GOOS}}-{{.TARGET_ARCH}}{{if eq .GOOS "windows"}}.exe{{end}}'
+      - '{{if eq .GOOS "darwin"}}open bin/macos/{{.ARCH | default ARCH}}/SADPTools.app{{else}}bin/SADPTools-{{.GOOS}}-{{.ARCH | default ARCH}}{{if eq .GOOS "windows"}}.exe{{end}}{{end}}'
   package:
-    desc: Build Windows setup or Linux DEB, RPM and manual installers (AMD64)
+    desc: Build Windows/Linux installers or a macOS app bundle and ZIP
     preconditions:
-      - sh: '{ [ "{{.GOOS}}" = "windows" ] || [ "{{.GOOS}}" = "linux" ]; } && [ "{{.TARGET_ARCH}}" = "amd64" ]'
-        msg: Installer packaging supports Windows or Linux AMD64.
+      - sh: '{ { [ "{{.GOOS}}" = "windows" ] || [ "{{.GOOS}}" = "linux" ]; } && [ "{{.ARCH | default ARCH}}" = "amd64" ]; } || { [ "{{.GOOS}}" = "darwin" ] && { [ "{{.ARCH | default ARCH}}" = "arm64" ] || [ "{{.ARCH | default ARCH}}" = "amd64" ] || [ "{{.ARCH | default ARCH}}" = "universal" ]; }; }'
+        msg: Packaging supports Windows/Linux AMD64 and macOS ARM64, AMD64 or universal.
     cmds:
       - task: build
       - task: '{{.GOOS}}:package'
+        vars:
+          TARGET_ARCH: '{{.ARCH | default ARCH}}'
   dev:
     cmds:
       - wails3 dev -config build/config.yml

@@ -48,3 +48,13 @@ test("About exposes check failures and progress without starting duplicate work"
   assert.equal(aboutUpdateView({ status: "downloading", supported: true }).action, "details");
   assert.match(aboutUpdateView({ status: "available", supported: true, message: "Download failed: offline" }).message, /Download failed: offline/);
 });
+
+test("macOS updates use manual bundle replacement without an install action", async () => {
+  const { manualUpdateMessage } = await import("./updates-view.js");
+  assert.match(manualUpdateMessage("darwin"), /Quit SADPTools/);
+  assert.match(manualUpdateMessage("linux"), /DEB, RPM/);
+  const state = { platform: "darwin", supported: false, status: "available" };
+  assert.equal(updateControls(state).download, false);
+  assert.equal(updateControls(state).install, false);
+  assert.equal(aboutUpdateView(state).action, "release");
+});

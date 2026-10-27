@@ -15,6 +15,12 @@ coverage.out
 *.sqlite-shm
 *.sadpsite
 .DS_Store
+# Apple SDKs, signing material and generated bundles must remain private.
+*.sdk/
+*.sdk.tar.*
+*.p12
+*.pfx
+*.mobileprovision
 /web/.credentials.json
 /web/node_modules/
 /web/.cache/

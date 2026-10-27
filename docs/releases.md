@@ -79,6 +79,8 @@ The ignored `bin/releases/v<VERSION>/` directory contains:
 | `SADPTools-<VERSION>-linux-amd64.deb` | Linux desktop/CLI with application menu/icon; install using APT |
 | `SADPTools-<VERSION>-linux-x86_64.rpm` | Linux desktop/CLI with application menu/icon; install using Fedora DNF |
 | `SADPTools-<VERSION>-manual-linux-amd64.tar.gz` | Linux desktop/CLI with `install.sh`; per-user or all-users installation and removal |
+| `SADPTools-<VERSION>-macos-universal.zip` | Apple Silicon + Intel app bundle (when verified macOS artifacts are imported) |
+| `SADPTools-<VERSION>-macos-universal.dmg` | Native Mac drag-to-Applications disk image (same import) |
 | `build-manifest.json` | Source commit, version, toolchain details, pinned installer inputs and artifact hashes |
 | `SHA256SUMS` | SHA-256 checksums for every installer/archive and the build manifest |
 
@@ -133,3 +135,21 @@ This follows GitHub's [draft-first publication guidance](https://docs.github.com
 and uses [`gh release create --verify-tag`](https://cli.github.com/manual/gh_release_create)
 to bind the release to the explicitly pushed tag. It also works when immutable
 releases are enabled because all uploads precede publication.
+
+## Including macOS in a release
+
+Use `make macos-packages` on a Mac or the `SADPTools-macOS-universal` artifact from
+the native macOS CI job. Import it on Sparx with
+`make release-build VERSION=<new-version> MACOS_RELEASE_DIR=.cache/macos-release`.
+The complete ZIP/DMG set must match the clean source commit and version. The
+release builder verifies architectures, bundle metadata, executable permissions,
+licences and SHA-256s, then includes both files in the normal immutable bundle,
+upload verification and published checksums. The import does not push or publish.
+See [macOS packaging](macos.md) for exact commands and signing/testing limits.
+
+Omitting the directory preserves the existing Windows/Linux-only process. An
+explicitly requested but incomplete/broken macOS import fails before the long
+Windows/Linux build. Native CI currently uses ad-hoc signatures for testing;
+Gatekeeper acceptance, Developer ID and notarization are not implied. Record
+those limitations in release notes. Do not mutate v0.6.0-rc.1's existing assets;
+ship these changes under a new version after review and authorization.

@@ -8,7 +8,7 @@ actions; an available update never closes the app automatically.
 for updates** there to check manually. When a newer Windows release is available,
 **Update now** opens the Updates screen and starts downloading it. Once verified,
 choose **Install and close** to continue. If the download is already ready,
-**Update now** goes straight to that confirmation screen. Linux offers **View
+**Update now** goes straight to that confirmation screen. Linux and macOS offer **View
 release** instead. Opening About alone does not start a network check when
 startup checks are disabled.
 
@@ -55,7 +55,7 @@ an accidental replacement of newer development code with an older public beta.
 Windows AMD64 supports download/install. Linux can check and open release notes;
 install updates using the DEB, RPM or manual installer matching the original
 installation method. The updater does not install Linux packages or substitute
-the Linux CLI archive for a desktop upgrade. macOS installation is also unsupported.
+the Linux CLI archive for a desktop upgrade. macOS checks for the universal DMG and offers manual installation: quit the app, replace `SADPTools.app` in Applications, then reopen it. User data remains in Library/Application Support. Automatic macOS replacement is not enabled.
 
 ## Network, integrity and lifecycle
 
@@ -124,3 +124,42 @@ Before claiming Windows update support is runtime-tested:
 
 Linux compilation, synthetic tests, Xvfb UI checks and a successful GitHub
 download do not establish Windows process-handoff or replacement behaviour.
+
+## Planned safe macOS update handoff
+
+This is a design for a later milestone, **not an enabled updater**. The current
+macOS manager has `supported=false` for download/install; backend guards reject
+both calls even if a frontend tries them. Release checks select the universal
+Mac DMG, not a Windows setup file. A release missing a Mac asset reports that
+explicitly rather than suggesting a Windows download. Linux checks likewise
+select the Linux desktop manual package, not the CLI or an EXE.
+
+A future macOS implementation must:
+
+1. Verify semantic version, OS floor, both Mach-O architectures and signed update
+   metadata. Use a pinned signing identity/update key, not only a checksum fetched
+   from the same release. Check the bundle identifier, Developer ID Team ID,
+   designated requirement, hardened signature and notarization before handoff.
+2. Download to private cache with bounded size, cancellation and integrity checks;
+   unpack into a private staging directory on the destination volume. Reject path
+   traversal, external symlinks and unexpected executable helpers. Do not modify
+   the installed app until all checks succeed.
+3. Resolve the actual installed bundle. Refuse read-only DMG/translocated paths,
+   an unexpected bundle location, downgrades and an unwritable install. Offer
+   manual instructions instead of silently changing permissions or using sudo.
+4. Require explicit Install confirmation, block active camera writes, close all
+   viewer windows, stop/join networking and flush the saved-site database. A
+   separately signed helper waits for the app to exit; no force-kill or attempted
+   overwrite of a running executable/bundle.
+5. Revalidate immediately before a same-volume atomic rename/swap of the complete
+   bundle, retain a rollback copy, and launch through Launch Services. Keep app
+   data outside the bundle. Database migrations need their own backup/rollback
+   policy; replacing the app alone cannot undo a database migration.
+6. Test power loss, disk full, interrupted download, signature mismatch, multiple
+   instances, denied permissions, translocation, Unicode paths, failed relaunch,
+   Intel/ARM64 compatibility and recovery of the previous app. Prefer a mature
+   maintained updater (for example, an evaluated Sparkle integration) if it fits
+   the Wails lifecycle; do not simply generalize the Windows EXE replacement code.
+
+macOS changes must remain behind their platform boundary. Windows retains its
+verified NSIS `/WAITPID` handoff and Linux retains package-manager/manual updates.

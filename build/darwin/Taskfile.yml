@@ -1,0 +1,21 @@
+version: '3'
+tasks:
+  build:
+    desc: Build with native Apple tools or the isolated macOS cross compiler
+    cmds:
+      - python3 build/darwin/cross.py build --arch '{{.TARGET_ARCH}}' --version '{{.APP_VERSION}}'
+  package:
+    cmds:
+      - python3 build/darwin/package.py --version '{{.APP_VERSION}}' --arch '{{.TARGET_ARCH}}'
+  build:universal:
+    cmds:
+      - task: :common:frontend
+      - python3 build/darwin/cross.py build --arch universal --version '{{.APP_VERSION}}'
+  package:universal:
+    cmds:
+      - task: build:universal
+      - python3 build/darwin/package.py --version '{{.APP_VERSION}}' --arch universal
+  package:dmg:
+    cmds:
+      - task: package:universal
+      - python3 build/darwin/package.py --version '{{.APP_VERSION}}' --arch universal --dmg

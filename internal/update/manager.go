@@ -20,6 +20,7 @@ type State struct {
 	Downloaded     int64  `json:"downloaded"`
 	Size           int64  `json:"size"`
 	Supported      bool   `json:"supported"`
+	Platform       string `json:"platform"`
 }
 
 type Manager struct {
@@ -39,6 +40,7 @@ type Manager struct {
 func NewManager(current, cache string, notify func()) *Manager {
 	m := &Manager{client: NewClient(), cache: cache, notify: notify, launch: launchInstaller}
 	m.state = State{Status: "idle", CurrentVersion: current, ReleaseURL: ReleasesURL,
+		Platform:  runtime.GOOS,
 		Supported: runtime.GOOS == "windows" && runtime.GOARCH == "amd64"}
 	// A launched installer must outlive us. Only prune our old private directories
 	// on a later launch, never a currently downloaded or running installer.
@@ -100,6 +102,9 @@ func (m *Manager) Check(channel string) error {
 			m.offer = offer
 			m.state.Status, m.state.Message = "available", "A new version is available."
 			m.state.Version, m.state.ReleaseURL, m.state.Size = offer.Version, offer.ReleaseURL, offer.Size
+			if !m.state.Supported {
+				m.state.Message = "A new version is available for this platform. Open the release page to download and install it manually."
+			}
 		}
 		m.mu.Unlock()
 		m.changed()

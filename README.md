@@ -5,7 +5,7 @@
   <img src="build/brand/logo-light.svg" alt="SADPTools — network device management" width="440">
 </picture>
 
-A native Go desktop utility and CLI for CCTV discovery, site inventories and commissioning. Built with **Wails v3**, Bootstrap 5 and vanilla JavaScript. Windows 10/11 AMD64 is the primary desktop target; Linux is also supported.
+A native Go desktop utility and CLI for CCTV discovery, site inventories and commissioning. Built with **Wails v3**, Bootstrap 5 and vanilla JavaScript. Windows 10/11 AMD64 is the primary desktop target; Linux is also supported. macOS ARM64, Intel and universal build targets are implemented, with native Mac runtime validation pending; see [macOS support](docs/macos.md).
 
 The CLI and desktop support single-device activation, IPv4/DHCP/SDK-port configuration and code-based password recovery. Security-question recovery is also available for compatible cameras reachable over IPv4, directly or through a router. These write operations have synthetic test coverage but still require physical-device/firmware validation. SADPTools adds no account, cloud service or telemetry. The Windows display runtime is supplied by Microsoft and has its own update and privacy terms, included with setup.
 
@@ -129,7 +129,25 @@ sudo apt update
 sudo apt install build-essential pkg-config libgtk-4-dev libwebkitgtk-6.0-dev
 ```
 
-No privileged packages were installed during development. Sparx already had these libraries. Older distributions may need Wails' legacy GTK3 build path; the supplied build targets use GTK4. See [Wails installation requirements](https://v3.wails.io/quick-start/installation/). macOS packaging is a future milestone.
+No privileged packages were installed during development. Sparx already had these libraries. Older distributions may need Wails' legacy GTK3 build path; the supplied build targets use GTK4. See [Wails installation requirements](https://v3.wails.io/quick-start/installation/). For macOS, see the native and Docker cross-build instructions below.
+
+## Build and install on macOS
+
+```sh
+make macos MACOS_ARCH=arm64      # Apple Silicon .app and ZIP
+make macos MACOS_ARCH=amd64      # Intel .app and ZIP
+make macos                      # Universal .app and ZIP
+make macos-packages             # Also creates a DMG; requires a native Mac
+```
+
+On macOS, install Xcode Command Line Tools and the pinned Go/Node tooling first.
+On Sparx, the same targets use a private Docker/Zig/macOS SDK toolchain. See
+[macOS installation, packaging and hardware testing](docs/macos.md) for setup,
+Gatekeeper/local-network permissions and the current validation limits. Docker
+access and a supplied SDK are required before Sparx can build the Mac desktop.
+Native CI creates the universal ZIP and DMG included in RC2. These are ad-hoc
+signed test builds, not notarized distributions. Mac update checks offer manual
+installation; physical Mac and camera validation remains outstanding.
 
 ## Development and checks
 
@@ -150,7 +168,7 @@ For headless Go validation, use `go test ./...` and `go vet ./...`. The root des
 
 Frontend dependencies are bundled into the executable; there is no separate production web server. Vite runs only during development. Launching the frontend in an ordinary browser does not substitute a mock inventory for the Go backend.
 
-Preferences are stored at `os.UserConfigDir()/SADPTools/settings.json` (normally `~/.config/SADPTools/` on Linux and `%APPDATA%\SADPTools\` on Windows). Live discovery and the bounded 500-entry diagnostic log remain session-only. Explicitly saved sites, encrypted credential profiles, observations, audits and switch assets persist in `sites.sqlite` in the same user configuration directory. Windows uses current-user DPAPI; Linux uses an Argon2id/AES-256-GCM master-passphrase vault. Portable backups use a separate passphrase. Ordinary exports omit secrets. Exports include the currently filtered inventory and all advertised fields; CSV protects spreadsheet cells beginning with formula characters.
+Preferences are stored at `os.UserConfigDir()/SADPTools/settings.json` (normally `~/.config/SADPTools/` on Linux, `%APPDATA%\SADPTools\` on Windows and `~/Library/Application Support/SADPTools/` on macOS). Live discovery and the bounded 500-entry diagnostic log remain session-only. Explicitly saved sites, encrypted credential profiles, observations, audits and switch assets persist in `sites.sqlite` in the same user configuration directory. Windows uses current-user DPAPI; Linux and macOS use an Argon2id/AES-256-GCM master-passphrase vault. Portable backups use a separate passphrase. Ordinary exports omit secrets. Exports include the currently filtered inventory and all advertised fields; CSV protects spreadsheet cells beginning with formula characters.
 
 ## Networking and hardware validation
 
@@ -181,7 +199,7 @@ This implementation uses UDP SADP, not the legacy raw-Ethernet protocol or an AR
 | `internal/update/` | GitHub release selection, verified installer downloads and process handoff |
 | `main.go`, `desktop.go` | Wails v3 entry point and desktop service |
 | `frontend/` | Bootstrap UI, vanilla JS/CSS and generated bindings |
-| `build/`, `Makefile`, `Taskfile.yml` | Repeatable Windows/Linux builds and metadata |
+| `build/`, `Makefile`, `Taskfile.yml` | Repeatable Windows/Linux/macOS builds and metadata |
 | `docs/`, `LICENSES/` | Architecture, research, validation and attribution |
 
 See [architecture](docs/architecture.md), [reference implementation research](docs/reference-research.md) and [validation and hardware checklist](docs/validation.md).
@@ -209,7 +227,7 @@ the single live stream. Closing the main app also closes the viewer.
 The credential vault encrypts saved passwords. Windows makes these available
 automatically through your signed-in account; no routine unlock step is needed.
 **Lock now** is optional and remains effective until explicitly unlocked or the
-app restarts. Linux still requires the master passphrase, requested directly
+app restarts. Linux and macOS require the master passphrase, requested directly
 in the viewer when needed. Active playback keeps its saved credentials in use.
 
 Windows binaries compile, but Windows playback and real cameras still require
@@ -257,4 +275,4 @@ Go checks or Windows cross-build.
 
 **Commissioning → Diagnostics & service** adds connectivity troubleshooting, recording metadata/gaps, replacement and firmware planning, security inspection, ONVIF imaging, a read-only protocol explorer, ANPR commissioning, opaque equipment QR labels and previewed support bundles. Saved-site device context menus link to common tools. The headless CLI adds `sadptools troubleshoot --ip CAMERA_IP --json`.
 
-See the [v0.6 guide and compatibility matrix](docs/v0.6-diagnostics.md) and [release notes](docs/releases/v0.6.0-rc.1.md). Firmware uploads, automatic replacement writes, privacy-mask editing and verified replay require additional model-specific validation and are not presented as available. Download **v0.6.0-rc.1** from [GitHub Releases](https://github.com/TerminalAddict/SADPTools/releases/tag/v0.6.0-rc.1), or build locally with `make windows-installer` and `make linux-packages`.
+See the [v0.6 guide and compatibility matrix](docs/v0.6-diagnostics.md) and [release notes](docs/releases/v0.6.0-rc.2.md). Firmware uploads, automatic replacement writes, privacy-mask editing and verified replay require additional model-specific validation and are not presented as available. Download **v0.6.0-rc.2** from [GitHub Releases](https://github.com/TerminalAddict/SADPTools/releases/tag/v0.6.0-rc.2), or build locally with `make windows-installer` and `make linux-packages`.

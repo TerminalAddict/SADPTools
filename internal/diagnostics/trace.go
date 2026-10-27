@@ -25,7 +25,7 @@ type TraceCapability struct {
 }
 
 func TraceSupport() TraceCapability {
-	_, e := exec.LookPath("dumpcap")
+	_, e := dumpcapPath()
 	if e != nil {
 		return TraceCapability{Reason: "Optional dumpcap is not installed. Metadata bundles remain available. Install/authorise capture separately; SADPTools never installs drivers or elevates itself."}
 	}
@@ -58,7 +58,7 @@ func CaptureTrace(ctx context.Context, o TraceOptions, destination string) error
 	if !found {
 		return errors.New("selected capture adapter no longer exists")
 	}
-	tool, e := exec.LookPath("dumpcap")
+	tool, e := dumpcapPath()
 	if e != nil {
 		return errors.New(TraceSupport().Reason)
 	}

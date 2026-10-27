@@ -18,6 +18,9 @@ import zipfile
 
 from release_version import windows_version
 from linux.package import asset_names as linux_asset_names
+from darwin.common import asset_names as macos_asset_names
+from darwin.package import verify_import as verify_macos_import
+from darwin.package import verify_payloads as verify_macos_payloads
 
 ROOT = Path(__file__).resolve().parents[1]
 REPO = "TerminalAddict/SADPTools"
@@ -64,7 +67,7 @@ def verify_publish_branch(commit):
     raise ValueError("Publish from main or a clean detached worktree at main's current commit")
 
 
-def asset_names(version, *, standalone_desktop=True, linux_installers=False):
+def asset_names(version, *, standalone_desktop=True, linux_installers=False, macos_installers=False):
     names = {f"SADPTools-{version}-Setup-windows-amd64.exe",
              f"sadptools-{version}-windows-amd64.zip",
              f"sadptools-{version}-linux-amd64.tar.gz"}
@@ -72,6 +75,8 @@ def asset_names(version, *, standalone_desktop=True, linux_installers=False):
         names.add(f"SADPTools-{version}-standalone-windows-amd64.zip")
     if linux_installers:
         names.update(linux_asset_names(version))
+    if macos_installers:
+        names.update(macos_asset_names(version))
     return names
 
 
@@ -84,7 +89,8 @@ def verify_bundle(folder, version, commit):
     # Older releases predate the standalone desktop download. Keep their
     # immutable bundles verifiable without changing or replacing public files.
     names = asset_names(version, standalone_desktop=manifest.get("standalone_desktop", False),
-                        linux_installers=manifest.get("linux_installers", False))
+                        linux_installers=manifest.get("linux_installers", False),
+                        macos_installers=manifest.get("macos_installers", False))
     expected = names | {"build-manifest.json", "SHA256SUMS"}
     if {p.name for p in folder.iterdir()} != expected:
         raise ValueError("Release directory has missing or unexpected files")
@@ -99,6 +105,8 @@ def verify_bundle(folder, version, commit):
             raise ValueError(f"Release checksum mismatch: {name}")
     if (folder / "SHA256SUMS").read_text() != checksum_text(folder, names | {"build-manifest.json"}):
         raise ValueError("SHA256SUMS does not match the release files")
+    if manifest.get("macos_installers"):
+        verify_macos_payloads(folder, manifest.get("macos_build") or {}, version, commit)
     return manifest
 
 
@@ -168,13 +176,16 @@ def desktop_archive(folder, version, binary):
             f"Release notes: https://github.com/{REPO}/releases/tag/v{version}\n")
 
 
-def build(version, folder):
+def build(version, folder, macos_dir=None):
     commit = clean_commit()
     notes = notes_path(version)
     if platform.system() != "Linux" or platform.machine() not in ("x86_64", "amd64"):
         raise ValueError("The release builder currently runs on Linux AMD64 (Sparx)")
     if folder.exists():
         raise ValueError(f"{folder} already exists; preserve published builds or remove an unpublished build explicitly")
+    # Import that exact commit's native CI artifacts; never silently omit macOS
+    # when it was explicitly requested as part of a release.
+    macos_manifest = verify_macos_import(macos_dir, version, commit) if macos_dir else None
     for tool in ("go", "npm", "node", "make", "7z", "dpkg-shlibdeps"):
         if not shutil.which(tool):
             raise ValueError(f"Missing build tool: {tool}; see docs/releases.md")
@@ -212,11 +223,20 @@ def build(version, folder):
         desktop_archive(stage, version, ROOT / "bin/SADPTools-windows-amd64.exe")
         for name in linux_asset_names(version):
             shutil.copy2(ROOT / "bin/linux" / name, stage / name)
-        names = asset_names(version, linux_installers=True)
+        if macos_dir:
+            if verify_macos_import(macos_dir, version, commit) != macos_manifest:
+                raise ValueError("macOS artifacts changed during the release build")
+            for name in macos_asset_names(version):
+                shutil.copy2(Path(macos_dir) / name, stage / name)
+                if digest(stage / name) != macos_manifest["sha256"][name]:
+                    raise ValueError("macOS artifact changed while staging")
+        names = asset_names(version, linux_installers=True, macos_installers=bool(macos_dir))
         manifest = {
             "version": version, "tag": f"v{version}", "commit": commit,
             "standalone_desktop": True,
             "linux_installers": True,
+            "macos_installers": bool(macos_dir),
+            "macos_build": macos_manifest,
             "notes_sha256": digest(notes),
             "toolchain": {"go": run("go", "version", capture=True),
                           "node": run("node", "--version", capture=True),
@@ -288,10 +308,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=("build", "publish"))
     parser.add_argument("version")
+    parser.add_argument("--macos-dir", type=Path, help="Import verified universal ZIP/DMG artifacts from the native macOS CI job")
     args = parser.parse_args()
     windows_version(args.version, release=True)
     folder = ROOT / "bin/releases" / f"v{args.version}"
-    (build if args.action == "build" else publish)(args.version, folder)
+    if args.action == "build":
+        build(args.version, folder, args.macos_dir)
+    else:
+        if args.macos_dir:
+            parser.error("--macos-dir is a build option; publish uses the verified bundle")
+        publish(args.version, folder)
 
 
 if __name__ == "__main__":

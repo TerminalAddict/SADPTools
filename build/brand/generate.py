@@ -125,6 +125,14 @@ def main():
     outputs["build/brand/installer-header.svg"] = header.encode()
     renderer = Renderer()
     outputs["build/appicon.png"] = renderer.render(icon, 512, 512)
+    # Modern macOS ICNS PNG elements, including Retina 1024px. Builds consume
+    # this committed asset and need no Apple tools or rendering dependencies.
+    icns = bytearray()
+    for kind, size in ((b"icp4", 16), (b"icp5", 32), (b"icp6", 64),
+                       (b"ic07", 128), (b"ic08", 256), (b"ic09", 512), (b"ic10", 1024)):
+        frame = renderer.render(icon, size, size)
+        icns.extend(struct.pack(">4sI", kind, len(frame) + 8) + frame)
+    outputs["build/darwin/icons.icns"] = struct.pack(">4sI", b"icns", len(icns) + 8) + icns
     frames = [renderer.render(icon, size, size) for size in SIZES]
     offset = 6 + 16 * len(frames)
     directory = bytearray(struct.pack("<HHH", 0, 1, len(frames)))

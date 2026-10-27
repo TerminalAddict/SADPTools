@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -40,10 +41,28 @@ type Offer struct {
 	Size                                   int64
 }
 
-type Client struct{ http *http.Client }
+type Client struct {
+	http         *http.Client
+	goos, goarch string
+}
 
 func NewClient() *Client {
-	return &Client{http: &http.Client{Timeout: 15 * time.Minute, CheckRedirect: checkRedirect}}
+	return &Client{http: &http.Client{Timeout: 15 * time.Minute, CheckRedirect: checkRedirect}, goos: runtime.GOOS, goarch: runtime.GOARCH}
+}
+
+// releaseAsset is shared by checks on all platforms. Download/install remains
+// Windows-only until a separately verified macOS bundle handoff is implemented.
+func releaseAsset(version, goos, goarch string) (string, error) {
+	switch {
+	case goos == "windows" && goarch == "amd64":
+		return "SADPTools-" + version + "-Setup-windows-amd64.exe", nil
+	case goos == "darwin" && (goarch == "arm64" || goarch == "amd64"):
+		return "SADPTools-" + version + "-macos-universal.dmg", nil
+	case goos == "linux" && goarch == "amd64":
+		return "SADPTools-" + version + "-manual-linux-amd64.tar.gz", nil
+	default:
+		return "", errors.New("release checks are unavailable for this operating system/architecture; view releases manually")
+	}
 }
 
 func checkRedirect(req *http.Request, via []*http.Request) error {
@@ -106,6 +125,9 @@ func (c *Client) small(ctx context.Context, address string, limit int64) ([]byte
 }
 
 func (c *Client) Check(ctx context.Context, current, channel string) (*Offer, error) {
+	if _, err := releaseAsset(current, c.goos, c.goarch); err != nil {
+		return nil, err
+	}
 	installed, err := parseVersion(current)
 	if err != nil {
 		return nil, err
@@ -150,7 +172,10 @@ func (c *Client) Check(ctx context.Context, current, channel string) (*Offer, er
 		return nil, nil
 	}
 	value := strings.TrimPrefix(latest.Tag, "v")
-	name := "SADPTools-" + value + "-Setup-windows-amd64.exe"
+	name, err := releaseAsset(value, c.goos, c.goarch)
+	if err != nil {
+		return nil, err
+	}
 	find := func(name string, limit int64) (asset, error) {
 		var found asset
 		for _, a := range latest.Assets {

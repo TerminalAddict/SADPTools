@@ -226,3 +226,53 @@ See [branding sources and regeneration](branding.md).
   DPAPI, native ICMP/IP Helper, installation/update handoff, authenticated physical
   ONVIF access, camera writes and physical switch/PoE mapping still need testing.
   No GitHub publication or signing is claimed; SignPath approval remains pending.
+
+## macOS implementation and portability checks — 27 October 2026
+
+macOS targets are implemented locally; **no Mac GUI executable, app bundle, ZIP
+or DMG was produced on Sparx in this session**. `make macos MACOS_ARCH=arm64`
+correctly dispatches the ARM64 Darwin build and stops at Docker's unavailable
+socket (`permission denied` for the current user). The expected private
+`MacOSX14.5.sdk.tar.xz` is also absent. No Docker permissions, privileged packages,
+Apple SDK downloads, GitHub pushes, tags or published releases were changed.
+See [macOS setup](macos.md) for the exact prerequisite and build commands.
+
+Completed locally on Linux:
+
+- `make check`: all Go tests, `go vet ./...`, `go test -race ./...`, **35 frontend
+  tests**, **5 Windows packaging**, **20 release**, **11 Linux packaging** and
+  **15 macOS packaging/toolchain** tests passed. Mac package fixtures are
+  explicitly synthetic and are never presented as runnable applications.
+- `make frontend`: generated bindings and production frontend build passed.
+- `go test -tags desktop -race .`: desktop service/lifecycle tests passed on Linux.
+- `make windows` and `make windows-installer`: Windows AMD64 desktop and complete
+  offline installer built; `7z t` passed. The regression check also fixed copying
+  an existing read-only generated licence file by replacing it with `cp -f`.
+- `make linux-gui` and `make linux-packages`: Linux desktop, CLI, DEB, RPM and
+  manual archive built; all package SHA-256s passed and CLI version was correct.
+- `GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go test -exec /bin/true ./...` and the
+  AMD64 equivalent passed **compilation only**. `/bin/true` deliberately avoids
+  executing Mac test binaries; these are not native macOS test passes. The new
+  Darwin kernel ARP/default-route tests are among the compiled tests.
+- `GOOS=darwin GOARCH=<arm64|amd64> CGO_ENABLED=0 go vet ./...` passed.
+- Both macOS CLI architectures built under `bin/macos-cli/`; Wails `tool lipo`
+  joined them into `sadptools-darwin-universal`. Real Mach-O architecture and
+  embedded version checks passed for all three. They have not run on a Mac.
+- ICNS generation/structure and `make branding` consistency passed. Task dry runs
+  verify requested ARM64/AMD64/universal targets, avoiding a discovered Wails
+  `GOARCH` → Task `ARCH` propagation bug. Windows/Linux task paths remain separate.
+- The new release importer tests validate universal slices, version/identifier,
+  executable modes, licences, ZIP paths, provenance and checksums; corrupt,
+  incomplete or stale Mac artifacts are rejected. The original RC1 release
+  bundle still passes the extended verifier unchanged.
+- Workflow YAML parsed and platform isolation checked. Native macOS ARM64/Intel
+  CI, bundle signing, actual `hdiutil` packaging and DMG mounting are configured
+  but **not executed** because these changes have not been pushed.
+
+No real camera was contacted or configured for this task. No Windows runtime or
+Mac graphical/hardware test is implied by compilation. On actual Macs, verify
+Finder/Dock/Retina behavior, Gatekeeper and Local Network permission, adapters,
+multicast/ARP/routes, saved sites and vaults, browser/file dialogs, Live View codec
+support/autoplay/lifecycle, and manual upgrade preservation using the checklist
+in [macos.md](macos.md). Current native packages use ad-hoc signatures for testing;
+Developer ID signing and notarization remain a separate distribution step.
