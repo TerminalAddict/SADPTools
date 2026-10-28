@@ -22,7 +22,7 @@ import (
 const syntheticMAC = "02:00:00:00:00:01"
 
 func testRequest() Request {
-	return Request{Action: sadp.UpdateNetwork, MAC: syntheticMAC, Interface: "Ethernet Test", TimeoutSeconds: 2, Password: "Synthetic-pass<>&1", Network: NetworkSettings{IPv4: "192.0.2.10", SubnetMask: "255.255.255.0", Gateway: "192.0.2.1", CommandPort: 8000}}
+	return Request{Action: sadp.ResetPassword, MAC: syntheticMAC, Interface: "Ethernet Test", TimeoutSeconds: 2, Password: "Synthetic-pass<>&1", Code: "SYNTHETIC-SUPPORT-CODE"}
 }
 
 type packet struct {
@@ -83,7 +83,7 @@ func TestTransactionCorrelationAndCredentialIsolation(t *testing.T) {
 	var logs bytes.Buffer
 	s.send = func(b []byte) {
 		good := response(b, "<Result>success</Result><Password>Synthetic-pass&lt;&gt;&amp;1</Password>")
-		for _, p := range []packet{{`<ProbeMatch><Password>Synthetic-pass<>&1`, 3, ""}, {good, 99, ""}, {strings.Replace(good, syntheticMAC, "02:00:00:00:00:02", 1), 3, ""}, {strings.Replace(good, "<Uuid>", "<Uuid>wrong-", 1), 3, ""}, {strings.Replace(good, "<Types>update", "<Types>inquiry", 1), 3, ""}, {good, 3, ""}} {
+		for _, p := range []packet{{`<ProbeMatch><Password>Synthetic-pass<>&1`, 3, ""}, {good, 99, ""}, {strings.Replace(good, syntheticMAC, "02:00:00:00:00:02", 1), 3, ""}, {strings.Replace(good, "<Uuid>", "<Uuid>wrong-", 1), 3, ""}, {strings.Replace(good, "<Types>resetPassword", "<Types>inquiry", 1), 3, ""}, {good, 3, ""}} {
 			s.packets <- p
 		}
 	}
@@ -107,10 +107,10 @@ func TestOutcomesNeverAssumeSuccess(t *testing.T) {
 		action                sadp.Action
 		want                  error
 	}{
-		{"rejected", "<Result>denied</Result><ErrorCode>2001</ErrorCode>", "rejected", sadp.UpdateNetwork, ErrRejected},
-		{"missing status", "<Password>echo</Password>", "unconfirmed", sadp.UpdateNetwork, ErrUnconfirmed},
-		{"unknown status", "<Result>SYNTHETIC-PASSWORD</Result>", "unconfirmed", sadp.UpdateNetwork, ErrUnconfirmed},
-		{"conflicting code", "<Result>success</Result><ErrorCode>7</ErrorCode>", "rejected", sadp.UpdateNetwork, ErrRejected},
+		{"rejected", "<Result>denied</Result><ErrorCode>2001</ErrorCode>", "rejected", sadp.ResetPassword, ErrRejected},
+		{"missing status", "<Password>echo</Password>", "unconfirmed", sadp.ResetPassword, ErrUnconfirmed},
+		{"unknown status", "<Result>SYNTHETIC-PASSWORD</Result>", "unconfirmed", sadp.ResetPassword, ErrUnconfirmed},
+		{"conflicting code", "<Result>success</Result><ErrorCode>7</ErrorCode>", "rejected", sadp.ResetPassword, ErrRejected},
 		{"recovery", "<Code>SYNTHETIC-CHALLENGE</Code>", "challenge", sadp.ExchangeCode, nil},
 		{"encryption", "<EncryptString>SYNTHETIC-STRING</EncryptString>", "challenge", sadp.EncryptionString, nil},
 		{"missing recovery data", "<Result>success</Result>", "unconfirmed", sadp.ExchangeCode, ErrUnconfirmed},
@@ -122,6 +122,7 @@ func TestOutcomesNeverAssumeSuccess(t *testing.T) {
 			r.Action = tc.action
 			if r.Action.ReadOnly() {
 				r.Password = ""
+				r.Code = ""
 				r.Network = NetworkSettings{}
 			}
 			got, err := testEngine(s, nil).Execute(context.Background(), r)

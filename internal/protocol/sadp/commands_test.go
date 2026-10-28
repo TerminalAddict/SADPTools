@@ -8,7 +8,7 @@ import (
 
 // All identities, passwords and messages in these tests are synthetic.
 func TestCommandWireFieldsAndEscaping(t *testing.T) {
-	for _, action := range []Action{Activate, UpdateNetwork, ExchangeCode, EncryptionString, EncryptionStringV31, ResetPassword, SecurityCode} {
+	for _, action := range []Action{Activate, ExchangeCode, EncryptionString, EncryptionStringV31, ResetPassword, SecurityCode} {
 		t.Run(string(action), func(t *testing.T) {
 			password := `Synthetic<&"'>123`
 			code := `SUPPORT<&>CODE`
@@ -47,9 +47,6 @@ func TestCommandWireFieldsAndEscaping(t *testing.T) {
 			}
 			if action == SecurityCode && got.SecurityCode != code {
 				t.Fatal("lost security code")
-			}
-			if action == UpdateNetwork && (!got.Parse || got.Port != 8123 || !got.DHCP || got.IP != "192.0.2.10") {
-				t.Fatal("wrong network values")
 			}
 		})
 	}

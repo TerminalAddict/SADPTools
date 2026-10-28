@@ -82,6 +82,12 @@ func (e *SADPEngine) Execute(parent context.Context, r Request) (result Result, 
 	if r.Action == sadp.Activate {
 		return e.activate(ctx, conn, adapter, r, result)
 	}
+	if r.Action == sadp.UpdateNetwork {
+		return e.updateNetwork(ctx, conn, adapter, r, result)
+	}
+	if r.Action == sadp.GetSecurityQuestions || r.Action == sadp.SetSecurityQuestions {
+		return e.securityQuestions(ctx, conn, adapter, r, result)
+	}
 	id, err := sadp.NewUUID()
 	if err != nil {
 		return result, err
@@ -136,6 +142,22 @@ func (e *SADPEngine) Execute(parent context.Context, r Request) (result Result, 
 
 func interpret(request Request, result Result, reply sadp.CommandReply) (Result, error) {
 	status := strings.ToLower(reply.Result)
+	if request.Action == sadp.UpdateNetwork {
+		switch status {
+		case "passworderror":
+			result.Outcome = "rejected"
+			result.Message = "The camera rejected the admin password. Verify it before trying again; repeated failures can lock the camera."
+			return result, ErrRejected
+		case "locked":
+			result.Outcome = "rejected"
+			result.Message = "The camera reports that configuration is locked. Wait for its lockout to expire before trying again."
+			return result, ErrRejected
+		case "notactivated":
+			result.Outcome = "rejected"
+			result.Message = "The camera reports it is inactive. Rediscover and activate it before changing network settings."
+			return result, ErrRejected
+		}
+	}
 	if request.Action == sadp.Activate {
 		switch status {
 		case "riskpassword":

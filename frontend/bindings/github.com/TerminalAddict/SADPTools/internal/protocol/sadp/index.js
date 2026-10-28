@@ -4,5 +4,7 @@
 
 export {
     Action,
-    NetworkSettings
+    NetworkSettings,
+    SecurityAnswer,
+    SecurityQuestion
 } from "./models.js";

@@ -56,3 +56,36 @@ The same pinned upstream `commands.go` was inspected for activation, full networ
 The October 2026 activation investigation established that the upstream envelope alone is insufficient: the supported firmware requires RSA key exchange and an encrypted password, and its exchange reply omits MAC. SADPTools now implements that exchange natively and pins activation reply source/adapter through a fresh MAC-bearing inquiry. Other command correlation is unchanged. See [encrypted activation evidence and limits](device-management.md#encrypted-activation-correction).
 
 The reference's `reset` generator is for legacy firmware; it is not a general modern recovery workflow. This milestone requests recovery data and accepts authorised codes, without guessing vendor XML formats or adding automatic reset-code generation. Hikvision's documented export/support/import workflows vary by device. See [device-management research, source links and limitations](device-management.md).
+
+## Network authentication follow-up — 28 October 2026
+
+The upstream plaintext `update` template also omitted required authentication.
+A fresh read-only reply from the now-active test camera advertises encryption and
+a 64-byte salt. The corrected Go implementation follows the independently checked
+SADP digest/AES profile, preserves unrelated network settings and handles bounded
+MAC-less replies. Synthetic salted/unsalted vectors were compared with the digest
+and AES routines of the same archived SDK under isolated emulation; no camera
+password or proprietary implementation was copied into the repository.
+See [the protocol details](device-management.md#authenticated-network-update-correction)
+and [the management audit](device-management-audit.md).
+
+The audit also identified support-code recovery as a separate compatibility gap:
+the SDK's `reset`/encrypted flow is not implemented by the copied `resetPassword`
+and `securityCode` envelopes, and empty `exchangecode` is not a complete exchange.
+These remain explicitly labelled experimental legacy formats, with no claim of
+hardware compatibility. Security-question recovery uses its separate HTTP profile.
+
+
+## Security-question setup follow-up — 28 October 2026
+
+The same archived SADP library exposes `getsecurityquestion` and
+`setsecurityquestion`. Setup uses the activation RSA challenge/password format,
+but answer encryption takes raw UTF-8 without the challenge prefix. Synthetic
+ASCII, XML-metacharacter and UTF-8 vectors were compared independently with its
+AES routine. The native implementation includes no SDK code or binary.
+
+A read-only inquiry/question-list check on the reset IPC-B261H-MU confirmed
+advertised support and IDs 1–15, all unconfigured. These IDs match the original
+profile's device-supplied English catalog; labels are independently phrased.
+Unknown/custom profiles are rejected. No authenticated operation or setup write
+was attempted on the physical camera. See [setup protocol, evidence and limits](security-question-setup.md).

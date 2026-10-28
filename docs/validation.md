@@ -315,3 +315,89 @@ missing acknowledgement and socket cleanup. No bindings API changed.
 These are local development builds, not a tagged release. Full activation,
 subsequent password login and Windows GUI runtime verification remain to be
 tested on an explicitly authorised physical camera.
+
+## SADP network authentication correction — 28 October 2026
+
+The user reported successful Windows activation after v1.0.2, followed by a DHCP
+change returning unconfirmed. Read-only discovery on Sparx confirmed the
+IPC-B261H-MU (V5.7.1 build 220610) active, with DHCP off and encrypted/salted
+authentication advertised. Its fresh reply passed the new profile parser; a
+network command was encoded offline with a synthetic password. The private
+harness transmitted **only inquiry**, with no password or configuration write.
+
+The native network transaction now performs that fresh check, computes the
+advertised authentication, preserves unrelated settings and sends one write.
+Independent synthetic digest/AES vectors were checked against archived SDK
+behaviour. Tests cover four authentication combinations, UUID binding, preserved
+ports/IPv6, ambiguous/unsupported profiles, source/MAC/adapter correlation,
+changed-address acknowledgements, explicit credential/lockout/inactive rejections,
+preparation failures, cancellation, lost replies and no retries.
+
+Passed on Sparx: `go test ./...`, `go vet ./...`, `go test -race ./...`, all 43
+frontend tests, `make frontend`, `make windows`, `make linux-gui` and `make cli`.
+The CLI and both desktop builds at that stage were **1.0.3-dev**; the Windows
+output was AMD64 PE32+ GUI. Bindings were regenerated with no API changes. These
+were local test builds preceding the v1.0.3 release preparation.
+
+[The management audit](device-management-audit.md) records other write paths and
+unverified support-code recovery. No DHCP, static-IP, password-reset, imaging or
+PTZ write was performed during this review. DHCP lease acquisition, web login
+and Windows runtime behaviour remain physical-device acceptance checks.
+
+## Security-question setup and activation follow-on — 28 October 2026
+
+Implemented native encrypted SADP question setup, a standalone Device details
+action and an optional next step after acknowledged single-device activation.
+The next step keeps the actual activation adapter and carries the password only
+temporarily in the dialog. Saving requires three distinct questions and explicit
+submission; replacing existing questions also requires confirmation. Readback
+checks configured IDs, never tests answers by resetting the password. Failed or
+unconfirmed setup does not cause an automatic retry or another activation.
+
+Passed on Sparx:
+
+- `go test ./...`, `go vet ./...`, `go test -race ./...`.
+- All 46 frontend tests, regenerated Wails bindings and production frontend build.
+- Synthetic protocol/transaction tests for nested question XML, unknown profiles,
+  encrypted password/answers, exact UTF-8 input, changed review, replacement consent,
+  source/adapter/UUID/MAC correlation, rejected/lost replies, readback, cancellation,
+  socket cleanup and secret redaction. Fresh inventory observations preserve the
+  host adapter address rather than substituting the camera address.
+- Mocked Chromium dialog checks: activation follow-on, same-adapter selection,
+  no automatic setup write, skip and immediate credential clearing, unconfirmed
+  activation, existing-question replacement, unsupported and unconfirmed setup,
+  single submission and light/dark screenshots. These use clearly labelled
+  synthetic devices with intercepted backend calls, not Windows WebView2.
+- Windows AMD64 desktop, Linux AMD64 desktop and CLI builds at **1.0.3-beta.1**.
+  Binary format/version checks and the standalone ZIP's CRC/content/licences passed.
+
+The local Windows test archive is
+`bin/SADPTools-1.0.3-beta.1-standalone-windows-amd64.zip`, with a sibling SHA-256
+file and local test-build metadata. Its executable was built at
+`bin/SADPTools-windows-amd64.exe`. This validation used an uncommitted local test
+build, without rebuilding the installer; it preceded the full v1.0.3 release.
+An attempted `1.0.3-dev.2` build was rejected by the existing version validator
+(development versions cannot carry sequence numbers); the supported beta version
+was used without changing release policy.
+
+A physical **read-only** inquiry and `getsecurityquestion` check after the user's
+camera reset confirmed an IPC-B261H-MU, V5.7.1 build 220610, inactive, with question
+support and the complete 15-ID list unconfigured. Its real reply passed the
+production parser. Independent synthetic encryption vectors were checked against
+archived SDK behaviour; no SDK code or binary is included in the application.
+
+No activation, network, question-setup or password-reset write was sent by the
+development agent. Successful answer storage, persistence after reopening,
+Windows GUI runtime and eventual password recovery still require the user's
+physical-device test. Linux graphical-session and macOS runtime validation are
+also separate from compilation. See the [setup test checklist](security-question-setup.md).
+
+### v1.0.3 release preparation
+
+The subsequent requested release includes the network correction and question
+setup together. All version defaults and platform metadata are set to `1.0.3`.
+The release process rebuilds Windows setup/standalone, Linux packages/CLIs and
+imports universal Mac artifacts from CI for the exact committed source. It
+requires clean sources and verifies uploaded asset checksums before publication.
+See [release notes](releases/v1.0.3.md), the release's build manifest and its linked
+CI checks for publication evidence; the hardware limitations above still apply.

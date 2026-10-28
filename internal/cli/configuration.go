@@ -24,9 +24,11 @@ Actions: activate, update, exchangecode, getencryptstring, getencryptstring_v31,
 The IP is a descriptive hint; the MAC selects the device over local multicast.
 Exactly one interface is required. Each device write is sent once, without retries.
 Activation first checks inactive status and exchanges encryption keys (8–16 byte password).
+Network updates first check the camera's authentication profile and preserve HTTP/IPv6 settings.
+Salted SADP network authentication supports current admin passwords up to 16 bytes.
 Password input: prefer --password-stdin or --password-env VARIABLE.
 Inline --password and --code are supported but visible in shell history/process lists.
-Recovery requires a code obtained through the device's authorised recovery process.
+Support-code recovery uses unverified legacy formats; modern encrypted support-code recovery is not implemented.
 --dry-run validates and prints a redacted plan without opening a network socket.
 `
 

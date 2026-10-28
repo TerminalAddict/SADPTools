@@ -75,6 +75,11 @@ func (c *Controller) Configure(id string, r configuration.Request) (configuratio
 		c.wg.Done()
 	}()
 	result, err := c.writer.Execute(ctx, r)
+	// Question setup first observes current activation/network state. In particular,
+	// this lets the activation wizard continue without trusting an optimistic flag.
+	if observed := result.ObservedDevice; observed != nil && observed.MAC == device.MAC && !devices.ConflictingIdentity(*device, *observed) {
+		c.inventory.Upsert(*observed, time.Now())
+	}
 	// No optimistic inventory changes: the next inquiry must actually observe them.
 	c.log.Info("Configuration finished", "action", r.Action, "mac", device.MAC, "outcome", result.Outcome)
 	if err != nil && result.Sent {

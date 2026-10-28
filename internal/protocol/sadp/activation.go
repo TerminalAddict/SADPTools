@@ -55,23 +55,45 @@ func (e *ActivationExchange) Probe(id, mac string) ([]byte, error) {
 // superficially similar activation/recovery formats must not be substituted.
 func (e *ActivationExchange) EncryptPassword(code, password string) (string, error) {
 	bad := errors.New("unsupported activation encryption response; activation was not sent")
-	if e.key == nil || len(password) < 8 || len(password) > 16 || len(code) > 1024 {
+	if len(password) < 8 || len(password) > 16 {
 		return "", bad
+	}
+	challenge, err := e.decryptChallenge(code)
+	defer clear(challenge)
+	if err != nil {
+		return "", bad
+	}
+	return encryptSADPPassword(challenge, password)
+}
+
+func (e *ActivationExchange) decryptChallenge(code string) ([]byte, error) {
+	bad := errors.New("unsupported SADP encryption challenge")
+	if e.key == nil || len(code) > 1024 {
+		return nil, bad
 	}
 	ciphertext, err := base64.StdEncoding.Strict().DecodeString(code)
 	if err != nil || len(ciphertext) != e.key.Size() {
-		return "", bad
+		return nil, bad
 	}
 	defer clear(ciphertext)
 	challenge, err := rsa.DecryptPKCS1v15(rand.Reader, e.key, ciphertext)
-	defer clear(challenge)
 	if err != nil || len(challenge) != 32 {
-		return "", bad
+		clear(challenge)
+		return nil, bad
 	}
 	for _, c := range challenge {
 		if !(c >= '0' && c <= '9' || c >= 'a' && c <= 'f' || c >= 'A' && c <= 'F') {
-			return "", bad
+			clear(challenge)
+			return nil, bad
 		}
+	}
+	return challenge, nil
+}
+
+func encryptSADPPassword(challenge []byte, password string) (string, error) {
+	bad := errors.New("unsupported SADP password encryption input")
+	if len(challenge) != 32 || len(password) < 1 || len(password) > 16 {
+		return "", bad
 	}
 	block, err := aes.NewCipher(challenge[:16])
 	if err != nil {

@@ -5,6 +5,11 @@ import {
   networkFromDevice,
 } from "./configuration-view.js";
 import { questionsReady, questionRequest } from "./security-questions-view.js";
+import {
+  setupReady,
+  setupRequest,
+  setupAfterActivation,
+} from "./security-setup-view.js";
 
 const $ = (id) => document.getElementById(id);
 const textError = (e) => e?.message || String(e);
@@ -20,7 +25,8 @@ export function initConfiguration({
     kind,
     busy = false,
     challenge,
-    questionStatus = null;
+    questionStatus = null,
+    setupStatus = null;
   const dialog = $("operation-dialog");
   const result = (text, success = false) => {
     $("operation-result").textContent = text;
@@ -29,6 +35,8 @@ export function initConfiguration({
   };
   function clearSecrets() {
     for (const input of $("security-questions-list").querySelectorAll("input"))
+      input.value = "";
+    for (const input of $("question-setup-list").querySelectorAll("input"))
       input.value = "";
     for (const id of [
       "operation-password",
@@ -48,6 +56,7 @@ export function initConfiguration({
     kind === "recovery" && $("recovery-method").value === "questions";
   function renderRecovery() {
     const questions = usingQuestions();
+    const setup = kind === "questions";
     const certificate =
       questions &&
       questionStatus?.state === "certificate_required" &&
@@ -68,12 +77,81 @@ export function initConfiguration({
       input.disabled = busy || !questions;
     }
     $("operation-submit").disabled =
-      busy || (questions && !questionsReady(questionStatus));
-    $("operation-privacy-note").textContent = questions
-      ? "Answers and passwords are encrypted using the camera’s recovery protocol and are not saved in preferences or logs. Submit once; a missing reply does not prove the password stayed unchanged."
-      : kind === "activate"
-        ? "The activation password is encrypted using the camera’s SADP key exchange and is not saved in preferences or logs. Use a trusted management network. A missing final reply still requires rediscovery and verification."
-        : "Passwords and codes are not saved in preferences or logs. This SADP command format sends them over the local network without encryption; use a trusted management network.";
+      busy ||
+      (questions && !questionsReady(questionStatus)) ||
+      (setup && !setupReady(setupStatus));
+    for (const input of $("question-setup-list").querySelectorAll(
+      "input, select",
+    )) {
+      input.required = setup && setupReady(setupStatus);
+      input.disabled = busy || !setup || !setupReady(setupStatus);
+    }
+    $("replace-questions-label").hidden =
+      !setup || setupStatus?.outcome !== "questions_configured";
+    $("replace-questions").required =
+      setup && setupStatus?.outcome === "questions_configured";
+    $("question-setup-later").disabled = busy;
+    $("operation-privacy-note").textContent = setup
+      ? "This saves recovery questions on this camera. It does not reset its password. The admin password and answers are encrypted and are not saved in preferences, inventory or logs."
+      : questions
+        ? "Answers and passwords are encrypted using the camera’s recovery protocol and are not saved in preferences or logs. Submit once; a missing reply does not prove the password stayed unchanged."
+        : kind === "activate"
+          ? "The activation password is encrypted using the camera’s SADP key exchange and is not saved in preferences or logs. Use a trusted management network. A missing final reply still requires rediscovery and verification."
+          : kind === "update"
+            ? "SADPTools checks the camera’s authentication requirements and preserves its other network settings. Your password is not sent as plaintext or saved in preferences or logs. Use a trusted management network; rediscover after applying changes."
+            : "Support-code recovery uses experimental legacy formats that are not validated for modern encrypted firmware. Passwords and codes are not saved in preferences or logs. These legacy formats send them without encryption; use the camera’s supported recovery process when compatibility is unknown.";
+  }
+  async function checkQuestionSetup() {
+    if (busy || !target || kind !== "questions") return;
+    setupStatus = null;
+    $("question-setup-list").replaceChildren();
+    $("replace-questions").checked = false;
+    $("question-setup-status").textContent =
+      "Checking the camera's activation, support and configured questions…";
+    result("");
+    setBusy(true);
+    try {
+      setupStatus = await Backend.ConfigureDevice(
+        target.id,
+        base("getsecurityquestion"),
+      );
+      $("question-setup-status").textContent = setupStatus.message;
+      if (setupReady(setupStatus)) {
+        const selected = setupStatus.questions.filter((q) => q.configured);
+        for (let i = 0; i < 3; i++) {
+          const label = document.createElement("label");
+          label.className = "form-label";
+          label.htmlFor = `setup-question-${i}`;
+          label.textContent = `Security question ${i + 1}`;
+          const select = document.createElement("select");
+          select.id = label.htmlFor;
+          select.className = "form-select mb-2";
+          select.append(
+            new Option("Select a question", ""),
+            ...setupStatus.questions.map(
+              (q) => new Option(q.text, String(q.id)),
+            ),
+          );
+          select.value = selected[i] ? String(selected[i].id) : "";
+          const answerLabel = document.createElement("label");
+          answerLabel.className = "form-label";
+          answerLabel.htmlFor = `setup-answer-${i}`;
+          answerLabel.textContent = `Answer ${i + 1}`;
+          const input = document.createElement("input");
+          input.id = answerLabel.htmlFor;
+          input.type = "password";
+          input.autocomplete = "off";
+          input.maxLength = 128;
+          input.className = "form-control mb-3";
+          $("question-setup-list").append(label, select, answerLabel, input);
+        }
+      }
+    } catch (e) {
+      $("question-setup-status").textContent = textError(e);
+    } finally {
+      setBusy(false);
+      await refresh();
+    }
   }
   async function checkQuestions(certificateSHA256 = "") {
     if (busy || !target || !usingQuestions()) return;
@@ -115,13 +193,21 @@ export function initConfiguration({
       await refresh();
     }
   }
-  function open(mode) {
-    const d = getDevice();
+  function open(
+    mode,
+    selectedDevice = null,
+    activationPassword = "",
+    afterActivation = false,
+    activationInterface = "",
+  ) {
+    const d = selectedDevice || getDevice();
     if (!d || busy) return;
     target = structuredClone(d);
     kind = mode;
     challenge = null;
     questionStatus = null;
+    setupStatus = null;
+    $("question-setup-list").replaceChildren();
     $("security-questions-list").replaceChildren();
     $("operation-form").reset();
     clearSecrets();
@@ -133,6 +219,7 @@ export function initConfiguration({
       activate: "Activate device",
       update: "Configure network",
       recovery: "Password recovery",
+      questions: "Set security questions",
     }[mode];
     $("operation-identity").textContent =
       `${d.model || d.deviceType || "Unknown model"} · ${d.ipv4 || "IP unknown"}\nMAC ${d.mac} · Serial ${d.serial || "unknown"}`;
@@ -140,8 +227,13 @@ export function initConfiguration({
       mode === "activate"
         ? "Set an admin password of 8–16 bytes. SADPTools checks that the device is inactive, negotiates encryption, then sends activation once. Firmware may impose additional password rules."
         : mode === "update"
-          ? "Review the complete network configuration below, then enter the current admin password to apply it."
-          : "Answer the camera’s configured security questions, or use a support-provided recovery code.";
+          ? "Review the IPv4 settings below, then enter the current admin password. SADPTools checks the camera again, preserves its HTTP/IPv6 settings and sends the change once. The salted SADP profile supports passwords up to 16 bytes."
+          : mode === "questions"
+            ? "Choose three different recovery questions and enter their answers. Saving requires the camera's current admin password."
+            : "Answer the camera’s configured security questions, or use a support-provided recovery code.";
+    $("activation-complete").hidden = !afterActivation;
+    $("question-setup-later").hidden = !afterActivation;
+    $("question-setup-later").textContent = "Set up later";
     const adapters = operationInterfaces(d);
     $("operation-connection").hidden = adapters.length <= 1;
     $("operation-connection").open = false;
@@ -149,11 +241,16 @@ export function initConfiguration({
       new Option("Automatic", ""),
       ...adapters.map((name) => new Option(name, name)),
     );
-    $("operation-interface").value = "";
+    $("operation-interface").value = adapters.includes(activationInterface)
+      ? activationInterface
+      : "";
     $("network-fields").hidden = mode !== "update";
     $("recovery-fields").hidden = mode !== "recovery";
-    $("password-confirm-field").hidden = mode === "update";
-    $("operation-password-confirm").required = mode !== "update";
+    $("question-setup-fields").hidden = mode !== "questions";
+    $("password-confirm-field").hidden =
+      mode === "update" || mode === "questions";
+    $("operation-password-confirm").required =
+      mode !== "update" && mode !== "questions";
     $("recovery-code").required = mode === "recovery";
     for (const id of [
       "network-ip",
@@ -170,24 +267,35 @@ export function initConfiguration({
     $("network-port").value = n.commandPort;
     $("network-dhcp").value = n.dhcp;
     $("operation-password-label").textContent =
-      mode === "update" ? "Current admin password" : "New admin password";
+      mode === "update" || mode === "questions"
+        ? "Current admin password"
+        : "New admin password";
     $("operation-password").autocomplete =
-      mode === "update" ? "current-password" : "new-password";
+      mode === "update" || mode === "questions"
+        ? "current-password"
+        : "new-password";
+    $("operation-password").value = activationPassword;
     $("operation-submit").textContent = {
       activate: "Activate this device",
       update: "Apply network changes",
       recovery: "Reset this device’s password",
+      questions: "Save security questions",
     }[mode];
     renderRecovery();
-    dialog.showModal();
+    if (!dialog.open) dialog.showModal();
     if (mode === "recovery") void checkQuestions();
+    if (mode === "questions") void checkQuestionSetup();
   }
   async function execute(request, questions = false) {
     setBusy(true);
     result(
       request.action === "activate"
         ? "Checking the device and negotiating encrypted activation…"
-        : "Waiting for the device…",
+        : request.action === "update"
+          ? "Checking the camera’s authentication and current network settings, then applying the change…"
+          : request.action === "setsecurityquestion"
+            ? "Rechecking the camera, encrypting and saving security questions…"
+            : "Waiting for the device…",
     );
     try {
       const reply = questions
@@ -197,7 +305,9 @@ export function initConfiguration({
             request,
           )
         : await Backend.ConfigureDevice(target.id, request);
-      const ok = ["acknowledged", "challenge"].includes(reply.outcome);
+      const ok = ["acknowledged", "challenge", "verified"].includes(
+        reply.outcome,
+      );
       result(
         `${reply.message}${reply.errorCode ? ` Device error code: ${reply.errorCode}.` : ""}`,
         ok,
@@ -209,6 +319,15 @@ export function initConfiguration({
       }
       $("operation-rediscover").hidden =
         !reply.sent || reply.outcome === "challenge";
+      if (
+        request.action === "setsecurityquestion" &&
+        reply.outcome === "verified"
+      ) {
+        $("question-setup-status").textContent =
+          "The camera reports the three selected recovery questions configured.";
+        $("question-setup-later").textContent = "Done";
+      }
+      return reply;
     } catch (e) {
       result(textError(e));
     } finally {
@@ -243,14 +362,45 @@ export function initConfiguration({
       kind === "activate" &&
       new TextEncoder().encode($("operation-password").value).length > 16
     ) {
-      result("SADP activation requires an 8–16 byte password. Longer passwords are not truncated.");
+      result(
+        "SADP activation requires an 8–16 byte password. Longer passwords are not truncated.",
+      );
       return;
     }
     if (
       kind !== "update" &&
+      kind !== "questions" &&
       $("operation-password").value !== $("operation-password-confirm").value
     ) {
       result("The passwords do not match.");
+      return;
+    }
+    if (kind === "questions") {
+      let request;
+      try {
+        request = {
+          ...base("setsecurityquestion"),
+          ...setupRequest(
+            setupStatus,
+            [0, 1, 2].map((i) => Number($(`setup-question-${i}`)?.value)),
+            [0, 1, 2].map((i) => $(`setup-answer-${i}`)?.value || ""),
+            $("operation-password").value,
+            $("replace-questions").checked,
+          ),
+        };
+      } catch (e) {
+        result(textError(e));
+        return;
+      }
+      clearSecrets();
+      setupStatus = null;
+      try {
+        await execute(request);
+      } finally {
+        request.password = "";
+        for (const answer of request.answers) answer.answer = "";
+        renderRecovery();
+      }
       return;
     }
     if (usingQuestions()) {
@@ -288,9 +438,20 @@ export function initConfiguration({
         dhcp: $("network-dhcp").value === "true",
       };
     clearSecrets();
-    await execute(request);
-    request.password = "";
-    request.code = "";
+    try {
+      const reply = await execute(request);
+      if (setupAfterActivation(request.action, reply))
+        open(
+          "questions",
+          target,
+          request.password,
+          true,
+          reply.interface || request.interface,
+        );
+    } finally {
+      request.password = "";
+      request.code = "";
+    }
   };
   $("request-challenge").onclick = async () => {
     if (busy) return;
@@ -312,21 +473,28 @@ export function initConfiguration({
   $("operation-cancel").onclick = () =>
     Backend.CancelOperation().catch((e) => result(textError(e)));
   $("operation-close").onclick = () => {
-    if (!busy) dialog.close();
+    if (!busy) {
+      clearSecrets();
+      dialog.close();
+    }
   };
   dialog.addEventListener("cancel", (e) => {
     if (busy) e.preventDefault();
+    else clearSecrets();
   });
   dialog.addEventListener("close", () => {
     clearSecrets();
     $("challenge-data").value = "";
     challenge = null;
     questionStatus = null;
+    setupStatus = null;
+    $("question-setup-list").replaceChildren();
     $("security-questions-list").replaceChildren();
     target = null;
   });
   $("operation-rediscover").onclick = async () => {
     if (busy) return;
+    clearSecrets();
     dialog.close();
     try {
       await Backend.StartScan();
@@ -338,6 +506,14 @@ export function initConfiguration({
   $("activate-device").onclick = () => open("activate");
   $("network-device").onclick = () => open("update");
   $("recover-device").onclick = () => open("recovery");
+  $("setup-questions-device").onclick = () => open("questions");
+  $("check-question-setup").onclick = () => checkQuestionSetup();
+  $("question-setup-later").onclick = () => {
+    if (!busy) {
+      clearSecrets();
+      dialog.close();
+    }
+  };
   $("check-security-questions").onclick = () => checkQuestions();
   $("trust-recovery-certificate").onclick = () =>
     checkQuestions(questionStatus?.endpoint?.certificateSHA256 || "");
@@ -351,6 +527,10 @@ export function initConfiguration({
   };
   $("operation-interface").onchange = () => {
     if (usingQuestions()) void checkQuestions();
+    if (kind === "questions") {
+      clearSecrets();
+      void checkQuestionSetup();
+    }
   };
   return () => {
     const d = getDevice(),
@@ -359,6 +539,7 @@ export function initConfiguration({
     $("activate-device").disabled = !a.activate;
     $("network-device").disabled = !a.network;
     $("recover-device").disabled = !a.recovery;
+    $("setup-questions-device").disabled = !a.network;
     $("configuration-note").textContent = a.reason;
   };
 }

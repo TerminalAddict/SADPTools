@@ -19,13 +19,16 @@ import (
 type NetworkSettings = sadp.NetworkSettings
 
 type Request struct {
-	Action         sadp.Action     `json:"action"`
-	MAC            string          `json:"mac"`
-	Interface      string          `json:"interface"`
-	TimeoutSeconds int             `json:"timeoutSeconds"`
-	Password       string          `json:"password"`
-	Code           string          `json:"code"`
-	Network        NetworkSettings `json:"network"`
+	Action           sadp.Action           `json:"action"`
+	MAC              string                `json:"mac"`
+	Interface        string                `json:"interface"`
+	TimeoutSeconds   int                   `json:"timeoutSeconds"`
+	Password         string                `json:"password"`
+	Code             string                `json:"code"`
+	Network          NetworkSettings       `json:"network"`
+	Answers          []sadp.SecurityAnswer `json:"answers,omitempty"`
+	QuestionRevision string                `json:"questionRevision,omitempty"`
+	ReplaceQuestions bool                  `json:"replaceQuestions,omitempty"`
 }
 
 // Prevent accidental structured/debug logging of credential-bearing requests.
@@ -34,14 +37,17 @@ func (r Request) GoString() string     { return r.String() }
 func (r Request) LogValue() slog.Value { return slog.StringValue(r.String()) }
 
 type Result struct {
-	Action    sadp.Action `json:"action"`
-	MAC       string      `json:"mac"`
-	Interface string      `json:"interface"`
-	Outcome   string      `json:"outcome"`
-	Message   string      `json:"message"`
-	ErrorCode string      `json:"errorCode,omitempty"`
-	Challenge string      `json:"challenge,omitempty"`
-	Sent      bool        `json:"sent"`
+	Action           sadp.Action             `json:"action"`
+	MAC              string                  `json:"mac"`
+	Interface        string                  `json:"interface"`
+	Outcome          string                  `json:"outcome"`
+	Message          string                  `json:"message"`
+	ErrorCode        string                  `json:"errorCode,omitempty"`
+	Challenge        string                  `json:"challenge,omitempty"`
+	Sent             bool                    `json:"sent"`
+	Questions        []sadp.SecurityQuestion `json:"questions,omitempty"`
+	QuestionRevision string                  `json:"questionRevision,omitempty"`
+	ObservedDevice   *devices.Device         `json:"observedDevice,omitempty"`
 }
 
 func (r Result) LogValue() slog.Value {
@@ -112,7 +118,7 @@ func (r Request) Validate() error {
 		if !validText(r.Password, 128) {
 			return errors.New("password is required and must not contain control characters")
 		}
-		if r.Action != sadp.UpdateNetwork {
+		if r.Action != sadp.UpdateNetwork && r.Action != sadp.SetSecurityQuestions {
 			if err := ValidatePassword(r.Password); err != nil {
 				return err
 			}
@@ -121,13 +127,26 @@ func (r Request) Validate() error {
 			return errors.New("this SADP activation encryption profile requires a password of 8–16 bytes; longer passwords are not truncated")
 		}
 	}
+	if r.Action == sadp.SetSecurityQuestions {
+		if len(r.Password) > 16 {
+			return errors.New("SADP security-question setup supports admin passwords up to 16 UTF-8 bytes")
+		}
+		if err := sadp.ValidateSecurityAnswers(r.Answers); err != nil {
+			return err
+		}
+		if len(r.QuestionRevision) != 64 {
+			return errors.New("check the camera's security questions before saving")
+		}
+	} else if len(r.Answers) != 0 || r.QuestionRevision != "" || r.ReplaceQuestions {
+		return errors.New("security-question fields are only valid for question setup")
+	}
 	if r.Action == sadp.ResetPassword || r.Action == sadp.SecurityCode {
 		if !validText(r.Code, 4096) {
 			return errors.New("a recovery code supplied by your authorised support provider is required (up to 4096 bytes)")
 		}
 	}
 	if r.Action.ReadOnly() && (r.Password != "" || r.Code != "") {
-		return errors.New("recovery-data requests must not include credentials")
+		return errors.New("read-only requests must not include credentials")
 	}
 	if r.Action != sadp.ResetPassword && r.Action != sadp.SecurityCode && r.Code != "" {
 		return errors.New("recovery code is only valid for a password reset")

@@ -8,6 +8,9 @@ import { Create as $Create } from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
+import * as devices$0 from "../devices/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
 import * as sadp$0 from "../protocol/sadp/models.js";
 
 export const NetworkSettings = sadp$0.NetworkSettings;
@@ -71,6 +74,27 @@ export class Request {
              */
             this["network"] = (new NetworkSettings());
         }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {sadp$0.SecurityAnswer[] | undefined}
+             */
+            this["answers"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["questionRevision"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {boolean | undefined}
+             */
+            this["replaceQuestions"] = undefined;
+        }
 
         Object.assign(this, $$source);
     }
@@ -82,9 +106,13 @@ export class Request {
      */
     static createFrom($$source = {}) {
         const $$createField6_0 = $$createType0;
+        const $$createField7_0 = $$createType2;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("network" in $$parsedSource) {
             $$parsedSource["network"] = $$createField6_0($$parsedSource["network"]);
+        }
+        if ("answers" in $$parsedSource) {
+            $$parsedSource["answers"] = $$createField7_0($$parsedSource["answers"]);
         }
         return new Request(/** @type {Partial<Request>} */($$parsedSource));
     }
@@ -152,6 +180,27 @@ export class Result {
              */
             this["sent"] = false;
         }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {sadp$0.SecurityQuestion[] | undefined}
+             */
+            this["questions"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["questionRevision"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {devices$0.Device | null | undefined}
+             */
+            this["observedDevice"] = undefined;
+        }
 
         Object.assign(this, $$source);
     }
@@ -162,10 +211,24 @@ export class Result {
      * @returns {Result}
      */
     static createFrom($$source = {}) {
+        const $$createField8_0 = $$createType4;
+        const $$createField10_0 = $$createType6;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("questions" in $$parsedSource) {
+            $$parsedSource["questions"] = $$createField8_0($$parsedSource["questions"]);
+        }
+        if ("observedDevice" in $$parsedSource) {
+            $$parsedSource["observedDevice"] = $$createField10_0($$parsedSource["observedDevice"]);
+        }
         return new Result(/** @type {Partial<Result>} */($$parsedSource));
     }
 }
 
 // Private type creation functions
 const $$createType0 = sadp$0.NetworkSettings.createFrom;
+const $$createType1 = sadp$0.SecurityAnswer.createFrom;
+const $$createType2 = $Create.Array($$createType1);
+const $$createType3 = sadp$0.SecurityQuestion.createFrom;
+const $$createType4 = $Create.Array($$createType3);
+const $$createType5 = devices$0.Device.createFrom;
+const $$createType6 = $Create.Nullable($$createType5);

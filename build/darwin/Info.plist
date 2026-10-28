@@ -8,8 +8,8 @@
   <key>CFBundleExecutable</key><string>SADPTools</string>
   <key>CFBundleIdentifier</key><string>io.github.terminaladdict.sadptools</string>
   <key>CFBundleIconFile</key><string>icons.icns</string>
-  <key>CFBundleShortVersionString</key><string>1.0.2</string>
-  <key>CFBundleVersion</key><string>1.0.2</string>
+  <key>CFBundleShortVersionString</key><string>1.0.3</string>
+  <key>CFBundleVersion</key><string>1.0.3</string>
   <key>LSMinimumSystemVersion</key><string>12.0</string>
   <key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
   <key>NSHighResolutionCapable</key><true/>

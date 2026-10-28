@@ -302,6 +302,13 @@
                 >
                   Password recovery
                 </button>
+                <button
+                  id="setup-questions-device"
+                  disabled
+                  class="btn btn-outline-secondary"
+                >
+                  Set security questions
+                </button>
               </div>
             </div>
           </aside>
@@ -320,8 +327,7 @@
             ><span>Latest 500 entries · This session only</span>
           </div>
           <pre id="logs" tabindex="0" aria-label="Discovery log">
-No discovery activity yet.</pre
-          >
+No discovery activity yet.</pre>
         </details>
       </div>
       <section id="toolkit-view" hidden>
@@ -586,6 +592,14 @@ No discovery activity yet.</pre
         </div>
         <p id="operation-identity" class="small"></p>
         <p id="operation-description" class="small text-body-secondary"></p>
+        <p
+          id="activation-complete"
+          class="alert alert-success py-2 text-wrap"
+          hidden
+        >
+          Activation was acknowledged. Step 2: set up password recovery, or
+          choose Set up later.
+        </p>
         <details id="operation-connection" class="small mb-3" hidden>
           <summary>Connection options</summary>
           <p class="text-body-secondary mt-2">
@@ -644,13 +658,44 @@ No discovery activity yet.</pre
             address change can disconnect existing clients.
           </p>
         </fieldset>
+        <fieldset id="question-setup-fields" hidden>
+          <p id="question-setup-status" class="small" role="status">
+            Checking security questions…
+          </p>
+          <div id="question-setup-list"></div>
+          <label id="replace-questions-label" class="form-check mb-3" hidden>
+            <input
+              id="replace-questions"
+              type="checkbox"
+              class="form-check-input"
+            />
+            <span class="form-check-label"
+              >Replace this camera's existing security questions and
+              answers.</span
+            >
+          </label>
+          <p class="small text-body-secondary">
+            Answers are case-sensitive and are sent encrypted to the camera.
+            Keep a private record; SADPTools does not save them. Maximum 128
+            UTF-8 bytes per answer; firmware may impose a lower limit.
+          </p>
+          <button
+            id="check-question-setup"
+            type="button"
+            class="btn btn-sm btn-outline-secondary mb-3"
+          >
+            Check again
+          </button>
+        </fieldset>
         <fieldset id="recovery-fields" hidden>
           <label for="recovery-method" class="form-label"
             >Recovery method</label
           >
           <select id="recovery-method" class="form-select mb-3">
             <option value="questions">Security questions</option>
-            <option value="code">Support-provided code</option>
+            <option value="code">
+              Support-provided code (experimental legacy formats)
+            </option>
           </select>
           <div id="security-questions-fields">
             <p id="security-questions-status" class="small" role="status">
@@ -690,8 +735,11 @@ No discovery activity yet.</pre
           <div id="support-code-fields" hidden>
             <p class="small">
               Obtain a valid reset code through your authorised support
-              provider. Support varies by firmware. Vendor XML imports, GUID
-              files and email recovery are not supported here.
+              provider. These legacy command formats are unverified and do not
+              implement modern encrypted support-code recovery. Use the camera's
+              web interface or the manufacturer's recovery tool for that
+              workflow. Vendor XML imports, GUID files and email recovery are
+              not supported here.
             </p>
             <label for="challenge-method" class="form-label"
               >Request recovery data</label
@@ -802,6 +850,14 @@ No discovery activity yet.</pre
           hidden
         >
           Close and rediscover
+        </button>
+        <button
+          id="question-setup-later"
+          class="btn btn-outline-secondary w-100 mt-2"
+          type="button"
+          hidden
+        >
+          Set up later
         </button>
       </form>
     </dialog>

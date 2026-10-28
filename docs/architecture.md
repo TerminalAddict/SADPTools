@@ -21,7 +21,24 @@ Future discovery providers can feed the same inventory. Further configuration pr
 
 The desktop controller resolves the selected inventory ID to its normalized MAC and checks the chosen adapter against observed interfaces. It prevents activation of a known active device and network updates to a known inactive device. It rejects operations while discovery is running, and automatic discovery cannot start during a command. Shutdown/cancellation closes the transaction socket and joins pending work.
 
-Configuration sends each write once, with explicit network values and exact reply correlation. Activation first verifies inactive status by MAC, pins the reply source on the chosen adapter and exchanges an ephemeral encryption key, then sends one encrypted password. Its key-exchange and acknowledgement replies may omit MAC only when source, adapter, UUID and type match that verified transaction. Other command matchers remain unchanged. It never retries a write or treats timeout as rollback. Results distinguish not-sent, acknowledged, rejected, challenge and unconfirmed. The inventory changes only through discovery. Passwords and recovery data are excluded from snapshots and diagnostics; recovery data is exported only through an explicit native save dialog. CLI commands use the same configuration engine without Wails.
+Configuration sends each write once, with explicit network values and exact reply correlation. Activation first verifies inactive status by MAC, pins the reply source on the chosen adapter and exchanges an ephemeral encryption key, then sends one encrypted password. Its key-exchange and acknowledgement replies may omit MAC only when source, adapter, UUID and type match that verified transaction. Network updates first obtain a fresh authentication profile and preserve unrelated HTTP/IPv6/SDK-over-TLS settings, then send one authenticated request. Their acknowledgements allow an exact MAC from a newly assigned address, or a missing MAC only at the freshly pinned address or explicitly requested new static address. Legacy recovery retains its stricter MAC matcher and remains unverified on modern encrypted firmware. It never retries a write or treats timeout as rollback. Results distinguish not-sent, acknowledged, rejected, challenge and unconfirmed. The inventory changes only from observed device replies, including the fresh inquiry used by question setup. Passwords and recovery data are excluded from snapshots and diagnostics; recovery data is exported only through an explicit native save dialog. CLI commands use the same configuration engine without Wails.
+
+## Security-question setup
+
+`internal/protocol/sadp` owns the bounded 15-question profile, strict nested
+question-list parser and RSA/AES answer encoder. `internal/configuration` uses the
+same single-adapter transport and cancellation guard as activation: fresh inquiry,
+question-list/revision check, key exchange, one encrypted setup write, then a
+read-only configured-ID check. Unknown profiles and changed settings stop before
+writing; uncertainty never causes a retry. The controller may merge the fresh
+inquiry into inventory, keeping secrets and question answers out of snapshots.
+
+The desktop offers setup after acknowledged activation, preserves that adapter
+and temporarily carries the just-entered password into the form. Saving requires
+a separate submission; skipping clears the password. Existing-device setup is
+also available, with explicit replacement confirmation. Neither CLI activation
+nor batch provisioning silently sets questions. See [setup and protocol
+limits](security-question-setup.md).
 
 ## Security-question recovery
 

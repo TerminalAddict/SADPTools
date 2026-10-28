@@ -1,7 +1,7 @@
 WAILS_VERSION := v3.0.0-beta.34
 WAILS := $(shell go env GOPATH)/bin/wails3
 export PATH := $(dir $(WAILS)):$(PATH)
-VERSION ?= 1.0.2
+VERSION ?= 1.0.3
 export SADPTOOLS_VERSION := $(VERSION)
 VERSION_FLAGS := -X github.com/TerminalAddict/SADPTools/internal/version.Value=SADPToolsVersion[$(VERSION)]
 MACOS_ARCH ?= universal

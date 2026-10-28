@@ -213,7 +213,7 @@ func check(ctx context.Context, client *http.Client, target Target) (Status, err
 		}
 	}
 	if len(selected) != 3 {
-		return state("not_configured", "Camera reports that three security questions are not configured. Configure them in its web interface while logged in, or use authorised support recovery."), nil
+		return state("not_configured", "Camera reports that three security questions are not configured. Use Set security questions with its current admin password, or configure them through its web interface. If the password is unknown, use authorised support recovery."), nil
 	}
 	// The API supplies IDs, not question text. Read this firmware's own English
 	// catalog rather than guessing the meaning of question numbers.

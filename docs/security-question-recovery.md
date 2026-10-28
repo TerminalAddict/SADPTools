@@ -1,5 +1,10 @@
 # Security-question password recovery
 
+To configure the questions while you still know the admin password, use **Set
+security questions** in Device details, or the follow-on step after activation.
+See [security-question setup](security-question-setup.md). Setup and password
+recovery use separate camera protocols and have separate compatibility limits.
+
 Select a discovered, activated camera and open **Password recovery**. The default
 **Security questions** method checks the camera's local recovery interface and
 loads its three configured questions. Enter the answers exactly as originally

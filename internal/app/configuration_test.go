@@ -72,6 +72,40 @@ func TestControllerOperationLifecycleAndNoOptimisticUpdate(t *testing.T) {
 		t.Fatal("password in snapshot")
 	}
 }
+
+func TestQuestionFollowupUsesFreshObservationAndDoesNotPersistAnswers(t *testing.T) {
+	c, id, r := configController(t)
+	r.Action = sadp.GetSecurityQuestions
+	r.Password = ""
+	c.writer = writerFunc(func(_ context.Context, request configuration.Request) (configuration.Result, error) {
+		active := true
+		observed := devices.Device{MAC: r.MAC, Activated: &active, Interfaces: []devices.Interface{{Index: 3, Name: "Ethernet Test"}}}
+		return configuration.Result{Action: request.Action, Outcome: "questions_ready", ObservedDevice: &observed, Questions: []sadp.SecurityQuestion{{ID: 1, Text: "Synthetic question"}}}, nil
+	})
+	if _, err := c.Configure(id, r); err != nil {
+		t.Fatal(err)
+	}
+	if !*c.Snapshot().Devices[0].Activated {
+		t.Fatal("fresh inquiry not reflected after activation")
+	}
+	r.Action = sadp.SetSecurityQuestions
+	r.Password = "Synthetic<&>1"
+	r.QuestionRevision = strings.Repeat("a", 64)
+	r.Answers = []sadp.SecurityAnswer{{ID: 1, Answer: "Synthetic answer one"}, {ID: 2, Answer: "Synthetic answer two"}, {ID: 3, Answer: "Synthetic answer three"}}
+	c.writer = writerFunc(func(context.Context, configuration.Request) (configuration.Result, error) {
+		return configuration.Result{Sent: true, Outcome: "unconfirmed", Message: "Synthetic uncertain setup"}, configuration.ErrUnconfirmed
+	})
+	got, err := c.Configure(id, r)
+	if err != nil || got.Outcome != "unconfirmed" {
+		t.Fatal("structured write outcome lost", err)
+	}
+	data, _ := json.Marshal(c.Snapshot())
+	for _, secret := range []string{r.Password, r.Answers[0].Answer} {
+		if strings.Contains(string(data), secret) {
+			t.Fatal("secret in snapshot/logs")
+		}
+	}
+}
 func TestControllerChecksIdentityAdapterAndActivation(t *testing.T) {
 	for _, kind := range []string{"unknown", "mac", "adapter", "already-active", "inactive-network"} {
 		t.Run(kind, func(t *testing.T) {

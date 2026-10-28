@@ -4,7 +4,7 @@ vars:
   # Wails v3 translates GOARCH=... to Task's ARCH=... variable. The ARCH
   # template function alone is the host architecture, not the requested target.
   TARGET_ARCH: '{{.ARCH | default ARCH}}'
-  APP_VERSION: '{{.SADPTOOLS_VERSION | default "1.0.2"}}'
+  APP_VERSION: '{{.SADPTOOLS_VERSION | default "1.0.3"}}'
 includes:
   common: ./build/Taskfile.yml
   windows: ./build/windows/Taskfile.yml

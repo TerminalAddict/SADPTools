@@ -23,6 +23,8 @@ export const Action = {
     EncryptionStringV31: "getencryptstring_v31",
     ResetPassword: "resetPassword",
     SecurityCode: "securityCode",
+    GetSecurityQuestions: "getsecurityquestion",
+    SetSecurityQuestions: "setsecurityquestion",
 };
 
 export class NetworkSettings {
@@ -78,5 +80,82 @@ export class NetworkSettings {
     static createFrom($$source = {}) {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         return new NetworkSettings(/** @type {Partial<NetworkSettings>} */($$parsedSource));
+    }
+}
+
+export class SecurityAnswer {
+    /**
+     * Creates a new SecurityAnswer instance.
+     * @param {Partial<SecurityAnswer>} [$$source = {}] - The source object to create the SecurityAnswer.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["id"] = 0;
+        }
+        if (!("answer" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["answer"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new SecurityAnswer instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {SecurityAnswer}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new SecurityAnswer(/** @type {Partial<SecurityAnswer>} */($$parsedSource));
+    }
+}
+
+export class SecurityQuestion {
+    /**
+     * Creates a new SecurityQuestion instance.
+     * @param {Partial<SecurityQuestion>} [$$source = {}] - The source object to create the SecurityQuestion.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["id"] = 0;
+        }
+        if (!("text" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["text"] = "";
+        }
+        if (!("configured" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["configured"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new SecurityQuestion instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {SecurityQuestion}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new SecurityQuestion(/** @type {Partial<SecurityQuestion>} */($$parsedSource));
     }
 }
