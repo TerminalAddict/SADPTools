@@ -5,7 +5,7 @@ info:
   productIdentifier: io.github.terminaladdict.sadptools
   description: CCTV discovery and technician toolkit
   copyright: Copyright (c) 2026 SADPTools contributors
-  version: 1.0.1
+  version: 1.0.2
 dev_mode:
   root_path: .
   log_level: warn

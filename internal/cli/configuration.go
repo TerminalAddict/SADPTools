@@ -22,7 +22,8 @@ const sendUsage = `Usage:
 Actions: activate, update, exchangecode, getencryptstring, getencryptstring_v31,
          resetpassword, securitycode
 The IP is a descriptive hint; the MAC selects the device over local multicast.
-Exactly one interface is required. Each invocation sends once, without retries.
+Exactly one interface is required. Each device write is sent once, without retries.
+Activation first checks inactive status and exchanges encryption keys (8–16 byte password).
 Password input: prefer --password-stdin or --password-env VARIABLE.
 Inline --password and --code are supported but visible in shell history/process lists.
 Recovery requires a code obtained through the device's authorised recovery process.

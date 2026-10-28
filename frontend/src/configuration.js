@@ -71,7 +71,9 @@ export function initConfiguration({
       busy || (questions && !questionsReady(questionStatus));
     $("operation-privacy-note").textContent = questions
       ? "Answers and passwords are encrypted using the camera’s recovery protocol and are not saved in preferences or logs. Submit once; a missing reply does not prove the password stayed unchanged."
-      : "Passwords and codes are not saved in preferences or logs. This SADP command format sends them over the local network without encryption; use a trusted management network.";
+      : kind === "activate"
+        ? "The activation password is encrypted using the camera’s SADP key exchange and is not saved in preferences or logs. Use a trusted management network. A missing final reply still requires rediscovery and verification."
+        : "Passwords and codes are not saved in preferences or logs. This SADP command format sends them over the local network without encryption; use a trusted management network.";
   }
   async function checkQuestions(certificateSHA256 = "") {
     if (busy || !target || !usingQuestions()) return;
@@ -136,7 +138,7 @@ export function initConfiguration({
       `${d.model || d.deviceType || "Unknown model"} · ${d.ipv4 || "IP unknown"}\nMAC ${d.mac} · Serial ${d.serial || "unknown"}`;
     $("operation-description").textContent =
       mode === "activate"
-        ? "Set the admin password for this inactive device. Firmware may impose its own password rules."
+        ? "Set an admin password of 8–16 bytes. SADPTools checks that the device is inactive, negotiates encryption, then sends activation once. Firmware may impose additional password rules."
         : mode === "update"
           ? "Review the complete network configuration below, then enter the current admin password to apply it."
           : "Answer the camera’s configured security questions, or use a support-provided recovery code.";
@@ -182,7 +184,11 @@ export function initConfiguration({
   }
   async function execute(request, questions = false) {
     setBusy(true);
-    result("Waiting for the device…");
+    result(
+      request.action === "activate"
+        ? "Checking the device and negotiating encrypted activation…"
+        : "Waiting for the device…",
+    );
     try {
       const reply = questions
         ? await Backend.ResetWithSecurityQuestions(
@@ -233,6 +239,13 @@ export function initConfiguration({
   $("operation-form").onsubmit = async (e) => {
     e.preventDefault();
     if (busy) return;
+    if (
+      kind === "activate" &&
+      new TextEncoder().encode($("operation-password").value).length > 16
+    ) {
+      result("SADP activation requires an 8–16 byte password. Longer passwords are not truncated.");
+      return;
+    }
     if (
       kind !== "update" &&
       $("operation-password").value !== $("operation-password-confirm").value

@@ -56,15 +56,6 @@ func (e *SADPEngine) Execute(parent context.Context, r Request) (result Result, 
 		return result, errors.New("select exactly one network interface")
 	}
 	adapter := adapters[0]
-	id, err := sadp.NewUUID()
-	if err != nil {
-		return result, err
-	}
-	payload, err := sadp.Command(id, result.MAC, r.Action, r.Password, r.Code, r.Network)
-	if err != nil {
-		return result, err
-	}
-	defer clear(payload)
 	conn, err := e.open()
 	if err != nil {
 		return result, err
@@ -88,6 +79,18 @@ func (e *SADPEngine) Execute(parent context.Context, r Request) (result Result, 
 	if err = ctx.Err(); err != nil {
 		return result, err
 	}
+	if r.Action == sadp.Activate {
+		return e.activate(ctx, conn, adapter, r, result)
+	}
+	id, err := sadp.NewUUID()
+	if err != nil {
+		return result, err
+	}
+	payload, err := sadp.Command(id, result.MAC, r.Action, r.Password, r.Code, r.Network)
+	if err != nil {
+		return result, err
+	}
+	defer clear(payload)
 	e.log.Info("Sending device operation", "action", r.Action, "mac", result.MAC, "interface", r.Interface)
 	// Mark the attempt before send. Even an I/O error cannot promise no delivery.
 	result.Sent = true
@@ -133,6 +136,18 @@ func (e *SADPEngine) Execute(parent context.Context, r Request) (result Result, 
 
 func interpret(request Request, result Result, reply sadp.CommandReply) (Result, error) {
 	status := strings.ToLower(reply.Result)
+	if request.Action == sadp.Activate {
+		switch status {
+		case "riskpassword":
+			result.Outcome = "rejected"
+			result.Message = "The camera rejected the password as too weak. Choose a stronger password of 8–16 bytes."
+			return result, ErrRejected
+		case "hasactivated":
+			result.Outcome = "rejected"
+			result.Message = "The camera reports it is already active. Rediscover and verify its existing password before another operation."
+			return result, ErrRejected
+		}
+	}
 	code, codeErr := strconv.ParseUint(reply.ErrorCode, 10, 16)
 	if codeErr == nil && reply.ErrorCode != request.Password && reply.ErrorCode != request.Code {
 		result.ErrorCode = strconv.FormatUint(code, 10)

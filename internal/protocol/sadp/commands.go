@@ -57,7 +57,7 @@ func Command(id, mac string, action Action, password, code string, network Netwo
 	}
 	switch action {
 	case ExchangeCode:
-		fields = append(fields, [2]string{"Code", ""})
+		fields = append(fields, [2]string{"Code", code})
 	case ResetPassword:
 		fields = append(fields, [2]string{"Code", code})
 	case SecurityCode:

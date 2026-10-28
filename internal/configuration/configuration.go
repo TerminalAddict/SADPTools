@@ -117,6 +117,9 @@ func (r Request) Validate() error {
 				return err
 			}
 		}
+		if r.Action == sadp.Activate && len(r.Password) > 16 {
+			return errors.New("this SADP activation encryption profile requires a password of 8–16 bytes; longer passwords are not truncated")
+		}
 	}
 	if r.Action == sadp.ResetPassword || r.Action == sadp.SecurityCode {
 		if !validText(r.Code, 4096) {

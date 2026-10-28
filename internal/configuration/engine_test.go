@@ -22,12 +22,13 @@ import (
 const syntheticMAC = "02:00:00:00:00:01"
 
 func testRequest() Request {
-	return Request{Action: sadp.Activate, MAC: syntheticMAC, Interface: "Ethernet Test", TimeoutSeconds: 2, Password: "Synthetic-pass<>&1"}
+	return Request{Action: sadp.UpdateNetwork, MAC: syntheticMAC, Interface: "Ethernet Test", TimeoutSeconds: 2, Password: "Synthetic-pass<>&1", Network: NetworkSettings{IPv4: "192.0.2.10", SubnetMask: "255.255.255.0", Gateway: "192.0.2.1", CommandPort: 8000}}
 }
 
 type packet struct {
-	body  string
-	index int
+	body   string
+	index  int
+	source string
 }
 type commandSocket struct {
 	packets                           chan packet
@@ -52,7 +53,7 @@ func (s *commandSocket) Send(_ platform.Adapter, b []byte) error {
 func (s *commandSocket) Read(b []byte) (int, platform.PacketInfo, error) {
 	select {
 	case p := <-s.packets:
-		return copy(b, p.body), platform.PacketInfo{InterfaceIndex: p.index}, nil
+		return copy(b, p.body), platform.PacketInfo{InterfaceIndex: p.index, Source: p.source}, nil
 	case <-s.done:
 		return 0, platform.PacketInfo{}, io.EOF
 	}
@@ -82,7 +83,7 @@ func TestTransactionCorrelationAndCredentialIsolation(t *testing.T) {
 	var logs bytes.Buffer
 	s.send = func(b []byte) {
 		good := response(b, "<Result>success</Result><Password>Synthetic-pass&lt;&gt;&amp;1</Password>")
-		for _, p := range []packet{{`<ProbeMatch><Password>Synthetic-pass<>&1`, 3}, {good, 99}, {strings.Replace(good, syntheticMAC, "02:00:00:00:00:02", 1), 3}, {strings.Replace(good, "<Uuid>", "<Uuid>wrong-", 1), 3}, {strings.Replace(good, "<Types>activate", "<Types>inquiry", 1), 3}, {good, 3}} {
+		for _, p := range []packet{{`<ProbeMatch><Password>Synthetic-pass<>&1`, 3, ""}, {good, 99, ""}, {strings.Replace(good, syntheticMAC, "02:00:00:00:00:02", 1), 3, ""}, {strings.Replace(good, "<Uuid>", "<Uuid>wrong-", 1), 3, ""}, {strings.Replace(good, "<Types>update", "<Types>inquiry", 1), 3, ""}, {good, 3, ""}} {
 			s.packets <- p
 		}
 	}
@@ -106,21 +107,22 @@ func TestOutcomesNeverAssumeSuccess(t *testing.T) {
 		action                sadp.Action
 		want                  error
 	}{
-		{"rejected", "<Result>denied</Result><ErrorCode>2001</ErrorCode>", "rejected", sadp.Activate, ErrRejected},
-		{"missing status", "<Password>echo</Password>", "unconfirmed", sadp.Activate, ErrUnconfirmed},
-		{"unknown status", "<Result>SYNTHETIC-PASSWORD</Result>", "unconfirmed", sadp.Activate, ErrUnconfirmed},
-		{"conflicting code", "<Result>success</Result><ErrorCode>7</ErrorCode>", "rejected", sadp.Activate, ErrRejected},
+		{"rejected", "<Result>denied</Result><ErrorCode>2001</ErrorCode>", "rejected", sadp.UpdateNetwork, ErrRejected},
+		{"missing status", "<Password>echo</Password>", "unconfirmed", sadp.UpdateNetwork, ErrUnconfirmed},
+		{"unknown status", "<Result>SYNTHETIC-PASSWORD</Result>", "unconfirmed", sadp.UpdateNetwork, ErrUnconfirmed},
+		{"conflicting code", "<Result>success</Result><ErrorCode>7</ErrorCode>", "rejected", sadp.UpdateNetwork, ErrRejected},
 		{"recovery", "<Code>SYNTHETIC-CHALLENGE</Code>", "challenge", sadp.ExchangeCode, nil},
 		{"encryption", "<EncryptString>SYNTHETIC-STRING</EncryptString>", "challenge", sadp.EncryptionString, nil},
 		{"missing recovery data", "<Result>success</Result>", "unconfirmed", sadp.ExchangeCode, ErrUnconfirmed},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			s := newSocket()
-			s.send = func(b []byte) { s.packets <- packet{response(b, tc.fields), 3} }
+			s.send = func(b []byte) { s.packets <- packet{response(b, tc.fields), 3, ""} }
 			r := testRequest()
 			r.Action = tc.action
 			if r.Action.ReadOnly() {
 				r.Password = ""
+				r.Network = NetworkSettings{}
 			}
 			got, err := testEngine(s, nil).Execute(context.Background(), r)
 			if got.Outcome != tc.outcome || !errors.Is(err, tc.want) {
@@ -158,7 +160,7 @@ func TestCancellationTimeoutAndRepeatedCleanup(t *testing.T) {
 	}
 }
 func TestValidationAndTransportFailureBeforeSend(t *testing.T) {
-	for _, change := range []func(*Request){func(r *Request) { r.MAC = "bad" }, func(r *Request) { r.Interface = "" }, func(r *Request) { r.TimeoutSeconds = 0 }, func(r *Request) { r.Action = "reboot" }, func(r *Request) { r.Password = "short" }, func(r *Request) { r.Action = sadp.ResetPassword; r.Code = "" }} {
+	for _, change := range []func(*Request){func(r *Request) { r.MAC = "bad" }, func(r *Request) { r.Interface = "" }, func(r *Request) { r.TimeoutSeconds = 0 }, func(r *Request) { r.Action = "reboot" }, func(r *Request) { r.Password = "" }, func(r *Request) { r.Action = sadp.ResetPassword; r.Code = "" }} {
 		s := newSocket()
 		e := testEngine(s, nil)
 		opened := false

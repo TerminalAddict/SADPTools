@@ -289,3 +289,29 @@ list); that check was corrected for the release rerun. Publication still require
 the complete native packaging/desktop-test job to succeed and its artifacts to
 match the final release commit. This is build/packaging evidence, not Finder,
 Gatekeeper, camera or Live View hardware validation.
+
+## Encrypted SADP activation investigation — 28 October 2026
+
+After a reported activation failure, read-only discovery confirmed an IPC-B261H-MU
+running V5.7.1 build 220610 still inactive. A key exchange on its discovered
+adapter succeeded and exposed two missing requirements in the original code:
+RSA/AES activation negotiation and correlated command replies without a MAC.
+
+The corrected Go path passed a guarded live preparation check: fresh inquiry,
+inactive-state verification, source/adapter correlation, key exchange, challenge
+decryption and encrypted-payload preparation. The transport guard allowed only
+`inquiry` and `exchangecode`; it intercepted and blocked the activation datagram.
+A final separate discovery still reported inactive. No activation, password,
+network configuration or other device write was sent by this investigation.
+Private test harnesses and any device identifiers remain in the ignored cache.
+
+Validation passed: `go test ./...`, `go vet ./...`, `go test -race ./...`, all 43
+frontend tests, frontend build/binding generation, Linux CLI, Windows AMD64 GUI
+and Linux AMD64 GUI builds. Both desktop binaries carry `1.0.2-dev`. New
+synthetic tests cover the encryption vector, strict stage correlation, malformed
+challenges, password byte limits, explicit rejections, cancellation, send errors,
+missing acknowledgement and socket cleanup. No bindings API changed.
+
+These are local development builds, not a tagged release. Full activation,
+subsequent password login and Windows GUI runtime verification remain to be
+tested on an explicitly authorised physical camera.
