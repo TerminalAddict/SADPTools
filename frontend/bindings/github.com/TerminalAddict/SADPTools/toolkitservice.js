@@ -600,12 +600,22 @@ export function MoveSiteDevice(site, id, destination) {
 
 /**
  * @param {string} site
+ * @returns {$CancellablePromise<sites$0.NXWitnessInfo>}
+ */
+export function NXWitness(site) {
+    return $Call.ByID(3819822328, site).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType24($result);
+    }));
+}
+
+/**
+ * @param {string} site
  * @param {string} id
  * @returns {$CancellablePromise<onvif$0.Endpoint>}
  */
 export function ONVIFEndpoint(site, id) {
     return $Call.ByID(3826135054, site, id).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType24($result);
+        return $$createType25($result);
     }));
 }
 
@@ -632,7 +642,7 @@ export function PollSwitch(site, id) {
  */
 export function Preferences() {
     return $Call.ByID(989611963).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType25($result);
+        return $$createType26($result);
     }));
 }
 
@@ -642,7 +652,7 @@ export function Preferences() {
  */
 export function PrepareSiteImport(passphrase) {
     return $Call.ByID(1907378760, passphrase).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType26($result);
+        return $$createType27($result);
     }));
 }
 
@@ -661,7 +671,7 @@ export function PreviewLabel(o) {
  */
 export function PreviewProvision(site, o) {
     return $Call.ByID(632876228, site, o).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType27($result);
+        return $$createType28($result);
     }));
 }
 
@@ -671,7 +681,7 @@ export function PreviewProvision(site, o) {
  */
 export function PreviewSupport(o) {
     return $Call.ByID(2736090052, o).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType28($result);
+        return $$createType29($result);
     }));
 }
 
@@ -680,7 +690,7 @@ export function PreviewSupport(o) {
  */
 export function ProvisionStatus() {
     return $Call.ByID(913796408).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType27($result);
+        return $$createType28($result);
     }));
 }
 
@@ -702,7 +712,7 @@ export function QueryONVIF(site, id, profile, pin) {
  */
 export function ReconcileSite(site, run) {
     return $Call.ByID(941799842, site, run).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType30($result);
+        return $$createType31($result);
     }));
 }
 
@@ -749,7 +759,7 @@ export function ResetIPScan() {
  */
 export function ResolveIP(ip) {
     return $Call.ByID(3055499208, ip).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType31($result);
+        return $$createType32($result);
     }));
 }
 
@@ -799,7 +809,7 @@ export function SaveAdvanced(d) {
  */
 export function SaveCameraIP(o) {
     return $Call.ByID(675171400, o).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType32($result);
+        return $$createType33($result);
     }));
 }
 
@@ -812,7 +822,7 @@ export function SaveCameraIP(o) {
  */
 export function SaveCredential(p, username, password, privacyPassword) {
     return $Call.ByID(3153647567, p, username, password, privacyPassword).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType33($result);
+        return $$createType34($result);
     }));
 }
 
@@ -822,7 +832,7 @@ export function SaveCredential(p, username, password, privacyPassword) {
  */
 export function SaveIPScan(site) {
     return $Call.ByID(12619426, site).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType34($result);
+        return $$createType35($result);
     }));
 }
 
@@ -863,7 +873,7 @@ export function SaveSiteDevice(r) {
  */
 export function SaveSwitch(a) {
     return $Call.ByID(318968506, a).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType35($result);
+        return $$createType36($result);
     }));
 }
 
@@ -887,7 +897,7 @@ export function SaveWalk(id, result, notes, evidence, assessments) {
  */
 export function SearchSites(query) {
     return $Call.ByID(3711126893, query).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType36($result);
+        return $$createType37($result);
     }));
 }
 
@@ -897,7 +907,7 @@ export function SearchSites(query) {
  */
 export function Site(id) {
     return $Call.ByID(975601772, id).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType37($result);
+        return $$createType38($result);
     }));
 }
 
@@ -916,7 +926,7 @@ export function SiteExportNeedsVault(site) {
  */
 export function SiteHistory(site, device) {
     return $Call.ByID(323722780, site, device).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType39($result);
+        return $$createType40($result);
     }));
 }
 
@@ -927,7 +937,7 @@ export function SiteHistory(site, device) {
  */
 export function SiteRun(site, id) {
     return $Call.ByID(3849958313, site, id).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType34($result);
+        return $$createType35($result);
     }));
 }
 
@@ -937,7 +947,7 @@ export function SiteRun(site, id) {
  */
 export function SiteScanScope(site) {
     return $Call.ByID(1873403763, site).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType40($result);
+        return $$createType41($result);
     }));
 }
 
@@ -1038,7 +1048,7 @@ export function StartWalk(o, seconds) {
  */
 export function SwitchAssets(site) {
     return $Call.ByID(2692107078, site).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType41($result);
+        return $$createType42($result);
     }));
 }
 
@@ -1048,7 +1058,7 @@ export function SwitchAssets(site) {
  */
 export function SwitchReports(site) {
     return $Call.ByID(345086, site).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType43($result);
+        return $$createType44($result);
     }));
 }
 
@@ -1057,7 +1067,7 @@ export function SwitchReports(site) {
  */
 export function TraceSupport() {
     return $Call.ByID(3440895931).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType44($result);
+        return $$createType45($result);
     }));
 }
 
@@ -1074,7 +1084,7 @@ export function UnlockVault(passphrase) {
  */
 export function VaultStatus() {
     return $Call.ByID(376100019).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType45($result);
+        return $$createType46($result);
     }));
 }
 
@@ -1109,7 +1119,7 @@ export function VisitSite(id) {
  */
 export function Walk() {
     return $Call.ByID(1510257730).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType46($result);
+        return $$createType47($result);
     }));
 }
 
@@ -1138,26 +1148,27 @@ const $$createType20 = toolkit$0.LabelAsset.createFrom;
 const $$createType21 = $Create.Array($$createType20);
 const $$createType22 = $Create.Array($$createType6);
 const $$createType23 = diagnostics$0.FirmwareMatch.createFrom;
-const $$createType24 = onvif$0.Endpoint.createFrom;
-const $$createType25 = sites$0.Preferences.createFrom;
-const $$createType26 = sites$0.ImportPreview.createFrom;
-const $$createType27 = provision$0.Plan.createFrom;
-const $$createType28 = diagnostics$0.Bundle.createFrom;
-const $$createType29 = sites$0.Proposal.createFrom;
-const $$createType30 = $Create.Array($$createType29);
-const $$createType31 = $Create.Array($Create.Any);
-const $$createType32 = sites$0.AddedCamera.createFrom;
-const $$createType33 = sites$0.Profile.createFrom;
-const $$createType34 = sites$0.Run.createFrom;
-const $$createType35 = switches$0.Asset.createFrom;
-const $$createType36 = $Create.Array($$createType1);
-const $$createType37 = sites$0.View.createFrom;
-const $$createType38 = sites$0.Event.createFrom;
-const $$createType39 = $Create.Array($$createType38);
-const $$createType40 = toolkit$0.SiteScope.createFrom;
-const $$createType41 = $Create.Array($$createType35);
-const $$createType42 = switches$0.Report.createFrom;
-const $$createType43 = $Create.Array($$createType42);
-const $$createType44 = diagnostics$0.TraceCapability.createFrom;
-const $$createType45 = sites$0.VaultStatus.createFrom;
-const $$createType46 = toolkit$0.WalkTest.createFrom;
+const $$createType24 = sites$0.NXWitnessInfo.createFrom;
+const $$createType25 = onvif$0.Endpoint.createFrom;
+const $$createType26 = sites$0.Preferences.createFrom;
+const $$createType27 = sites$0.ImportPreview.createFrom;
+const $$createType28 = provision$0.Plan.createFrom;
+const $$createType29 = diagnostics$0.Bundle.createFrom;
+const $$createType30 = sites$0.Proposal.createFrom;
+const $$createType31 = $Create.Array($$createType30);
+const $$createType32 = $Create.Array($Create.Any);
+const $$createType33 = sites$0.AddedCamera.createFrom;
+const $$createType34 = sites$0.Profile.createFrom;
+const $$createType35 = sites$0.Run.createFrom;
+const $$createType36 = switches$0.Asset.createFrom;
+const $$createType37 = $Create.Array($$createType1);
+const $$createType38 = sites$0.View.createFrom;
+const $$createType39 = sites$0.Event.createFrom;
+const $$createType40 = $Create.Array($$createType39);
+const $$createType41 = toolkit$0.SiteScope.createFrom;
+const $$createType42 = $Create.Array($$createType36);
+const $$createType43 = switches$0.Report.createFrom;
+const $$createType44 = $Create.Array($$createType43);
+const $$createType45 = diagnostics$0.TraceCapability.createFrom;
+const $$createType46 = sites$0.VaultStatus.createFrom;
+const $$createType47 = toolkit$0.WalkTest.createFrom;

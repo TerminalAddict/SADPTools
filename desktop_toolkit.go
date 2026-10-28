@@ -58,6 +58,13 @@ func (s *ToolkitService) Site(id string) (sites.View, error) {
 	}
 	return s.manager.Store.View(id)
 }
+
+func (s *ToolkitService) NXWitness(site string) (sites.NXWitnessInfo, error) {
+	if e := s.ready(); e != nil {
+		return sites.NXWitnessInfo{}, e
+	}
+	return s.manager.Store.NXWitness(site)
+}
 func (s *ToolkitService) VisitSite(id string) error {
 	if e := s.ready(); e != nil {
 		return e

@@ -11,7 +11,7 @@ The CLI and desktop support single-device activation, IPv4/DHCP/SDK-port configu
 
 ## Install on Windows
 
-Download the **Setup EXE** from [GitHub Releases](https://github.com/TerminalAddict/SADPTools/releases), run it, follow setup, then open **SADPTools** from the Start menu. Release downloads include the version in the filename (for example, `SADPTools-1.0.0-Setup-windows-amd64.exe`). Setup includes everything needed to run the application on Windows 10/11 AMD64 and works without an internet connection. There are no separate prerequisites to download or configure.
+Download the **Setup EXE** from [GitHub Releases](https://github.com/TerminalAddict/SADPTools/releases), run it, follow setup, then open **SADPTools** from the Start menu. Release downloads include the version in the filename (for example, `SADPTools-1.0.1-Setup-windows-amd64.exe`). Setup includes everything needed to run the application on Windows 10/11 AMD64 and works without an internet connection. There are no separate prerequisites to download or configure.
 
 The original `0.2.0-beta.1` needs one manual upgrade to obtain the in-app updater.
 On newer versions, use **About → Check for updates** and **Update now**, or the
@@ -45,6 +45,7 @@ releases starting with **0.3.0-beta.2**.
 **v1.0.0** is the first stable release of the technician toolkit. See [the implementation guide and hardware checklist](docs/toolkit-implementation.md).
 
 - Live View automatically uses encrypted imported stream addresses, advertised ONVIF services or identified Hikvision endpoints. Read-only playback was verified with Grandstream, Milesight and Tapo cameras; see [Live View compatibility](docs/live-view-compatibility.md).
+- Imported NX Witness system, server, user, storage and licence information, encrypted with the site and available through a conditional read-only viewer. See [NX Witness information](docs/nx-witness.md).
 - Named offline sites, protected shared/device credentials, encrypted portable site export/import, NX Camera Info JSON imports, reviewed inventory changes and history. See [site transfer and the integration format](docs/site-transfer.md).
 - IPv4 investigation with ICMP/TCP and neighbour evidence, a 10-column grid/table, reservations, saved scans and CLI.
 - Explicit bulk activation/network plans, serial writes without retries and stable-identity verification.
@@ -161,8 +162,8 @@ make dev            # Wails desktop development, on a graphical Linux host
 ```
 
 To prepare and publish a tagged release using `gh`, see the [release process](docs/releases.md).
-`make release-build VERSION=1.0.0` builds and verifies the downloads from a
-clean commit. `make release-publish VERSION=1.0.0` pushes the commit/tag,
+`make release-build VERSION=1.0.1` builds and verifies the downloads from a
+clean commit. `make release-publish VERSION=1.0.1` pushes the commit/tag,
 verifies uploaded files and publishes the stable GitHub release as Latest.
 
 For headless Go validation, use `go test ./...` and `go vet ./...`. The root desktop entry uses `//go:build desktop` to avoid requiring GUI development libraries for ordinary engine checks. With desktop dependencies installed, also run `go test -tags desktop ./...` and `go vet -tags desktop ./...`. Desktop builds include `desktop,production`.
@@ -276,4 +277,4 @@ Go checks or Windows cross-build.
 
 **Commissioning → Diagnostics & service** adds connectivity troubleshooting, recording metadata/gaps, replacement and firmware planning, security inspection, ONVIF imaging, a read-only protocol explorer, ANPR commissioning, opaque equipment QR labels and previewed support bundles. Saved-site device context menus link to common tools. The headless CLI adds `sadptools troubleshoot --ip CAMERA_IP --json`.
 
-See the [v0.6 guide and compatibility matrix](docs/v0.6-diagnostics.md) and [v1.0.0 release notes](docs/releases/v1.0.0.md). Firmware uploads, automatic replacement writes, privacy-mask editing and verified replay require additional model-specific validation and are not presented as available. Download **v1.0.0** from [GitHub Releases](https://github.com/TerminalAddict/SADPTools/releases/tag/v1.0.0), or build locally with `make windows-installer` and `make linux-packages`.
+See the [v0.6 guide and compatibility matrix](docs/v0.6-diagnostics.md) and [v1.0.1 release notes](docs/releases/v1.0.1.md). Firmware uploads, automatic replacement writes, privacy-mask editing and verified replay require additional model-specific validation and are not presented as available. Download **v1.0.1** from [GitHub Releases](https://github.com/TerminalAddict/SADPTools/releases/tag/v1.0.1), or build locally with `make windows-installer` and `make linux-packages`.

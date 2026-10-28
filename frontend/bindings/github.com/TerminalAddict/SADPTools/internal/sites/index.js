@@ -9,6 +9,8 @@ export {
     Document,
     Event,
     ImportPreview,
+    NXWitnessInfo,
+    NXWitnessSummary,
     Preferences,
     Profile,
     Proposal,

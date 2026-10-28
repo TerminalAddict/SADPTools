@@ -356,3 +356,13 @@
 .provision-settings > div {
   min-width: 0;
 }
+
+.nx-dialog { width: min(1100px, 96vw); }
+.nx-tabs { display: flex; flex-wrap: wrap; gap: .5rem; }
+.nx-tabs .btn { color: var(--bs-body-color); background: var(--bs-body-bg); border-color: var(--bs-border-color); }
+.nx-tabs [aria-pressed="true"] { color: var(--bs-primary-text-emphasis); background: var(--bs-primary-bg-subtle); border-color: var(--bs-primary); }
+.nx-search .form-label { width: min(30rem, 100%); }
+.nx-details dt { margin-top: .6rem; }
+.nx-details dd { margin-bottom: .3rem; }
+.nx-value { white-space: pre-wrap; overflow-wrap: anywhere; font-family: inherit; }
+.nx-dialog td { min-width: 6rem; max-width: 30rem; }

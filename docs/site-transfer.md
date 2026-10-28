@@ -85,6 +85,10 @@ show the custom URL field with instructions.
 Imported inventory does not claim discovery, activation status or connectivity
 that the source did not establish. Discovery capabilities are verified later.
 
+Full NX reports also retain system, server, user, storage and licence metadata
+as an encrypted snapshot from v1.0.1. A site-specific **NX Witness** button appears
+only when that information exists. See [NX Witness information](nx-witness.md).
+
 ## A stable format for other applications
 
 For an explicit site export in NX Camera Info or another tool, generate the

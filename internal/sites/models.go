@@ -78,6 +78,7 @@ type View struct {
 	Profiles     []Profile     `json:"profiles"`
 	Reservations []Reservation `json:"reservations"`
 	Runs         []Run         `json:"runs"`
+	HasNXWitness bool          `json:"hasNXWitness"`
 }
 type VaultStatus struct {
 	Initialized bool   `json:"initialized"`

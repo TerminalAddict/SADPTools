@@ -460,6 +460,13 @@ export class ImportPreview {
              */
             this["needsVault"] = false;
         }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {NXWitnessSummary | null | undefined}
+             */
+            this["nxWitness"] = undefined;
+        }
         if (!("warnings" in $$source)) {
             /**
              * @member
@@ -477,12 +484,160 @@ export class ImportPreview {
      * @returns {ImportPreview}
      */
     static createFrom($$source = {}) {
-        const $$createField13_0 = $$createType1;
+        const $$createField13_0 = $$createType2;
+        const $$createField14_0 = $$createType3;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("nxWitness" in $$parsedSource) {
+            $$parsedSource["nxWitness"] = $$createField13_0($$parsedSource["nxWitness"]);
+        }
         if ("warnings" in $$parsedSource) {
-            $$parsedSource["warnings"] = $$createField13_0($$parsedSource["warnings"]);
+            $$parsedSource["warnings"] = $$createField14_0($$parsedSource["warnings"]);
         }
         return new ImportPreview(/** @type {Partial<ImportPreview>} */($$parsedSource));
+    }
+}
+
+/**
+ * NXWitnessInfo is an explicitly opened, read-only snapshot. Licence keys and
+ * user/server metadata live in an encrypted asset, never ordinary inventory.
+ * Numeric inventory values are decimal strings to preserve all int64 bits in JS.
+ */
+export class NXWitnessInfo {
+    /**
+     * Creates a new NXWitnessInfo instance.
+     * @param {Partial<NXWitnessInfo>} [$$source = {}] - The source object to create the NXWitnessInfo.
+     */
+    constructor($$source = {}) {
+        if (!("version" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["version"] = 0;
+        }
+        if (!("importedAt" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["importedAt"] = "";
+        }
+        if (!("system" in $$source)) {
+            /**
+             * @member
+             * @type {{ [_ in string]?: any }}
+             */
+            this["system"] = {};
+        }
+        if (!("servers" in $$source)) {
+            /**
+             * @member
+             * @type {{ [_ in string]?: any }[]}
+             */
+            this["servers"] = [];
+        }
+        if (!("users" in $$source)) {
+            /**
+             * @member
+             * @type {{ [_ in string]?: any }[]}
+             */
+            this["users"] = [];
+        }
+        if (!("storage" in $$source)) {
+            /**
+             * @member
+             * @type {{ [_ in string]?: any }[]}
+             */
+            this["storage"] = [];
+        }
+        if (!("licenses" in $$source)) {
+            /**
+             * @member
+             * @type {{ [_ in string]?: any }[]}
+             */
+            this["licenses"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new NXWitnessInfo instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {NXWitnessInfo}
+     */
+    static createFrom($$source = {}) {
+        const $$createField2_0 = $$createType4;
+        const $$createField3_0 = $$createType5;
+        const $$createField4_0 = $$createType5;
+        const $$createField5_0 = $$createType5;
+        const $$createField6_0 = $$createType5;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("system" in $$parsedSource) {
+            $$parsedSource["system"] = $$createField2_0($$parsedSource["system"]);
+        }
+        if ("servers" in $$parsedSource) {
+            $$parsedSource["servers"] = $$createField3_0($$parsedSource["servers"]);
+        }
+        if ("users" in $$parsedSource) {
+            $$parsedSource["users"] = $$createField4_0($$parsedSource["users"]);
+        }
+        if ("storage" in $$parsedSource) {
+            $$parsedSource["storage"] = $$createField5_0($$parsedSource["storage"]);
+        }
+        if ("licenses" in $$parsedSource) {
+            $$parsedSource["licenses"] = $$createField6_0($$parsedSource["licenses"]);
+        }
+        return new NXWitnessInfo(/** @type {Partial<NXWitnessInfo>} */($$parsedSource));
+    }
+}
+
+export class NXWitnessSummary {
+    /**
+     * Creates a new NXWitnessSummary instance.
+     * @param {Partial<NXWitnessSummary>} [$$source = {}] - The source object to create the NXWitnessSummary.
+     */
+    constructor($$source = {}) {
+        if (!("servers" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["servers"] = 0;
+        }
+        if (!("users" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["users"] = 0;
+        }
+        if (!("storage" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["storage"] = 0;
+        }
+        if (!("licenses" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["licenses"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new NXWitnessSummary instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {NXWitnessSummary}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new NXWitnessSummary(/** @type {Partial<NXWitnessSummary>} */($$parsedSource));
     }
 }
 
@@ -516,7 +671,7 @@ export class Preferences {
      * @returns {Preferences}
      */
     static createFrom($$source = {}) {
-        const $$createField1_0 = $$createType2;
+        const $$createField1_0 = $$createType6;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("scanner" in $$parsedSource) {
             $$parsedSource["scanner"] = $$createField1_0($$parsedSource["scanner"]);
@@ -646,9 +801,9 @@ export class Proposal {
      * @returns {Proposal}
      */
     static createFrom($$source = {}) {
-        const $$createField4_0 = $$createType3;
-        const $$createField5_0 = $$createType3;
-        const $$createField6_0 = $$createType5;
+        const $$createField4_0 = $$createType7;
+        const $$createField5_0 = $$createType7;
+        const $$createField6_0 = $$createType9;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("before" in $$parsedSource) {
             $$parsedSource["before"] = $$createField4_0($$parsedSource["before"]);
@@ -763,9 +918,9 @@ export class Record {
      * @returns {Record}
      */
     static createFrom($$source = {}) {
-        const $$createField2_0 = $$createType3;
-        const $$createField5_0 = $$createType1;
-        const $$createField6_0 = $$createType1;
+        const $$createField2_0 = $$createType7;
+        const $$createField5_0 = $$createType3;
+        const $$createField6_0 = $$createType3;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("device" in $$parsedSource) {
             $$parsedSource["device"] = $$createField2_0($$parsedSource["device"]);
@@ -922,7 +1077,7 @@ export class SaveResult {
      * @returns {SaveResult}
      */
     static createFrom($$source = {}) {
-        const $$createField2_0 = $$createType1;
+        const $$createField2_0 = $$createType3;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("review" in $$parsedSource) {
             $$parsedSource["review"] = $$createField2_0($$parsedSource["review"]);
@@ -1045,9 +1200,9 @@ export class Site {
      * @returns {Site}
      */
     static createFrom($$source = {}) {
-        const $$createField5_0 = $$createType1;
-        const $$createField6_0 = $$createType1;
-        const $$createField8_0 = $$createType1;
+        const $$createField5_0 = $$createType3;
+        const $$createField6_0 = $$createType3;
+        const $$createField8_0 = $$createType3;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("tags" in $$parsedSource) {
             $$parsedSource["tags"] = $$createField5_0($$parsedSource["tags"]);
@@ -1152,6 +1307,13 @@ export class View {
              */
             this["runs"] = [];
         }
+        if (!("hasNXWitness" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["hasNXWitness"] = false;
+        }
 
         Object.assign(this, $$source);
     }
@@ -1162,11 +1324,11 @@ export class View {
      * @returns {View}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType6;
-        const $$createField1_0 = $$createType7;
-        const $$createField2_0 = $$createType9;
-        const $$createField3_0 = $$createType11;
-        const $$createField4_0 = $$createType13;
+        const $$createField0_0 = $$createType10;
+        const $$createField1_0 = $$createType11;
+        const $$createField2_0 = $$createType13;
+        const $$createField3_0 = $$createType15;
+        const $$createField4_0 = $$createType17;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("site" in $$parsedSource) {
             $$parsedSource["site"] = $$createField0_0($$parsedSource["site"]);
@@ -1189,16 +1351,20 @@ export class View {
 
 // Private type creation functions
 const $$createType0 = Record.createFrom;
-const $$createType1 = $Create.Array($Create.Any);
-const $$createType2 = ipscan$0.Options.createFrom;
-const $$createType3 = devices$0.Device.createFrom;
-const $$createType4 = Difference.createFrom;
+const $$createType1 = NXWitnessSummary.createFrom;
+const $$createType2 = $Create.Nullable($$createType1);
+const $$createType3 = $Create.Array($Create.Any);
+const $$createType4 = $Create.Map($Create.Any, $Create.Any);
 const $$createType5 = $Create.Array($$createType4);
-const $$createType6 = Site.createFrom;
-const $$createType7 = $Create.Array($$createType0);
-const $$createType8 = Profile.createFrom;
+const $$createType6 = ipscan$0.Options.createFrom;
+const $$createType7 = devices$0.Device.createFrom;
+const $$createType8 = Difference.createFrom;
 const $$createType9 = $Create.Array($$createType8);
-const $$createType10 = Reservation.createFrom;
-const $$createType11 = $Create.Array($$createType10);
-const $$createType12 = Run.createFrom;
+const $$createType10 = Site.createFrom;
+const $$createType11 = $Create.Array($$createType0);
+const $$createType12 = Profile.createFrom;
 const $$createType13 = $Create.Array($$createType12);
+const $$createType14 = Reservation.createFrom;
+const $$createType15 = $Create.Array($$createType14);
+const $$createType16 = Run.createFrom;
+const $$createType17 = $Create.Array($$createType16);

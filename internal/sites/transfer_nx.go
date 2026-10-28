@@ -131,6 +131,10 @@ func decodeNX(data []byte) (b backupData, warnings []string, err error) {
 			badEndpoints++
 		}
 	}
+	if err = addNXWitness(&b, data); err != nil {
+		clearBackup(&b)
+		return b, nil, err
+	}
 	warnings = []string{"Imported cameras are saved offline; their connectivity, credentials and discovery capabilities have not been checked."}
 	for _, v := range []struct {
 		n       int

@@ -5,7 +5,7 @@ import "strings"
 // Value can be set with go build -ldflags '-X github.com/TerminalAddict/SADPTools/internal/version.Value=...'.
 // Release builds frame the linker string so packaging can identify this exact
 // value in stripped executables without relying on Go's alignment padding.
-var Value = "1.0.0"
+var Value = "1.0.1"
 
 func init() { Value = displayVersion(Value) }
 

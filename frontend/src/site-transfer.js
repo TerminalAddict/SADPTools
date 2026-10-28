@@ -6,7 +6,8 @@ export function importSummary(preview) {
       ["Devices with saved credentials", preview.devicesWithCredentials],
       ["Credential profiles", preview.credentials], ["Switches", preview.switches],
       ["Documents / plans", preview.documents], ["Attachments", preview.attachments],
-      ["History entries", preview.history], ["Saved scans / reports", preview.runs]]
+      ["History entries", preview.history], ["Saved scans / reports", preview.runs],
+      ...(preview.nxWitness ? [["NX Witness servers", preview.nxWitness.servers], ["NX Witness users", preview.nxWitness.users], ["NX Witness storage locations", preview.nxWitness.storage], ["NX Witness licences", preview.nxWitness.licenses]] : [])]
       .map(([label, count]) => `<tr><td>${esc(label)}</td><td>${esc(count)}</td></tr>`).join("") +
     `</tbody></table><ul>${(preview.warnings || []).map(text => `<li>${esc(text)}</li>`).join("")}</ul>` +
     "<p>Creates a separate site on this computer. Existing sites are preserved. Cameras will not be contacted or reconfigured.</p>";
@@ -14,7 +15,7 @@ export function importSummary(preview) {
 
 function protectionFields(status) {
   if (status.unlocked || status.automatic || status.mode === "dpapi") return "";
-  return `<p>${status.initialized ? "Unlock saved passwords on this computer." : "Choose a password to protect saved camera credentials on this computer."} This can differ from the site file password.</p>` +
+  return `<p>${status.initialized ? "Unlock protected site information on this computer." : "Choose a password to protect saved site details and credentials on this computer."} This can differ from the site file password.</p>` +
     field(status.initialized ? "Saved passwords passphrase" : "New saved passwords passphrase", "localPassphrase", "", "password", status.initialized ? "required" : "required minlength=12") +
     (status.initialized ? "" : field("Repeat saved passwords passphrase", "localRepeat", "", "password", "required minlength=12"));
 }
@@ -31,7 +32,7 @@ export async function exportSiteDialog(API, siteID) {
   const needsVault = await API.SiteExportNeedsVault(siteID);
   const status = await API.VaultStatus();
   dialog("Export entire site",
-    "<p>Includes all saved devices, known camera passwords, shared credentials, notes, switches, history, reports, plans and attachments. Save the encrypted <strong>.sadpsite</strong> file, then use <strong>Import site</strong> on your other laptop.</p>" +
+    "<p>Includes all saved devices, known camera passwords, shared credentials, notes, switches, history, reports, plans, attachments and any imported NX Witness information. Save the encrypted <strong>.sadpsite</strong> file, then use <strong>Import site</strong> on your other laptop.</p>" +
     field("Site file password", "passphrase", "", "password", "required minlength=12") +
     field("Repeat site file password", "repeat", "", "password", "required minlength=12") +
     `<div class="transfer-protection">${needsVault ? protectionFields(status) : ""}</div>`,

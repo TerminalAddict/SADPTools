@@ -300,6 +300,11 @@ func (s *Store) View(id string) (View, error) {
 	if v.Runs, e = s.runs(id); e != nil {
 		return v, e
 	}
+	a, e := s.nxWitnessAsset(id)
+	if e != nil {
+		return v, e
+	}
+	v.HasNXWitness = a.ID != ""
 	return v, nil
 }
 func (s *Store) Visit(id string) error {

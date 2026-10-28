@@ -311,6 +311,7 @@ func restoreDocuments(tx *sql.Tx, b *backupData, ids map[string]string, key []by
 	for _, r := range b.Devices {
 		records[r.ID] = true
 	}
+	nxFound := false
 	for _, item := range b.Assets {
 		a := item.Meta
 		if a.SiteID != b.OriginalSite {
@@ -328,7 +329,7 @@ func restoreDocuments(tx *sql.Tx, b *backupData, ids map[string]string, key []by
 			return errors.New("invalid imported asset")
 		}
 		data := item.Payload
-		if a.Kind == "configuration" || a.Kind == previewEndpointsKind {
+		if a.Kind == "configuration" || a.Kind == previewEndpointsKind || a.Kind == nxWitnessKind {
 			if !a.Encrypted {
 				return errors.New("sensitive asset must be encrypted")
 			}
@@ -339,6 +340,21 @@ func restoreDocuments(tx *sql.Tx, b *backupData, ids map[string]string, key []by
 				if _, e := decodePreviewEndpoints(data); e != nil {
 					return e
 				}
+			}
+			if a.Kind == nxWitnessKind {
+				if nxFound || a.DeviceID != "" {
+					return errors.New("NX Witness information must belong to one site")
+				}
+				n, e := decodeNXWitness(data)
+				if e != nil {
+					return e
+				}
+				data, e = json.Marshal(n)
+				if e != nil {
+					return errors.New("invalid NX Witness information")
+				}
+				defer clear(data)
+				nxFound = true
 			}
 			var e error
 			data, e = vault.Seal(key, data, "asset:"+a.ID)

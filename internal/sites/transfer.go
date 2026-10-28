@@ -17,20 +17,21 @@ const TransferFormat = "sadptools-site"
 
 // ImportPreview deliberately excludes credentials and raw file contents.
 type ImportPreview struct {
-	Token                  string   `json:"token"`
-	Format                 string   `json:"format"`
-	Name                   string   `json:"name"`
-	Customer               string   `json:"customer"`
-	Devices                int      `json:"devices"`
-	Credentials            int      `json:"credentials"`
-	DevicesWithCredentials int      `json:"devicesWithCredentials"`
-	Switches               int      `json:"switches"`
-	Documents              int      `json:"documents"`
-	Attachments            int      `json:"attachments"`
-	History                int      `json:"history"`
-	Runs                   int      `json:"runs"`
-	NeedsVault             bool     `json:"needsVault"`
-	Warnings               []string `json:"warnings"`
+	Token                  string            `json:"token"`
+	Format                 string            `json:"format"`
+	Name                   string            `json:"name"`
+	Customer               string            `json:"customer"`
+	Devices                int               `json:"devices"`
+	Credentials            int               `json:"credentials"`
+	DevicesWithCredentials int               `json:"devicesWithCredentials"`
+	Switches               int               `json:"switches"`
+	Documents              int               `json:"documents"`
+	Attachments            int               `json:"attachments"`
+	History                int               `json:"history"`
+	Runs                   int               `json:"runs"`
+	NeedsVault             bool              `json:"needsVault"`
+	NXWitness              *NXWitnessSummary `json:"nxWitness,omitempty"`
+	Warnings               []string          `json:"warnings"`
 }
 
 // PreparedImport is an immutable, backend-only snapshot of the chosen file.
@@ -47,6 +48,10 @@ func (p *PreparedImport) Clear()                     { clear(p.payload); p.paylo
 func (p *PreparedImport) Preview() ImportPreview {
 	v := p.preview
 	v.Warnings = append([]string{}, v.Warnings...)
+	if v.NXWitness != nil {
+		summary := *v.NXWitness
+		v.NXWitness = &summary
+	}
 	return v
 }
 
@@ -152,6 +157,14 @@ func PrepareImport(data []byte, passphrase string) (*PreparedImport, error) {
 	}
 	for _, a := range b.Assets {
 		p.NeedsVault = p.NeedsVault || a.Meta.Encrypted
+		if a.Meta.Kind == nxWitnessKind {
+			n, err := decodeNXWitness(a.Payload)
+			if err != nil {
+				return nil, err
+			}
+			summary := n.summary()
+			p.NXWitness = &summary
+		}
 	}
 	payload, err := json.Marshal(b)
 	if err != nil {
@@ -245,6 +258,7 @@ func validateTransferBackup(b backupData) error {
 		}
 	}
 	total := 0
+	nxFound := false
 	for _, a := range b.Assets {
 		if err := add(a.Meta.ID); err != nil {
 			return err
@@ -252,6 +266,15 @@ func validateTransferBackup(b backupData) error {
 		total += len(a.Payload)
 		if len(a.Payload) > 16<<20 || total > 32<<20 {
 			return errors.New("site attachment limits exceeded")
+		}
+		if a.Meta.Kind == nxWitnessKind {
+			if nxFound || !a.Meta.Encrypted || a.Meta.DeviceID != "" || a.Meta.SiteID != b.Site.ID {
+				return errors.New("invalid NX Witness attachment")
+			}
+			if _, err := decodeNXWitness(a.Payload); err != nil {
+				return err
+			}
+			nxFound = true
 		}
 	}
 	for _, r := range b.Reservations {
