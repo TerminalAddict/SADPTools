@@ -9,6 +9,8 @@ const base=process.env.SITE_URL || 'http://127.0.0.1:8790';
 const out=path.join(root,'screenshots'); await mkdir(out,{recursive:true});
 const browser=await chromium.launch({headless:true});
 const report=[];
+const guideRoutes=['/sadp-tool.html','/cctv-camera-discovery.html','/cctv-installer-software.html','/activate-hikvision-camera.html','/change-camera-ip-address.html','/find-camera-different-subnet.html','/camera-setup-linux-mac.html','/transfer-camera-site.html'];
+
 async function featureChecks(page, theme, mobile = false) {
  const cards=page.locator('[data-feature]');
  assert.equal(await cards.count(),36);
@@ -61,7 +63,7 @@ try {
   const page=await context.newPage(); const errors=[]; const external=[];
   page.on('pageerror',error=>errors.push(error.message));
   page.on('request',r=>{if(new URL(r.url()).origin!==new URL(base).origin) external.push(r.url());});
-  for (const route of ['/','/features.html','/windows-help.html','/mac-help.html','/privacy.html']) {
+  for (const route of ['/','/features.html','/windows-help.html','/mac-help.html','/privacy.html','/guides.html',...guideRoutes]) {
    await page.goto(base+route,{waitUntil:'networkidle'});
    await page.evaluate(()=>document.fonts.ready);
    assert.equal(await page.locator('html').getAttribute('data-theme'),theme);
@@ -124,6 +126,13 @@ try {
   const macAxe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();
   report.push({theme,route:'mac-help-mobile',violations:macAxe.violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>({target:n.target,summary:n.failureSummary}))}))});
   await page.screenshot({path:path.join(out,`mac-help-mobile-${theme}.png`),fullPage:true});
+  for (const route of ['/guides.html',...guideRoutes]) {
+   await page.goto(base+route,{waitUntil:'networkidle'});
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Guide mobile overflow');
+   const guideAxe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();
+   report.push({theme,route:route+'-mobile',violations:guideAxe.violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>({target:n.target,summary:n.failureSummary}))}))});
+   await page.screenshot({path:path.join(out,route.slice(1,-5)+'-mobile-'+theme+'.png'),fullPage:true});
+  }
   await context.close();
  }
  await writeFile(path.join(out,'browser-report.json'),JSON.stringify({base,checkedAt:new Date().toISOString(),report},null,2)+'\n');

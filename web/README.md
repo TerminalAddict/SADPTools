@@ -2,6 +2,11 @@
 
 Public site: **https://sadptools.com/**
 
+Search visibility, Google setup and future submissions:
+**[Search engine instructions](SEARCH-ENGINES.md)**. Deployment automatically
+notifies IndexNow of changed public pages; Google Search Console requires the
+owner's verification and sitemap submission (now confirmed by the owner).
+
 The website promotes camera installation, management and diagnostics on **Windows, Linux and Apple Mac**. It includes a searchable 36-area features page with 72 light/dark desktop screenshots, Windows and Apple Mac installation help, a privacy page, social sharing metadata and a 1200 × 630 social image, JSON-LD, a sitemap, and first-party downloads. No source-code links or upstream release-provider links are exposed in pages, scripts, metadata or download responses.
 
 ## Layout
@@ -10,6 +15,10 @@ The website promotes camera installation, management and diagnostics on **Window
 - `public/_app/ReleaseProxy.php`: release resolution, checksum validation, cache and bounded HTTPS transfers. Apache denies public access to this directory.
 - `scripts/mac_help.py`: Mac installation, Gatekeeper, network access, credentials and manual-update guidance.
 - `scripts/build-pages.py`: page content and shared metadata/header/footer. Regenerate HTML after editing.
+- `scripts/discovery_guides.py` and `scripts/task_guides.py`: eight SADP/CCTV guides and their index, with steps, section links and platform/firmware limits.
+- `scripts/check_search_access.py`: read-only production checks of crawler access and HTML content without JavaScript.
+- `scripts/search_metadata.py` and `content/page-updates.json`: sitemap generation with dates tied to actual changes.
+- `scripts/submit_search.py`: deployment verification and changed-page IndexNow submission; receipts stay in ignored `.cache/`.
 - `content/features.json` and `scripts/feature_page.py`: the full feature catalogue, capability boundaries, captions and static features-page renderer.
 - `content/screenshots.json`: reviewed capture dimensions, provenance and SHA-256 hashes.
 - `public/assets/features.{css,js}`: responsive feature guide, local text search and accessible screenshot dialog.
@@ -54,7 +63,7 @@ python3 web/scripts/check-downloads.py
 
 Playwright and axe are pinned in `package-lock.json`. A compatible Playwright Chromium installation is required only for authoring/testing. The host already has it. If setting up a new development machine, `cd web && npx playwright install chromium` downloads the user-local browser; it does not install system packages.
 
-`validate.sh` invokes the maintainer's actual `/home/paul/bin/validate-site.sh --mode both`. Set `SADPTOOLS_SITE_VALIDATOR` to override that path. Its Nu validator blocks loopback URLs by default, so validate local files directly before deployment, then run the crawler against the public HTTPS site. The public crawl covers the homepage, features page, privacy page, Windows help, Mac help and both linked stylesheets. The 404 page is also validated directly.
+`validate.sh` invokes the maintainer's actual `/home/paul/bin/validate-site.sh --mode both`. Set `SADPTOOLS_SITE_VALIDATOR` to override that path. Its Nu validator blocks loopback URLs by default, so validate local files directly before deployment, then run the crawler against the public HTTPS site. The public crawl covers the homepage, features page, eight installer guides and their index, privacy page, Windows help, Mac help and both linked stylesheets. The 404 page is also validated directly.
 
 Deployment uses `rsync --delay-updates`, sends **only public application files**, and does not delete existing remote files or modify Apache/system configuration. It installs the download-directory access guard separately and excludes all runtime records and report credentials. Existing log ownership and permissions are preserved. Existing ACME files are preserved. Review removed public paths manually if a future site change retires a file. No Git push or app release is involved.
 

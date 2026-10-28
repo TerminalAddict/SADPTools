@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "python3 scripts/build-pages.py",
-    "test": "php tests/proxy.php && php tests/download-log.php && php tests/report-query.php && php tests/report-delete.php && python3 tests/download-report.py",
+    "test": "php tests/proxy.php && php tests/download-log.php && php tests/report-query.php && php tests/report-delete.php && python3 tests/download-report.py && python3 -m unittest discover -s tests -p 'test_*.py'",
     "preview": "php -S 127.0.0.1:8790 -t public scripts/router.php",
     "screenshots": "node scripts/check-browser.mjs",
     "validate": "bash scripts/validate.sh"

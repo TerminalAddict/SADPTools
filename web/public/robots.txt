@@ -1,5 +1,19 @@
+# Public guides are available to search crawlers. Private paths stay excluded.
 User-agent: *
 Disallow: /_app/
 Disallow: /download/
+Disallow: /download.php
 Disallow: /api/
+Disallow: /assets/private-downloads/
+Disallow: /assets/downloads_report.php
+
+# ChatGPT search: same public access and private exclusions.
+User-agent: OAI-SearchBot
+Disallow: /_app/
+Disallow: /download/
+Disallow: /download.php
+Disallow: /api/
+Disallow: /assets/private-downloads/
+Disallow: /assets/downloads_report.php
+
 Sitemap: https://sadptools.com/sitemap.xml

@@ -3,6 +3,9 @@ DirectoryIndex index.html
 RewriteEngine On
 RewriteCond %{HTTP_HOST} ^www\.sadptools\.com$ [NC]
 RewriteRule ^ https://sadptools.com%{REQUEST_URI} [R=301,L,NE]
+# Consolidate direct index.html requests without redirecting DirectoryIndex.
+RewriteCond %{THE_REQUEST} \s/+index\.html(?:[?\s]) [NC]
+RewriteRule ^index\.html$ https://sadptools.com/ [R=301,L,NE]
 RewriteRule ^(?:_app|\.git|\.credentials)(?:/|\.|$) - [F,L]
 RewriteRule ^wordfence-waf\.php$ - [F,L]
 # Also deny here, outside the writable log directory.
@@ -21,6 +24,12 @@ RewriteRule ^download/([a-z0-9.-]+)$ download.php?target=$1 [END,QSD]
     Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
     <FilesMatch "\.(?:css|js|svg|png|webp|woff2)$">
         Header set Cache-Control "public, max-age=3600"
+    </FilesMatch>
+    <FilesMatch "^(?:robots\.txt|sitemap\.xml|indexnow-key\.txt)$">
+        Header set Cache-Control "public, max-age=300, must-revalidate"
+    </FilesMatch>
+    <FilesMatch "^(?:indexnow-key\.txt|releases\.php|download\.php)$">
+        Header always set X-Robots-Tag "noindex"
     </FilesMatch>
 </IfModule>
 ErrorDocument 404 /404.html

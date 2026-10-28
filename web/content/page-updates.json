@@ -1,0 +1,58 @@
+{
+  "index.html": {
+    "sha256": "4948f55d3164193f36c206e3e63e4075975420c68da396fd3ecad2a255821ac2",
+    "lastmod": "2026-10-28T01:59:24Z"
+  },
+  "features.html": {
+    "sha256": "9e2319ff892670c35fd948fc91cdcb3db1d0284fed0e8061c7f0838e2dc70644",
+    "lastmod": "2026-10-28T01:59:24Z"
+  },
+  "guides.html": {
+    "sha256": "56ce61afaafc060a633055e9418898248653061b50b571758fe09210ad080416",
+    "lastmod": "2026-10-28T01:59:24Z"
+  },
+  "sadp-tool.html": {
+    "sha256": "fcf1be396e183798744376e39513d336262845547069dfce6c3323888867848f",
+    "lastmod": "2026-10-28T01:59:24Z"
+  },
+  "cctv-camera-discovery.html": {
+    "sha256": "6ede359cb8185a25e4d25a6dc4d3f8e798f364cca4c7613e250d228d7ba4569d",
+    "lastmod": "2026-10-28T01:59:24Z"
+  },
+  "cctv-installer-software.html": {
+    "sha256": "956e2e84e254efc58e479c73a0de82989b8a6e6c25899d7bdeebbbad96b688ff",
+    "lastmod": "2026-10-28T01:59:24Z"
+  },
+  "activate-hikvision-camera.html": {
+    "sha256": "18b1e7a87f6dfa2b601b36b702791c59eb7e68965320a0c956e24ea1f0d88e9a",
+    "lastmod": "2026-10-28T01:59:24Z"
+  },
+  "change-camera-ip-address.html": {
+    "sha256": "0f4a396e6a508457ddf991277f59fe057b924ad0b27327b2bd903810549f1c09",
+    "lastmod": "2026-10-28T01:59:24Z"
+  },
+  "find-camera-different-subnet.html": {
+    "sha256": "4a3a05f06dad0455546240111f000bf15a5e5eac538586fc0ec19eef9a90b032",
+    "lastmod": "2026-10-28T02:00:51Z"
+  },
+  "camera-setup-linux-mac.html": {
+    "sha256": "7cb29397ed5191919b10506f167b1adfe446c9665fb512de07a45d8e5d0fe23d",
+    "lastmod": "2026-10-28T01:59:24Z"
+  },
+  "transfer-camera-site.html": {
+    "sha256": "27c38a3cc1bbd1254705810c669a12c5b72e7b76b9aa154bc7911084572fab8e",
+    "lastmod": "2026-10-28T01:59:24Z"
+  },
+  "windows-help.html": {
+    "sha256": "361ecf6e41157679bfaf9c16e17b46ad25215d69ffb95c56d28194816944fc67",
+    "lastmod": "2026-10-28T01:59:24Z"
+  },
+  "mac-help.html": {
+    "sha256": "f117a9afe33f2f59c0374ecf1b1fefddb63a5ed2503c763acde2c3b6e8ba4e03",
+    "lastmod": "2026-10-28T01:59:24Z"
+  },
+  "privacy.html": {
+    "sha256": "9588eaae80378ccbcbd3154ccba6d8710a301c7e24928451d9ba1af9f723aa93",
+    "lastmod": "2026-10-28T01:59:24Z"
+  }
+}

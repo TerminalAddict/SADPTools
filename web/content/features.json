@@ -125,7 +125,8 @@
           "points": [
             "Keep separate named sites with customer context, networks and tags.",
             "Save cameras, recorders and locations; search the inventory.",
-            "Reconcile observations and retain device identity when addresses change."
+            "Reconcile observations and retain device identity when addresses change.",
+            "Import NX Camera Info reports with encrypted NX Witness server, user, storage and licence details; this area appears only on relevant imported sites."
           ],
           "caption": "Saved demonstration site containing synthetic camera and recorder records."
         },
@@ -160,7 +161,8 @@
           "points": [
             "Export site data and assets in a passphrase-protected portable backup.",
             "Restore a separate copy as a new site, with remapped local IDs.",
-            "Keep the backup and its passphrase under your control."
+            "Keep the backup and its passphrase under your control.",
+            "Transfer the entire site between laptops, including known camera passwords and imported NX Witness information."
           ],
           "note": "A restored copy has new local asset IDs; print new equipment labels for that copy.",
           "caption": "Portable site-backup dialog; no real site data or passphrase is shown."
