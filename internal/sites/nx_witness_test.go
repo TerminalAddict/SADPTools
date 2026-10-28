@@ -36,6 +36,8 @@ func TestNXWitnessEncryptedPersistenceAndPortableTransfer(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { s.Close() })
+	// Windows account protection is automatic until explicitly locked.
+	s.Lock()
 	if _, err = s.ImportSite(p, "Locked"); err == nil {
 		t.Fatal("protected inventory imported without vault")
 	}
@@ -101,6 +103,13 @@ func TestNXWitnessEncryptedPersistenceAndPortableTransfer(t *testing.T) {
 	if err != nil || !view.HasNXWitness {
 		t.Fatal("NX metadata lost after reopening")
 	}
+	if s.VaultStatus().Automatic {
+		automatic, err := s.NXWitness(site.ID)
+		if err != nil || !reflect.DeepEqual(n, automatic) {
+			t.Fatal("automatic Windows snapshot access failed")
+		}
+	}
+	s.Lock()
 	if _, err = s.NXWitness(site.ID); err == nil {
 		t.Fatal("locked snapshot read")
 	}
